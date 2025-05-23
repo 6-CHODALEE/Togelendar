@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+
+{% block body %}
+    <!--약속명-->
+    <div class="mt-2">
+        <span>약속명 : <input type="text"></span>
+    </div>
+
+    <!--시작일-->
+    <div class="d-flex align-items-center gap-2 mt-2">
+        <span>시작일 : </span>
+
+        <!--시작 년도 선택-->
+        <select id="start-year" name="start-year" class="form-select w-auto">
+            <option selected disabled>선택</option>
+            {% for year in years %}
+                <option value="{{ year }}">{{ year }}</option>
+            {% endfor %}
+        </select>
+        <span>년</span>
+            
+        <!--시작 월 선택-->
+        <select id="start-month" name="start-month" class="form-select w-auto">
+            <option selected disabled>선택</option>
+            {% for month in months %}
+                <option value="{{ month }}">{{ month }}</option>
+            {% endfor %}
+        </select>
+        <span>월</span>
+
+        <!--시작 일 선택-->
+        <select id="start-day" name="start-day" class="form-select w-auto">
+            <option selected disabled>선택</option>
+            {% for day in days %}
+                <option value="{{ day }}">{{ day }}</option>
+            {% endfor %}
+        </select>
+        <span>일</span>
+
+    </div>
+
+    <!--종료일-->
+    <div class="d-flex align-items-center gap-2 mt-2">
+        <span>종료일 : </span>
+
+        <!--종료 년도 선택-->
+        <select id="end-year" name="end-year" class="form-select w-auto">
+            <option selected disabled>선택</option>
+            {% for year in years %}
+                <option value="{{ year }}">{{ year }}</option>
+            {% endfor %}
+        </select>
+        <span>년</span>
+            
+        <!--종료 월 선택-->
+        <select id="end-month" name="end-month" class="form-select w-auto">
+            <option selected disabled>선택</option>
+            {% for month in months %}
+                <option value="{{ month }}">{{ month }}</option>
+            {% endfor %}
+        </select>
+        <span>월</span>
+
+        <!--종료 일 선택-->
+        <select id="end-day" name="end-day" class="form-select w-auto">
+            <option selected disabled>선택</option>
+            {% for day in days %}
+                <option value="{{ day }}">{{ day }}</option>
+            {% endfor %}
+        </select>
+        <span>일</span>
+
+    </div>
+
+    <!--달력 Flatpickr사용-->
+    <div id="calendar"></div>
+
+    <!--제출 버튼-->
+    <button class="mt-2">다음</button>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        // 오늘 날짜 계산
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const todayStr = '${yyyy}-${mm}-${dd}';
+
+        // flatpickr 초기화
+        const calendar = flatpickr("#calendar", {
+            inline: true,
+            locale: "ko",
+            minDate: "today",
+            mode: "range",
+            dateFormat: "Y-m-d",
+            // defaultDate: null, //디폴터 날짜는 null
+            onChange: function (selectedDates){
+                // 달력에서 날짜 선택시 드롭다운 자동 업데이트
+                const [start, end] = selectedDates;
+
+                if (start) {
+                    document.getElementById("start-year").value = start.getFullYear();
+                    document.getElementById("start-month").value = start.getMonth() + 1;
+                    document.getElementById("start-day").value = start.getDate();
+                }
+                
+                if (end) {
+                    document.getElementById("end-year").value = end.getFullYear();
+                    document.getElementById("end-month").value = end.getMonth() +1;
+                    document.getElementById("end-day").value = end.getDate();
+                }
+                
+            }
+        });
+        
+        // 드롭다운에서 날짜 선택하면 달력 업데이트
+        function updateCalendar() {
+            const start_year = document.getElementById("start-year").value;
+            const start_month = document.getElementById("start-month").value;
+            const start_day = document.getElementById("start-day").value;
+            const end_year = document.getElementById("end-year").value;
+            const end_month = document.getElementById("end-month").value;
+            const end_day = document.getElementById("end-day").value;
+            
+            if (start_year && start_month && start_day && end_year && end_month && end_day) {
+                //월, 일이 한 자리일 때 01,02처럼 2자리로 보정
+                const startDate = `${start_year}-${start_month.padStart(2, '0')}-${start_day.padStart(2, '0')}`;
+                const endDate = `${end_year}-${end_month.padStart(2, '0')}-${end_day.padStart(2, '0')}`;
+                calendar.setDate([startDate, endDate], true);
+                
+                if (new Date(startDate) >= today && new Date(endDate) >= new Date(startDate)) {
+                    calendar.setDate([startDate, endDate], true);
+                } else {
+                    alert("종료일은 시작일보다 늦어야하며, 과거 날짜는 선택할 수 없습니다.");
+                    calendar.clear();
+                }
+            }
+        }
+        
+        // 드롭다운 이벤트 리스너 등록
+        ["start-year", "start-month", "start-day", "end-year", "end-month", "end-day"].forEach(id => {
+            document.getElementById(id).addEventListener("change", updateCalendar);
+        })
+        disablePastDates();
+        disableEndPastDates();
+
+        // 시작일 드롭다운에서 과거 날짜 비활성화 처리
+        function disablePastDates() {
+            // 시작일 드롭다운 요소들 가져오기
+            const yearSelect = document.getElementById("start-year");
+            const monthSelect = document.getElementById("start-month");
+            const daySelect = document.getElementById("start-day");
+            
+            // 1. 과거 연도 비활성화
+            [...yearSelect.options].forEach(option => {
+                if (option.value && parseInt(option.value) < yyyy) {
+                    // 현재 연도보다 과거인 연도는 선택할 수 없게 비활성화
+                    option.disabled = true;
+                }
+            });
+
+            // 2. 시작일 연도가 변경되면 해당 연도에 맞는 월 옵션들을 필터링
+            yearSelect.addEventListener("change", () => {
+                const y = parseInt(yearSelect.value);
+                [...monthSelect.options].forEach(option => {
+                    if (option.value) {
+                        const m = parseInt(option.value);
+                        // 선택한 연도가 현재 연도라면 현재 월보다 이전 월은 비활성화
+                        option.disabled = y === yyyy && m < today.getMonth() + 1;
+                    }
+                });
+                // 월, 일이 바뀌었으니 초기화
+                monthSelect.value = "선택";
+                daySelect.value = "선택";
+                disableDayOptions();
+            });
+
+            // 3. 시작일 월이 변경되면 해당 월에 맞는 일 옵션들을 필터링
+            monthSelect.addEventListener("change", disableDayOptions);
+
+            function disableDayOptions() {
+                const y = parseInt(yearSelect.value);
+                const m = parseInt(monthSelect.value);
+                [...daySelect.options].forEach(option => {
+                    if (option.value) {
+                        const d = parseInt(option.value);
+                        //선택한 연도, 월이 현재 연도, 월이라면 현재 일보다 이전 날짜는 비활성화
+                        option.disabled = y === yyyy && m === today.getMonth() + 1 && d < today.getDate();
+                    }
+                });
+            }
+        }
+
+        // 종료일 드롭다운 시작일(또는 오늘)보다 앞이면 비활성화 처리
+        function disableEndPastDates() {
+            // 종료일 드롭다운 요소 가져오기
+            const endYear = document.getElementById("end-year");
+            const endMonth = document.getElementById("end-month");
+            const endDay = document.getElementById("end-day");
+
+            // 시작일 드롭다운에서 선택된 값을 숫자로 가져오기
+            const startYear = parseInt(document.getElementById("start-year").value);
+            const startMonth = parseInt(document.getElementById("start-month").value);
+            const startDay = parseInt(document.getElementById("start-day").value);
+
+            // 시작일이 완전히 선택되지 않았으면 종료일 검사 X
+            if (!startYear || !startMonth || !startDay) return;
+
+            // 시작일 객체 생성 (월은 0부터 시작하므로 -1)
+            const startDate = new Date(startYear, startMonth - 1, startDay);
+
+            // 종료 연도 드롭다운 옵션들을 순회하면서 조건에 따라 비활성화 처리
+            [...endYear.options].forEach(option => {
+                if (option.value) {
+                const y = parseInt(option.value);
+                // 현재 연도보다 작거나 시작연도보다 작으면 선택 불가
+                option.disabled = y < startYear || y < today.getFullYear();
+                }
+        });
+
+        // 1. 종료 연도가 변경되면 해당 연도에 맞는 월 옵션들을 필터링
+        endYear.addEventListener("change", () => {
+            const y = parseInt(endYear.value);
+            [...endMonth.options].forEach(option => {
+            if (option.value) {
+                const m = parseInt(option.value);
+                // 시작연도이면서 시작월보다 이전이면 비활성화
+                const disableByYear = y === startYear && m < startMonth;
+                // 오늘 연도이면서 오늘 월보다 이전이면 비활성화
+                const disableByToday = y === today.getFullYear() && m < today.getMonth() + 1;
+                option.disabled = disableByYear || disableByToday;
+            }
+            });
+
+            // 월이 바뀌면 일도 초기화하고 새로 필터링해야 하므로 초기화 후 재적용
+            endMonth.value = "선택";
+            endDay.value = "선택";
+            disableEndDays();
+        });
+
+        // 2. 종료 월이 바뀔 때, 일 옵션도 필터링
+        endMonth.addEventListener("change", disableEndDays);
+
+        function disableEndDays() {
+            const y = parseInt(endYear.value);
+            const m = parseInt(endMonth.value);
+            if (!y || !m) return;
+
+            // 종료 일 드롭다운의 각 옵션(날짜)을 확인
+            [...endDay.options].forEach(option => {
+            if (option.value) {
+                const d = parseInt(option.value);
+                const endDate = new Date(y, m - 1, d);
+                // 종료일이 시작일보다 빠르거나 오늘보다 이전이면 비활성화
+                option.disabled = endDate < startDate || endDate < today;
+            }
+            });
+        }
+        }
+
+    </script>
+{% endblock%}
