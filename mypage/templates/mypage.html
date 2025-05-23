@@ -7,14 +7,32 @@
     <!-- 상단: 프로필 + 날씨 -->
     <div class="row">
         <!-- 좌측: 프로필 -->
-        <div class="col-md-4 text-center">
+        <div class="col-md-4 text-center position-relative">
             <p class="fw-bold">{{ me }}</p>
             <p>함친: 명</p>
-            <a href="#" class="btn btn-secondary btn-sm mb-2">함친 추가</a><br>
+
+            <!-- ✅ 함친 추가 버튼 -->
+            <a href="#" id="togglePopover" class="btn btn-secondary btn-sm mb-2">함친 추가</a><br>
             <a href="#" class="btn btn-outline-dark btn-sm">프로필 편집</a>
+
+            <!-- ✅ 팝업 폼 -->
+            <div id="popoverForm" class="popover-form">
+                <div class="popover-arrow"></div>
+                <form id="friendForm" onsubmit="return false">
+                    <div class="mb-2">
+                        <label for="friendName" class="form-label">닉네임 검색</label>
+                        <input type="text" class="form-control" id="friendName" placeholder="닉네임 입력">
+                    </div>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="searchNickname()">검색</button>
+                    <ul id="searchResults" class="list-group mt-2"></ul>
+                    <div class="d-flex justify-content-end mt-2">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="hidePopover()">닫기</button>
+                    </div>
+                </form>
+            </div>
         </div>
 
-        <!-- 우측: 날씨 박스 -->
+        <!-- 우측: 날씨 -->
         <div class="col-md-8">
             <h5>오늘의 날씨</h5>
             <div class="border p-3 bg-white" style="height: 100px;">
@@ -40,4 +58,87 @@
         {% endfor %}
     </div>
 </div>
+
+<!-- ✅ 팝업 관련 스타일 -->
+<style>
+.popover-form {
+  position: absolute;
+  background: white;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  padding: 15px;
+  border-radius: 10px;
+  z-index: 1000;
+  width: 300px;
+  display: none;
+}
+.popover-arrow {
+  position: absolute;
+  top: -10px;
+  left: 20px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid white;
+}
+</style>
+
+<!-- ✅ 팝업 동작 스크립트 -->
+<script>
+const btn = document.getElementById("togglePopover");
+const popover = document.getElementById("popoverForm");
+
+btn.addEventListener("click", (e) => {
+  e.preventDefault();  // 링크 이동 방지
+  const rect = btn.getBoundingClientRect();
+  popover.style.top = `${rect.bottom + window.scrollY + 5}px`;
+  popover.style.left = `${rect.left + window.scrollX}px`;
+  popover.style.display = popover.style.display === "none" ? "block" : "none";
+});
+
+function hidePopover() {
+  popover.style.display = "none";
+}
+
+function searchNickname() {
+  const keyword = document.getElementById("friendName").value.trim();
+  const results = document.getElementById("searchResults");
+
+  results.innerHTML = "";
+
+  if (!keyword) {
+    results.innerHTML = "<li class='list-group-item text-muted'>닉네임을 입력해주세요.</li>";
+    return;
+  }
+
+  // 임시 사용자 목록 (Elasticsearch 연결 전)
+  const mockUsers = ["정승환", "정지훈", "정세진", "정은우"];
+  const filtered = mockUsers.filter(nick => nick.includes(keyword));
+
+  if (filtered.length === 0) {
+    results.innerHTML = "<li class='list-group-item text-muted'>검색 결과 없음</li>";
+  } else {
+    filtered.forEach(name => {
+      const li = document.createElement("li");
+      li.textContent = name;
+      li.className = "list-group-item list-group-item-action";
+      li.style.cursor = "pointer";
+      li.onclick = () => selectUser(name);
+      results.appendChild(li);
+    });
+  }
+}
+
+function selectUser(nickname) {
+  alert(`'${nickname}'님을 선택했습니다.`);
+  hidePopover();
+}
+
+window.addEventListener("click", (e) => {
+  if (!popover.contains(e.target) && e.target !== btn) {
+    hidePopover();
+  }
+});
+</script>
 {% endblock %}
