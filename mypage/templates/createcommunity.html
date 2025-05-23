@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block body %}
+  <p>커뮤니티 생성</p>
+
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <button type="submit" class="btn btn-warning btn-sm">생성하기</button> 
+  </form>
+{% endblock %}
