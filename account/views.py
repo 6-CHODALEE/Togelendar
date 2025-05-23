@@ -30,7 +30,7 @@ def login(request):
         if form.is_valid():
             user = form.get_user()
             auth_login(request, user)
-            return redirect('account:index')
+            return redirect('mypage:mypage', username=user.username)
     else:
         form = CustomAuthenticationForm()
 
