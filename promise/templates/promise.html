@@ -76,7 +76,7 @@
 
         </div>
 
-        <!--달력 Flatpickr사용-->
+        <!--달력 FullCalendar 사용-->
         <div id="calendar" class="my-4 mx-auto" style="max-width: 1000px; overflow: visible;"></div>
         
         <!--제출 버튼-->
@@ -85,124 +85,213 @@
         </div>
     </div>
 
-    <style>
-        /* flatpickr 달력 컨테이너 조정 */
-        .flatpickr-calendar.inline {
-            /* transform: scale(1.25);  달력 전체를 1.4배 확대 */ 
-            transform-origin: top center;
-            font-size: 16px !important;
-            padding: 20px;
-            width: 100%;
-            margin: 0 auto;
-            box-sizing: border-box;
-        }
-        
-        .faltpickr-innerContainer {
-            display: block;
-        }
-
-        .flatpickr-weekdays {
-            display: grid !important;
-            grid-template-columns: repeat(7, 1fr);
-            text-align: center;
-            margin-bottom: 8px;
-            /* padding: 0 8px; */
-        }
-        
-        .flatpickr-days {
-            display: grid !important;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
-            justify-items: center;
-            padding: 12px;
-        }
-
-        /* 달력의 요일 표시 */
-        .flatpickr-weekday {
-            font-size: 16px !important;
+    <style>        
+        /* full calendar 달력 컨테이너 조정 */
+        .fc-daygrid-day-number {
+            font-size: 1.2rem;
             font-weight: bold;
-            display: block !important;
-            width: 100%;
-        }
-        
-        /* 달력 테이블 셀 크기 조정 */
-        .flatpickr-day {
-            width: 48px !important;
-            height: 48px !important;
-            line-height: 48px !important;
-            text-align: center;
-            font-size: 18px !important;
-            border-radius: 999px !important;
-            margin: 2px;
         }
 
-        /* 달력 상단 연도/월 텍스트 크기 조정*/
-        .flatpickr-current-month {
-            font-size: 20px !important;
+        .fc-toolbar-title {
+            font-size: 1.5rem;
             font-weight: bold;
             text-align: center;
-            margin-bottom: 8px;
         }
 
+        .fc-header-toolbar {
+            justify-content: center;
+            margin-bottom: 10px;
+        }
 
-        /* 일요일 */
-        .flatpickr-weekday:nth-child(1) {
-            color: red;
+        /* 요일 헤더 스타일 */
+        .fc-col-header-cell-cushion {
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
         }
-        /* 토요일 */
-        .flatpickr-weekday:nth-child(7) {
-            color: blue;
-        }
+
+        /* 토요일, 일요일 색 지정*/
+        .fc-col-header-cell:nth-child(1) .fc-col-header-cell-cushion {color: red;}
+        .fc-col-header-cell:nth-child(7) .fc-col-header-cell-cushion {color: blue;}
     
+        .fc-daygrid-day-frame {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 80px;
+        }
+
+        /* 전체 달력 테두리 */
+        #calendar {
+            /* border: 2px solid black; */
+            padding: 10px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 폼 전체 스타일 정돈 */
+        .container label {
+            font-weight: bold;
+        }
+
+        .mb-3 {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .fc-event {
+            pointer-events: none !important;
+        }
+        .fc-bg-event {
+            z-index: 0 !important;
+        }
     </style>
 {% endblock %}
 
 {% block scripts %}
     <script>
         let calendar;
+        let clickCount = 0;
+        let startDate = null;
 
         // 오늘 날짜 계산
         const today = new Date();
+        today.setHours(0, 0, 0, 0);
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const dd = String(today.getDate()).padStart(2, '0');
-        const todayStr = '${yyyy}-${mm}-${dd}';
+        const todayStr = `${yyyy}-${mm}-${dd}`;
         
-        // flatpickr 초기화
-
         document.addEventListener("DOMContentLoaded", function () {
-            var calendarEl = document.getElementById('calendar');
+            const calendarEl = document.getElementById('calendar');
             
-            var calendar = new FullCalendar.Calendar(calendarEl, {
+            calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
-                // inline: true,
                 locale: "ko",
-                minDate: "today",
-                mode: "range",
-                dateFormat: "Y-m-d",
-                // defaultDate: null, //디폴터 날짜는 null
-                onChange: function (selectedDates){
-                    // 달력에서 날짜 선택시 드롭다운 자동 업데이트
-                    const [start, end] = selectedDates;
-                    
-                    if (start) {
-                        document.getElementById("start-year").value = start.getFullYear();
-                        document.getElementById("start-month").value = start.getMonth() + 1;
-                        document.getElementById("start-day").value = start.getDate();
+                height: 'auto',
+                selectable: true,
+                validRange: {
+                    start: todayStr // 오늘 이후부터 선택 가능
+                },
+                events: [],
+                dateClick: function (info) {
+                    clickCount += 1;
+
+                    if (clickCount === 1) {
+                        startDate = new Date(info.date.getFullYear(), info.date.getMonth(), info.date.getDate());
+                        // calendar.getEvents().forEach(e => e.remove());
+                        calendar.addEvent({
+                            title: '시작',
+                            start: startDate,
+                            display: 'background',
+                            color: '#c6f6d5'
+                        });
+                    } else if (clickCount === 2) {
+                        const endDate = new Date(info.date.getFullYear(), info.date.getMonth(), info.date.getDate());
+                        calendar.getEvents().forEach(e => e.remove());
+
+                        let realStart = startDate < endDate ? startDate : endDate;
+                        let realEnd = startDate > endDate ? startDate : endDate;
+                        // fullcalendar는 end를 다음날로 줘야 포함됨
+                        const realEndMidnight = new Date(realEnd.getFullYear(), realEnd.getMonth(), realEnd.getDate());
+                        const inclusiveEnd = new Date(realEndMidnight.getTime() + 24 * 60 * 60 * 1000);
+
+                        const realStartStr = `${realStart.getFullYear()}-${String(realStart.getMonth() + 1).padStart(2, '0')}-${String(realStart.getDate()).padStart(2, '0')}`;
+                        const inclusiveEndStr = `${inclusiveEnd.getFullYear()}-${String(inclusiveEnd.getMonth() + 1).padStart(2, '0')}-${String(inclusiveEnd.getDate()).padStart(2, '0')}`;
+
+
+                        calendar.addEvent({
+                            start: realStartStr,
+                            end: inclusiveEndStr,
+                            allDay: true,
+                            display: 'background',
+                            color: '#bee3f8'
+                        });
+                        
+                        
+                        // 드롭다운에 시작일 반영
+                        document.getElementById("start-year").value = realStart.getFullYear();
+                        document.getElementById("start-month").value = realStart.getMonth() + 1;
+                        document.getElementById("start-day").value = realStart.getDate();
+                        
+                        // 드롭다운에 종료일 반영
+                        document.getElementById("end-year").value = realEnd.getFullYear();
+                        document.getElementById("end-month").value = realEnd.getMonth() +1;
+                        document.getElementById("end-day").value = realEnd.getDate();
+                        
+                        // 다음 클릭부터 다시 시작
+                        clickCount = 0;
+                        startDate = null;                    
                     }
-                    
-                    if (end) {
-                        document.getElementById("end-year").value = end.getFullYear();
-                        document.getElementById("end-month").value = end.getMonth() +1;
-                        document.getElementById("end-day").value = end.getDate();
-                    }
-                    
                 }
+            });
+            
+            calendar.render();
+            
+            ["start-year", "start-month"].forEach(id => {
+                document.getElementById(id).addEventListener("change", () => {
+                    const y = parseInt(document.getElementById("start-year").value);
+                    const m = parseInt(document.getElementById("start-month").value);
+
+                    if (!isNaN(y) && !isNaN(m)) {
+                        calendar.gotoDate(new Date(y, m - 1, 1));
+                    }
+                });
+                document.getElementById(id).addEventListener("change", disableDayOptions);
+            });
+
+            ["start-year", "start-month", "start-day", "end-year", "end-month", "end-day"].forEach(id => {
+                document.getElementById(id).addEventListener("change", updateCalendar);
+            });
+            
+            // 시작일 하이라이트
+            function renderStartDateHighlight(year, month, day) {
+                if (!calendar) return;
+    
+                const start = new Date(year, month - 1, day);
+                const startStr = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}`;
+    
+                // 기존 이벤트 제거
+                calendar.getEvents().forEach(e => e.remove());
+    
+                // 새 이벤트 추가
+                calendar.addEvent({
+                    start: startStr,
+                    end: startStr,
+                    allDay: true,
+                    display: 'background',
+                    color: '#bee3f8'
+                });
+            }
+
+            ["start-year", "start-month", "start-day"].forEach(id => {
+                document.getElementById(id).addEventListener("change", () => {
+                    const y = parseInt(document.getElementById("start-year").value);
+                    const m = parseInt(document.getElementById("start-month").value);
+                    const d = parseInt(document.getElementById("start-day").value);
+
+                    if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+                        renderStartDateHighlight(y, m, d);
+                    }
+                });
             })
+
+            // 드롭다운 이벤트 리스너 등록
+            disablePastDates();
+            disableEndPastDates();
         });
+        
         
         // 드롭다운에서 날짜 선택하면 달력 업데이트
         function updateCalendar() {
+            if (!calendar) return;
+
             const start_year = document.getElementById("start-year").value;
             const start_month = document.getElementById("start-month").value;
             const start_day = document.getElementById("start-day").value;
@@ -210,27 +299,57 @@
             const end_month = document.getElementById("end-month").value;
             const end_day = document.getElementById("end-day").value;
             
-            if (start_year && start_month && start_day && end_year && end_month && end_day) {
-                //월, 일이 한 자리일 때 01,02처럼 2자리로 보정
-                const startDate = `${start_year}-${start_month.padStart(2, '0')}-${start_day.padStart(2, '0')}`;
-                const endDate = `${end_year}-${end_month.padStart(2, '0')}-${end_day.padStart(2, '0')}`;
-                calendar.setDate([startDate, endDate], true);
+            // if (!(start_year && start_month && start_day && end_year && end_month && end_day)) return;
+            if (
+                isNaN(parseInt(start_year)) || isNaN(parseInt(start_month)) || isNaN(parseInt(start_day)) ||
+                isNaN(parseInt(end_year)) || isNaN(parseInt(end_month)) || isNaN(parseInt(end_day))
+            ) {
+                return;
+            }
+
+            //월, 일이 한 자리일 때 01,02처럼 2자리로 보정
+                const sm = String(start_month).padStart(2, '0');
+                const sd = String(start_day).padStart(2, '0');
+                const em = String(end_month).padStart(2, '0');
+                const ed = String(end_day).padStart(2, '0');
+                const startDateStr = `${start_year}-${sm}-${sd}`;
+                const endDateStr = `${end_year}-${em}-${ed}`;
+
+                const start = new Date(Number(start_year), Number(start_month) - 1, Number(start_day));
+                const end = new Date(Number(end_year), Number(end_month) - 1, Number(end_day));
+
+
+            if (start >= today && end >= start) {
+                // 기존 이벤트 제거
+                calendar.getEvents().forEach(e => e.remove());
+
+                // 시작일/종료일 중 어떤 것이 먼저인지 비교
+                const realStart = start < end ? start : end;
+                const realEnd = start > end ? start : end;
+
+                // fullcalendar는 end날짜를 포함하지 않기 때문에 하루 더해줌
+                const realEndMidnight = new Date(realEnd.getFullYear(), realEnd. getMonth(), realEnd.getDate());
+                const inclusiveEnd = new Date(realEndMidnight.getTime() + 24 * 60 * 60 * 1000);
                 
-                if (new Date(startDate) >= today && new Date(endDate) >= new Date(startDate)) {
-                    calendar.setDate([startDate, endDate], true);
-                } else {
-                    alert("종료일은 시작일보다 늦어야하며, 과거 날짜는 선택할 수 없습니다.");
-                    calendar.clear();
-                }
+                // 날짜를 문자열(YYYY-MM-DD)로 변환
+                const realStartStr = `${realStart.getFullYear()}-${String(realStart.getMonth() + 1).padStart(2, '0')}-${String(realStart.getDate()).padStart(2, '0')}`;
+                const inclusiveEndStr = `${inclusiveEnd.getFullYear()}-${String(inclusiveEnd.getMonth() + 1).padStart(2, '0')}-${String(inclusiveEnd.getDate()).padStart(2, '0')}`;
+
+
+                // 새로운 이벤트 추가
+                calendar.addEvent({
+                    start: realStartStr,
+                    end: inclusiveEndStr,
+                    allDay:  true,
+                    display: 'background',
+                    color: '#bee3f8'
+                });
+
+
             }
         }
         
-        // 드롭다운 이벤트 리스너 등록
-        ["start-year", "start-month", "start-day", "end-year", "end-month", "end-day"].forEach(id => {
-            document.getElementById(id).addEventListener("change", updateCalendar);
-        })
-        disablePastDates();
-        disableEndPastDates();
+        
 
         // 시작일 드롭다운에서 과거 날짜 비활성화 처리
         function disablePastDates() {
@@ -254,7 +373,7 @@
                     if (option.value) {
                         const m = parseInt(option.value);
                         // 선택한 연도가 현재 연도라면 현재 월보다 이전 월은 비활성화
-                        option.disabled = y === yyyy && m < today.getMonth() + 1;
+                        option.disabled = (y === yyyy && m < today.getMonth() + 1);
                     }
                 });
                 // 월, 일이 바뀌었으니 초기화
@@ -265,18 +384,32 @@
 
             // 3. 시작일 월이 변경되면 해당 월에 맞는 일 옵션들을 필터링
             monthSelect.addEventListener("change", disableDayOptions);
+            daySelect.addEventListener("change", disableDayOptions);
 
-            function disableDayOptions() {
-                const y = parseInt(yearSelect.value);
-                const m = parseInt(monthSelect.value);
-                [...daySelect.options].forEach(option => {
-                    if (option.value) {
-                        const d = parseInt(option.value);
-                        //선택한 연도, 월이 현재 연도, 월이라면 현재 일보다 이전 날짜는 비활성화
-                        option.disabled = y === yyyy && m === today.getMonth() + 1 && d < today.getDate();
-                    }
-                });
+            
+            // 처음에도 검사
+            if (yearSelect.value !== "선택" && monthSelect.value !=="선택") {
+                disableDayOptions();
             }
+        }
+        
+        function disableDayOptions() {
+            const yearSelect = document.getElementById("start-year");
+            const monthSelect = document.getElementById("start-month");
+            const daySelect = document.getElementById("start-day");
+
+            const y = parseInt(yearSelect.value);
+            const m = parseInt(monthSelect.value);
+
+            if (!y || !m) return;
+
+            [...daySelect.options].forEach(option => {
+                if (!option.value) return;
+                    const d = parseInt(option.value);
+                    const selectedDate = new Date(y, m - 1, d);
+                    //선택한 연도, 월이 현재 연도, 월이라면 현재 일보다 이전 날짜는 비활성화
+                    option.disabled = selectedDate < today;
+            });
         }
 
         // 종료일 드롭다운 시작일(또는 오늘)보다 앞이면 비활성화 처리
@@ -297,7 +430,7 @@
             // 시작일 객체 생성 (월은 0부터 시작하므로 -1)
             const startDate = new Date(startYear, startMonth - 1, startDay);
 
-            // 종료 연도 드롭다운 옵션들을 순회하면서 조건에 따라 비활성화 처리
+            // 종료 연도 비활성화
             [...endYear.options].forEach(option => {
                 if (option.value) {
                 const y = parseInt(option.value);
@@ -306,45 +439,77 @@
                 }
         });
 
-        // 1. 종료 연도가 변경되면 해당 연도에 맞는 월 옵션들을 필터링
-        endYear.addEventListener("change", () => {
-            const y = parseInt(endYear.value);
-            [...endMonth.options].forEach(option => {
-            if (option.value) {
-                const m = parseInt(option.value);
-                // 시작연도이면서 시작월보다 이전이면 비활성화
-                const disableByYear = y === startYear && m < startMonth;
-                // 오늘 연도이면서 오늘 월보다 이전이면 비활성화
-                const disableByToday = y === today.getFullYear() && m < today.getMonth() + 1;
-                option.disabled = disableByYear || disableByToday;
-            }
+            // 종료 월 변경 시 월 옵션 제한
+            endYear.addEventListener("change", () => {
+                const y = parseInt(endYear.value);
+                [...endMonth.options].forEach(option => {
+                    if (option.value) {
+                        const m = parseInt(option.value);
+                        // 시작연도이면서 시작월보다 이전이면 비활성화
+                        const disableByYear = y === startYear && m < startMonth;
+                        // 오늘 연도이면서 오늘 월보다 이전이면 비활성화
+                        const disableByToday = y === today.getFullYear() && m < today.getMonth() + 1;
+                        option.disabled = disableByYear || disableByToday;
+                    }
+                });
+
+                // 월/일 초기화 -> 월이 바뀌면 일도 초기화하고 새로 필터링해야 하므로 초기화 후 재적용
+                endMonth.value = "선택";
+                endDay.value = "선택";
+                disableEndDays();
             });
 
-            // 월이 바뀌면 일도 초기화하고 새로 필터링해야 하므로 초기화 후 재적용
-            endMonth.value = "선택";
-            endDay.value = "선택";
-            disableEndDays();
-        });
+            // 종료 월 변경 시 일 옵션 제한
+            endMonth.addEventListener("change", disableEndDays);
 
-        // 2. 종료 월이 바뀔 때, 일 옵션도 필터링
-        endMonth.addEventListener("change", disableEndDays);
+            function disableEndDays() {
+                const y = parseInt(endYear.value);
+                const m = parseInt(endMonth.value);
+                if (!y || !m) return;
 
-        function disableEndDays() {
-            const y = parseInt(endYear.value);
-            const m = parseInt(endMonth.value);
-            if (!y || !m) return;
+                const startYear = parseInt(document.getElementById("start-year").value);
+                const startMonth = parseInt(document.getElementById("start-month").value);
+                const startDay = parseInt(document.getElementById("start-day").value);
+                if (!startYear || !startMonth || !startDay) return;
 
-            // 종료 일 드롭다운의 각 옵션(날짜)을 확인
-            [...endDay.options].forEach(option => {
-            if (option.value) {
-                const d = parseInt(option.value);
+                const startDate = new Date(startYear, startMonth - 1, startDay);
+
+                // 종료 일 드롭다운의 각 옵션(날짜)을 확인
+                [...endDay.options].forEach(option => {
+                    if (!option.value) return;
+                        const d = parseInt(option.value);
+                        const endDate = new Date(y, m - 1, d);
+
+                        option.disabled = endDate < startDate;
+                });
+            }
+
+            // 종료일의 일 선택 시점에서 유효성 검사
+            endDay.addEventListener("change", () => {
+                const y = parseInt(endYear.value);
+                const m = parseInt(endMonth.value);
+                const d = parseInt(endDay.value);
+
+
+                if (!y || !m || !d) return;
+                if (!startYear || !startMonth || !startDay) return;
+
                 const endDate = new Date(y, m - 1, d);
-                // 종료일이 시작일보다 빠르거나 오늘보다 이전이면 비활성화
-                option.disabled = endDate < startDate || endDate < today;
-            }
+                const startDate = new Date(startYear, startMonth - 1, startDay);
+
+                // 현재 선택한 값이 유효하지 않다면 알림을 띄우고 초기화
+                if (endDate < startDate) {
+                    alert("종료일은 시작일보다 빠를 수 없습니다.");
+                    endDay.value = "선택";
+                }
             });
         }
-        }
 
+        document.addEventListener("DOMContentLoaded", () => {
+            ["start-year", "start-month", "start-day"].forEach(id => {
+                document.getElementById(id).addEventListener("change", disableEndPastDates);
+            });
+            disableEndPastDates();
+        });
     </script>
 {% endblock%}
