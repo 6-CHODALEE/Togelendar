@@ -11,7 +11,7 @@
           <a class="nav-link active" aria-current="page" href="{% url 'account:logout' %}">Logout</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="#">{{user}}</a>
+          <a class="nav-link active" aria-current="page" href="{% url 'mypage:mypage' request.user.username %}">{{user}}</a>
         </li>
         {% else %}
         <li class="nav-item">
