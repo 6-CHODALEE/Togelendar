@@ -21,4 +21,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('togelendar/', include('account.urls')),
     path('togelendar/', include('promise.urls')),
+    path('togelendar/', include('community.urls'),)
 ]

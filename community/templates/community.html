@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class=" text-white text-center py-3 mb-3">
+        <div style="width: 100%; height: 240px; overflow: hidden; border-radius: 8px;">
+            <!--그냥 임의로 설정한 것-->
+            <img src="https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyMDAyMTFfMzAw%2FMDAxNTgxMzkwMTk3MzAw.CuYEfB_h9aSPxhV8PDomPAQEZbBq_2hAvN0hfIR1YsQg.I1wF5cHXxMXcu0l44kQmT91xf9_S1y5ysoSXEhSNKv8g.GIF.lovea2204%2F7.gif&type=sc960_832_gif" 
+            alt="짱구 배경화면"
+            style="width:100%; height: 100%; object-fit: cover; object-position: center;">
+        </div>
+        <h4 class="mb-0 mt-3 text-dark fw-bold">대표 사진</h4>
+    </div>
+
+    <div class="row">
+        <!--왼쪽 폴더 리스트-->
+        <div class="col-md-8" style="padding-left: 2rem;">
+            <h5 class="fw-bold mb-3">모임 이름</h5>
+            <div class="row">
+                <div class="col-4 col-md-2 mb-4 text-center">
+                    <img src="https://cdn-icons-png.flaticon.com/512/716/716784.png" 
+                    alt="폴더사진" 
+                    class="img-fluid" 
+                    style="max-height: 80px;">
+                    <div class="mt-2 fw-bold">모임 날짜</div>
+                </div>
+            </div>
+        </div>
+
+        <!--오른쪽 정보-->
+        <div class="col-md-4 border-start ps-3" style="border-color: black;">
+            <!--커뮤니티 멤버 리스트-->
+            <div class="bg-light p-3 mb-3" style="min-height: 100px;">
+                <h6 class="fw-bold">커뮤니티 멤버</h6>
+                <div>
+                    <!--멤버 리스트-->
+                </div>
+            </div>
+
+            <!--약속 정하기-->
+            <div class="bg-light p-3 mb-3" style="min-height: 100px;">
+                <h6 class="fw-bold">약속</h6>
+                <div>
+                    <!--약속 리스트-->
+                </div>
+            </div>
+
+            <!--장소 정하기-->
+            <div class="bg-light p-3 mb-3" style="min-height: 100px;">
+                <h6 class="fw-bold">장소</h6>
+                <div>
+                    <!--장소 리스트-->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
