@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<form method="POST" action="{% url 'promise:promise_result' %}">
+    {% csrf_token %}
+    
+    <div class="container mt-5 text-center" style="max-width: 800px; margin: 0 auto;">
+        <h2 class="mb-5">만날 수 있는 날짜에 투표해주세요!</h2>
+        <div id="calendar"></div>
+        
+        <!--선택된 날짜를 담을 hidden input-->
+        <input type="hidden" name="selected_dates" id="selected-dates">
+        
+        <div class="text-end my-4">
+            <button type="submit" class="btn btn-outline-dark px-4 py-2"> 선택 완료 </button>
+        </div>
+    </div>
+
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const calendarEl = document.getElementById('calendar');
+
+        const start = "{{start_date}}";
+        const end = "{{end_date}}";
+
+        // 선택된 날짜 저장
+        const selectedDates = new Set();
+
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'ko',
+            selectable: false,
+            validRange: {
+                start: start,
+                end: end
+            },
+            dateClick: function(info) {
+                const dateStr = info.dateStr;
+
+                // 기존에 선택된 날짜면 해제
+                if (selectedDates.has(dateStr)) {
+                    selectedDates.delete(dateStr);
+                    removeHighlight(dateStr);
+                } else {
+                    selectedDates.add(dateStr);
+                    addHighlight(dateStr);
+                }
+            },
+
+            // 초기 이벤트 비움
+            events: []
+        });
+
+        calendar.render();
+
+        function updateHiddenInput() {
+            document.getElementById('selected-dates').value = Array.from(selectedDates).join(',');
+        }
+
+        // 날짜 강조 이벤트 추가
+        function addHighlight(dateStr) {
+            calendar.addEvent({
+                start:dateStr,
+                end: dateStr,
+                allDay: true,
+                display: 'background',
+                color: '#c6f6d5'
+            });
+            updateHiddenInput();
+        }
+        
+        // 날짜 강조 제거
+        function removeHighlight(dateStr) {
+            calendar.getEvents().forEach(e => {
+                if (e.startStr === dateStr && e.display === 'background') {
+                    e.remove();
+                }
+            });
+            updateHiddenInput();
+        }
+    });
+</script>
+{% endblock %}
