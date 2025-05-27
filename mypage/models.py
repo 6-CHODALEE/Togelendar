@@ -4,19 +4,20 @@ from django.conf import settings
 
 # 커뮤니티 생성 정보 저장 모델
 class CreateCommunity(models.Model):
-    communityname = models.CharField(primary_key=True, max_length=100)  # 커뮤니티 이름 / pk로 지정
-    createuser = models.CharField(max_length=100)  # 커뮤니티 생성자 (길이 제한 추가)
-    communityintro = models.TextField()  # 커뮤니티 소개
+    id = models.AutoField(primary_key=True)
+    communityname = models.CharField(max_length=100)
+    createuser = models.CharField(max_length=100)
+    communityintro = models.TextField()
     communityimage = ResizedImageField(
         size=[500, 500],
         crop=['middle', 'center'],
         upload_to='mypage/mypage_image/',
         quality=90,
         force_format='JPEG'
-    )  # 커뮤니티 대표 이미지 저장
+    )
 
     def __str__(self):
-        return self.communityname
+        return f"{self.communityname} (ID: {self.id})"
 
 
 
@@ -47,3 +48,15 @@ class FriendRequest(models.Model):
 
     def __str__(self):
         return f"{self.from_user} → {self.to_user} ({self.status})"
+
+class CommunityMember(models.Model):
+    communityname = models.CharField(max_length=100)
+    createuser = models.CharField(max_length=100)
+    member = models.CharField(max_length=100)  # username 값 직접 저장
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('communityname', 'member')
+
+    def __str__(self):
+        return f"{self.member} in {self.communityname} (created by {self.createuser})"

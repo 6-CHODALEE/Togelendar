@@ -4,7 +4,7 @@ from django.views.decorators.http import require_POST
 from .forms import CreateCommunityFrom
 from elasticsearch import Elasticsearch
 from django.conf import settings
-from .models import FriendRequest
+from .models import FriendRequest, CommunityMember, CreateCommunity
 from django.contrib.auth import get_user_model
 import json
 from django.http import JsonResponse
@@ -17,35 +17,55 @@ User = get_user_model()
 def mypage(request, username):
     me = request.user
 
-    # ✅ 받은 친구 요청 리스트 추가
+    # ✅ 받은 친구 요청 리스트
     received_requests = FriendRequest.objects.filter(
         to_user=request.user,
         status='pending'
     ).select_related('from_user')
 
+    # ✅ 내가 참여 중인 커뮤니티들 가져오기
+    my_memberships = CommunityMember.objects.filter(member=me.username)
+
+    # ✅ CreateCommunity에서 해당 커뮤니티 정보 가져오기
+    my_communities = []
+    for membership in my_memberships:
+        community = CreateCommunity.objects.filter(
+            communityname=membership.communityname,
+            createuser=membership.createuser
+        ).first()
+        if community:
+            my_communities.append(community)
+
     context = {
         'me': me,
-        'received_requests': received_requests  # ✅ 추가
+        'received_requests': received_requests,
+        'communities': my_communities  # ✅ 추가
     }
+
     return render(request, 'mypage.html', context)
 
 
+@login_required
 def createcommunity(request, username):
     if request.method == 'POST':
         form = CreateCommunityFrom(request.POST, request.FILES)
         if form.is_valid():
-            communityinfo = form.save(commit=False)
-            communityinfo.createuser = request.user.username
-            communityinfo.save()
-            return redirect('mypage:mypage', username=request.user.username)
+            community = form.save(commit=False)
+            community.createuser = request.user.username
+            community.save()
+
+            # ✅ 생성자 본인을 멤버로 자동 추가
+            CommunityMember.objects.create(
+                communityname=community.communityname,
+                createuser=community.createuser,
+                member=request.user.username
+            )
+
+            return redirect('mypage:mypage', username=username)
     else:
         form = CreateCommunityFrom()
-
-    context = {
-        'form' : form,
-        'username': username
-    }
-    return render(request, 'createcommunity.html', context)
+    
+    return render(request, 'createcommunity.html', {'form': form})
 
 
 from .models import FriendRequest
