@@ -5,10 +5,10 @@ from django.conf import settings
 # 커뮤니티 생성 정보 저장 모델
 class CreateCommunity(models.Model):
     id = models.AutoField(primary_key=True)
-    communityname = models.CharField(max_length=100)
-    createuser = models.CharField(max_length=100)
-    communityintro = models.TextField()
-    communityimage = ResizedImageField(
+    community_name = models.CharField(max_length=100)
+    create_user = models.CharField(max_length=100)
+    community_intro = models.TextField()
+    community_image = ResizedImageField(
         size=[500, 500],
         crop=['middle', 'center'],
         upload_to='mypage/mypage_image/',
@@ -17,7 +17,7 @@ class CreateCommunity(models.Model):
     )
 
     def __str__(self):
-        return f"{self.communityname} (ID: {self.id})"
+        return f"{self.community_name} (ID: {self.id})"
 
 
 
@@ -50,13 +50,13 @@ class FriendRequest(models.Model):
         return f"{self.from_user} → {self.to_user} ({self.status})"
 
 class CommunityMember(models.Model):
-    communityname = models.CharField(max_length=100)
-    createuser = models.CharField(max_length=100)
+    community_name = models.CharField(max_length=100)
+    create_user = models.CharField(max_length=100)
     member = models.CharField(max_length=100)  # username 값 직접 저장
     joined_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('communityname', 'member')
+        unique_together = ('community_name', 'member')
 
     def __str__(self):
-        return f"{self.member} in {self.communityname} (created by {self.createuser})"
+        return f"{self.member} in {self.community_name} (created by {self.create_user})"

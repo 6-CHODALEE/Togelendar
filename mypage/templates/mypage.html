@@ -61,13 +61,13 @@
     <!-- 아래: 커뮤니티 리스트 -->
     <div class="d-flex justify-content-between align-items-center bg-light p-3 mt-4">
         <h5 class="mb-0">{{ me }}의 커뮤니티 리스트</h5>
-        <a href="{% url 'mypage:createcommunity' me %}" class="btn btn-warning btn-sm">커뮤니티 생성하기</a>
+        <a href="{% url 'mypage:create_community' me %}" class="btn btn-warning btn-sm">커뮤니티 생성하기</a>
     </div>
 
     <div class="mt-3">
         {% for community in communities %}
             <div class="d-flex justify-content-between align-items-center p-3 mb-2 border rounded bg-light">
-                <div># {{ community.communityname }}</div>
+                <div># {{ community.community_name }}</div>
                 <a href="#" class="btn btn-outline-dark btn-sm">입장하기</a>
             </div>
         {% empty %}

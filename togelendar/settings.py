@@ -50,12 +50,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'account',
-<<<<<<< HEAD
     'promise',
-    'community'
-=======
+    'community',
     'mypage',
->>>>>>> main
 ]
 
 MIDDLEWARE = [

@@ -30,8 +30,8 @@ def mypage(request, username):
     my_communities = []
     for membership in my_memberships:
         community = CreateCommunity.objects.filter(
-            communityname=membership.communityname,
-            createuser=membership.createuser
+            community_name=membership.community_name,
+            create_user=membership.create_user
         ).first()
         if community:
             my_communities.append(community)
@@ -46,18 +46,18 @@ def mypage(request, username):
 
 
 @login_required
-def createcommunity(request, username):
+def create_community(request, username):
     if request.method == 'POST':
         form = CreateCommunityFrom(request.POST, request.FILES)
         if form.is_valid():
             community = form.save(commit=False)
-            community.createuser = request.user.username
+            community.create_user = request.user.username
             community.save()
 
             # ✅ 생성자 본인을 멤버로 자동 추가
             CommunityMember.objects.create(
-                communityname=community.communityname,
-                createuser=community.createuser,
+                community_name=community.community_name,
+                create_user=community.create_user,
                 member=request.user.username
             )
 
@@ -65,7 +65,7 @@ def createcommunity(request, username):
     else:
         form = CreateCommunityFrom()
     
-    return render(request, 'createcommunity.html', {'form': form})
+    return render(request, 'create_community.html', {'form': form})
 
 
 from .models import FriendRequest
