@@ -1,0 +1,351 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<div class="container mt-4">
+    {% csrf_token %}
+
+    <div class="row">
+        <div class="col-md-4 text-center position-relative">
+            <p class="fw-bold">{{ me }}</p>
+            <p>함친: 명</p>
+
+            <!-- ✅ 함친 추가 버튼 -->
+            <a href="#" id="togglePopover" class="btn btn-secondary btn-sm mb-2">함친 추가</a><br>
+            <a href="#" class="btn btn-outline-dark btn-sm">프로필 편집</a>
+
+            <!-- ✅ 팝업 폼 -->
+            <div id="popoverForm" class="popover-form">
+                <div class="popover-arrow"></div>
+
+                <form method="get" action="{% url 'mypage:search_friends' me %}" id="searchForm">
+                    <label for="friendName" class="form-label mb-1">닉네임 검색</label>
+                    <div class="input-group mb-2">
+                        <input type="text" name="q" class="form-control" placeholder="닉네임 입력">
+                        <button class="btn btn-primary btn-sm" type="submit">검색</button>
+                    </div>
+                    <input type="hidden" name="popup_open" id="popupOpenField" value="false">
+                </form>
+
+                <ul id="searchResults" class="list-group mt-2"></ul>
+
+                <div class="d-flex justify-content-end mt-2">
+                    <button type="button" class="btn btn-secondary btn-sm" id="closePopover">닫기</button>
+                </div>
+                <div class="friend-requests mt-2">
+                <h6>친구 요청</h6>
+                {% if received_requests %}
+                    {% for req in received_requests %}
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span>{{ req.from_user.username }}님이 요청을 보냈습니다.</span>
+                            <button class="btn btn-sm btn-success accept-btn" data-username="{{ req.from_user.username }}">수락하기</button>
+                            <button class="btn btn-sm btn-danger reject-btn" data-username="{{ req.from_user.username }}">거절하기</button>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">받은 친구 요청이 없습니다.</p>
+                {% endif %}
+            </div>
+            </div>    
+        </div>
+
+
+        <!-- 우측: 날씨 -->
+        <div class="col-md-8">
+            <h5>오늘의 날씨</h5>
+            <div class="border p-3 bg-white" style="height: 100px;">
+                날씨 정보 출력 예정
+            </div>
+        </div>
+    </div>
+
+    <!-- 아래: 커뮤니티 리스트 -->
+    <div class="d-flex justify-content-between align-items-center bg-light p-3 mt-4">
+        <h5 class="mb-0">{{ me }}의 커뮤니티 리스트</h5>
+        <a href="{% url 'mypage:createcommunity' me %}" class="btn btn-warning btn-sm">커뮤니티 생성하기</a>
+    </div>
+
+    <div class="mt-3">
+        {% for community in communities %}
+            <div class="d-flex justify-content-between align-items-center p-3 mb-2 border rounded bg-light">
+                <div># {{ community.communityname }}</div>
+                <a href="#" class="btn btn-outline-dark btn-sm">입장하기</a>
+            </div>
+        {% empty %}
+            <p class="text-muted">참여 중인 커뮤니티가 없습니다.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- ✅ Django에서 넘긴 검색 결과 JSON 저장 -->
+{{ results|json_script:"search-results-data" }}
+
+<!-- ✅ 팝업 스타일 -->
+<style>
+.popover-form {
+    position: absolute;
+    background: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    padding: 15px;
+    border-radius: 10px;
+    z-index: 1000;
+    width: 400px;
+    display: none;
+}
+.popover-arrow {
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid white;
+}
+</style>
+
+<!-- ✅ 팝업 동작 및 검색 결과 출력 JS -->
+<script>
+const currentUsername = "{{ request.user.username }}";
+const csrftoken = '{{ csrf_token }}';
+
+const btn = document.getElementById("togglePopover");
+const popover = document.getElementById("popoverForm");
+const closeBtn = document.getElementById("closePopover");
+const resultsContainer = document.getElementById("searchResults");
+const searchForm = document.getElementById('searchForm');
+const popupOpenField = document.getElementById('popupOpenField');
+
+// ✅ 검색할 때 현재 팝업 상태 기록
+searchForm.addEventListener('submit', () => {
+    const isPopupOpen = window.getComputedStyle(popover).display !== "none";
+    popupOpenField.value = isPopupOpen ? "true" : "false";
+});
+
+// ✅ 서버에서 넘어온 값으로 검색 후 팝업 상태 복원
+const hasQuery = "{{ query|default:'' }}" !== "";
+const shouldOpenPopover = "{{ open_popover|yesno:'true,false' }}" === "true";
+
+if (hasQuery && shouldOpenPopover) {
+    showPopover();
+} else {
+    hidePopover();
+}
+
+// ✅ "함친 추가" 버튼 클릭 시 팝업 열기 (서버 상태 무시)
+btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    showPopover();
+});
+
+function showPopover() {
+    const rect = btn.getBoundingClientRect();
+    popover.style.top = `${rect.bottom + window.scrollY + 5}px`;
+    popover.style.left = `${rect.left + window.scrollX}px`;
+    popover.style.display = "block";
+
+    // ✅ 수락 완료된 요청 항목들 제거
+    document.querySelectorAll('.accept-btn').forEach(button => {
+        if (button.disabled) {
+            button.parentElement.remove();  // 버튼 감싸는 div 통째로 제거
+        }
+    });
+}
+
+// ✅ 팝업 닫기 함수
+function hidePopover() {
+    popover.style.display = "none";
+}
+
+// ✅ 닫기 버튼
+closeBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    clearSearchState();
+    hidePopover();
+
+    // ✅ 팝업 닫을 때 URL을 /mypage/<username>으로 강제 이동
+    window.location.href = `/togelendar/mypage/${currentUsername}/`;
+});
+
+// ✅ 검색 상태 초기화
+function clearSearchState() {
+    const searchInput = document.querySelector('input[name="q"]');
+    if (searchInput) {
+        searchInput.value = "";
+    }
+    popupOpenField.value = "false";
+    resultsContainer.innerHTML = "";
+    const cleanUrl = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+}
+
+// ✅ 팝업 외부 클릭 시 닫기
+window.addEventListener("click", (e) => {
+    if (!popover.contains(e.target) && e.target !== btn) {
+        hidePopover();
+        window.location.href = `/togelendar/mypage/${currentUsername}/`;
+    }
+});
+
+// ✅ 검색 결과 렌더링
+const jsonDataElement = document.getElementById('search-results-data');
+
+if (jsonDataElement) {
+    const mockUsers = JSON.parse(jsonDataElement.textContent);
+
+    if (mockUsers.length > 0) {
+        resultsContainer.innerHTML = "";
+        mockUsers.forEach(user => {
+            const li = document.createElement("li");
+            li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+            const infoSpan = document.createElement("span");
+            infoSpan.innerHTML = `<strong>${user.username}</strong> (${user.email})`;
+
+            const addButton = document.createElement("button");
+            addButton.className = "btn btn-sm";
+
+            // ✅ 상태에 따라 버튼 표시 변경
+            if (user.request_status === 'pending') {
+                addButton.textContent = "요청 보냄";
+                addButton.classList.add('btn-secondary');
+                addButton.disabled = true;
+            } else {
+                addButton.textContent = "요청보내기";
+                addButton.classList.add('btn-primary');
+                addButton.onclick = (e) => {
+                    e.stopPropagation();
+                    sendFriendRequest(user.username, addButton);
+                };
+            }
+
+            li.appendChild(infoSpan);
+            li.appendChild(addButton);
+            resultsContainer.appendChild(li);
+        });
+    } else {
+        resultsContainer.innerHTML = "<li class='list-group-item text-muted'>검색 결과 없음</li>";
+    }
+}
+
+// ✅ 요청보내기 Ajax 함수 (이 부분 새로 추가됨!)
+function sendFriendRequest(nickname, button) {
+    fetch(`/togelendar/mypage/${currentUsername}/friend/request/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken  // ✅ 여기!
+        },
+        body: JSON.stringify({ to_username: nickname })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            addFriend(nickname, button);
+        } else {
+            alert("에러: " + data.error);
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("요청 중 오류가 발생했습니다.");
+    });
+}
+
+// ✅ 버튼 UI 업데이트 함수
+function addFriend(nickname, button) {
+    button.textContent = "요청 보냄";
+    button.className = "btn btn-sm btn-secondary";
+    button.disabled = true;
+    alert(`'${nickname}'님에게 요청을 보냈습니다.`);
+}
+
+
+function acceptRequest(fromUsername, button) {  // ✅ button 파라미터 추가
+    fetch(`/togelendar/mypage/${currentUsername}/friend/accept/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify({ from_username: fromUsername })
+    })
+    .then(async res => {
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`서버 응답 오류 (${res.status}): ${text}`);
+        }
+        return res.json();
+    })
+    .then(data => {
+        if (data.success) {
+            acceptFriend(fromUsername, button);  // ✅ 여기서 button 제대로 전달
+        } else {
+            alert("에러: " + data.error);
+        }
+    })
+    .catch(err => {
+        console.error('에러 발생:', err);
+        alert("요청 중 오류가 발생했습니다.");
+    });
+}
+
+function acceptFriend(fromUsername, button) {
+    button.textContent = "수락 완료";
+    button.className = "btn btn-sm btn-secondary";
+    button.disabled = true;
+    alert(`${fromUsername}님과 맞팔로우되었습니다!`);
+}
+
+function rejectRequest(fromUsername, button) {
+    fetch(`/togelendar/mypage/${currentUsername}/friend/reject/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify({ from_username: fromUsername })
+    })
+    .then(async res => {
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`서버 응답 오류 (${res.status}): ${text}`);
+        }
+        return res.json();
+    })
+    .then(data => {
+        if (data.success) {
+            removeFriendRequestItem(button);
+            alert(`${fromUsername}님의 요청을 거절했습니다.`);
+        } else {
+            alert("에러: " + data.error);
+        }
+    })
+    .catch(err => {
+        console.error('에러 발생:', err);
+        alert("요청 중 오류가 발생했습니다.");
+    });
+}
+
+function removeFriendRequestItem(button) {
+    button.closest('.d-flex').remove();
+}
+
+document.querySelectorAll('.accept-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const fromUsername = button.dataset.username;
+        acceptRequest(fromUsername, button);
+    });
+});
+
+
+document.querySelectorAll('.reject-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const fromUsername = button.dataset.username;
+        rejectRequest(fromUsername, button);
+    });
+});
+</script>
+{% endblock %}

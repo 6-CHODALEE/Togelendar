@@ -20,6 +20,11 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('togelendar/', include('account.urls')),
+<<<<<<< HEAD
     path('togelendar/', include('promise.urls')),
     path('togelendar/', include('community.urls'),)
+=======
+    path('togelendar/mypage/', include('mypage.urls')),
+
+>>>>>>> main
 ]

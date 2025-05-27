@@ -9,18 +9,30 @@ from django.contrib.auth.decorators import login_required
 def index(request):
     return render(request, 'index.html')
 
+from django.conf import settings
+from elasticsearch import Elasticsearch
+
 def signup(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST, request.FILES)
-        if form.is_valid() : 
-            form.save()
+        if form.is_valid():
+            user = form.save()  # 🔥 유저 인스턴스 받아오기
+
+            # Elasticsearch 색인
+            es = settings.ES_CLIENT
+            es.index(index='user-index', id=user.id, body={
+                'username': user.username,
+                'email': user.email,
+                'address': user.address,  # 별도 필드가 있다면 추가
+            })
+
             return redirect('account:login')
 
     else:
         form = CustomUserCreationForm()
 
     context = {
-        'form' : form
+        'form': form
     }
     return render(request, 'signup.html', context)
 
@@ -30,7 +42,7 @@ def login(request):
         if form.is_valid():
             user = form.get_user()
             auth_login(request, user)
-            return redirect('account:index')
+            return redirect('mypage:mypage', username=user.username)
     else:
         form = CustomAuthenticationForm()
 
