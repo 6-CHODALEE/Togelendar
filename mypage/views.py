@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from .forms import CreateCommunityFrom
 from elasticsearch import Elasticsearch
 from django.conf import settings
@@ -7,6 +8,7 @@ from .models import FriendRequest
 from django.contrib.auth import get_user_model
 import json
 from django.http import JsonResponse
+from django.db.models import Q
 
 User = get_user_model()
 # Create your views here.
@@ -51,7 +53,7 @@ from .models import FriendRequest
 def search_friends(request, username):
     query = request.GET.get('q', '').strip()
     results = []
-    popup_open = False  # 기본 닫힘
+    popup_open = False
 
     if query:
         popup_open = request.GET.get('popup_open', 'false') == 'true'
@@ -66,19 +68,56 @@ def search_friends(request, username):
             }
         )
         hits = response['hits']['hits']
-        results = [hit['_source'] for hit in hits]
 
-    # ✅ 현재 로그인 사용자에게 들어온 pending 요청들
+        for hit in hits:
+            user_data = hit['_source']
+            target_username = user_data['username']
+
+            # ✅ 나 자신은 제외
+            if target_username == request.user.username:
+                continue
+
+            try:
+                to_user = User.objects.get(username=target_username)
+
+                # ✅ 이미 친구인 경우 제외 (양방향 체크)
+                is_friend = FriendRequest.objects.filter(
+                    (
+                        Q(from_user=request.user, to_user=to_user) |
+                        Q(from_user=to_user, to_user=request.user)
+                    ),
+                    status='accepted'
+                ).exists()
+
+                if is_friend:
+                    continue
+
+                # ✅ 현재 요청 상태 체크
+                friend_request = FriendRequest.objects.filter(from_user=request.user, to_user=to_user).first()
+                if friend_request:
+                    request_status = friend_request.status
+                else:
+                    request_status = None
+
+                results.append({
+                    'username': target_username,
+                    'email': user_data.get('email', ''),
+                    'request_status': request_status,
+                })
+
+            except User.DoesNotExist:
+                continue  # ES에는 있는데 DB에는 없는 경우 skip
+
     received_requests = FriendRequest.objects.filter(
-    to_user=request.user,
-    status='pending'
+        to_user=request.user,
+        status='pending'
     ).select_related('from_user')
 
     context = {
         'me': username,
         'query': query,
         'results': results,
-        'received_requests': received_requests,  # ✅ 추가!
+        'received_requests': received_requests,
         'open_popover': popup_open
     }
     return render(request, 'mypage.html', context)
@@ -99,10 +138,75 @@ def send_friend_request(request, username):
         except User.DoesNotExist:
             return JsonResponse({'success': False, 'error': '대상 유저를 찾을 수 없습니다.'})
 
-        if FriendRequest.objects.filter(from_user=from_user, to_user=to_user, status='pending').exists():
-            return JsonResponse({'success': False, 'error': '이미 요청을 보냈습니다.'})
+        existing_request = FriendRequest.objects.filter(from_user=from_user, to_user=to_user).first()
 
-        FriendRequest.objects.create(from_user=from_user, to_user=to_user, status='pending')
+        if existing_request:
+            if existing_request.status == 'pending':
+                return JsonResponse({'success': False, 'error': '이미 요청을 보냈습니다.'})
+            elif existing_request.status == 'rejected':
+                # 기존 요청을 재사용: 상태를 pending으로 바꿔서 다시 활성화
+                existing_request.status = 'pending'
+                existing_request.save()
+                return JsonResponse({'success': True})
+            elif existing_request.status == 'accepted':
+                return JsonResponse({'success': False, 'error': '이미 친구입니다.'})
+        else:
+            FriendRequest.objects.create(from_user=from_user, to_user=to_user, status='pending')
+            return JsonResponse({'success': True})
+
+    return JsonResponse({'success': False, 'error': '잘못된 요청 방식입니다.'})
+
+
+@require_POST
+@login_required
+def send_friend_accept(request, username):
+    if username != request.user.username:
+        return JsonResponse({'success': False, 'error': '권한이 없습니다.'}, status=403)
+
+    data = json.loads(request.body)
+    from_username = data.get('from_username')
+    to_user = request.user
+    try:
+        from_user = User.objects.get(username=from_username)
+    except User.DoesNotExist:
+        return JsonResponse({'success': False, 'error': '요청한 유저를 찾을 수 없습니다.'})
+
+    try:
+        friend_request = FriendRequest.objects.get(from_user=from_user, to_user=to_user, status='pending')
+    except FriendRequest.DoesNotExist:
+        return JsonResponse({'success': False, 'error': '친구 요청이 존재하지 않습니다.'})
+
+    # 요청 상태 변경
+    friend_request.status = 'accepted'
+    friend_request.save()
+
+    return JsonResponse({'success': True})
+
+
+
+@login_required
+def send_friend_reject(request, username):
+    if username != request.user.username:
+        return JsonResponse({'success': False, 'error': '권한이 없습니다.'}, status=403)
+
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        from_username = data.get('from_username')
+        to_user = request.user
+
+        try:
+            from_user = User.objects.get(username=from_username)
+        except User.DoesNotExist:
+            return JsonResponse({'success': False, 'error': '요청한 유저를 찾을 수 없습니다.'})
+
+        try:
+            friend_request = FriendRequest.objects.get(from_user=from_user, to_user=to_user, status='pending')
+        except FriendRequest.DoesNotExist:
+            return JsonResponse({'success': False, 'error': '친구 요청이 존재하지 않습니다.'})
+
+        friend_request.status = 'rejected'
+        friend_request.save()
+
         return JsonResponse({'success': True})
 
     return JsonResponse({'success': False, 'error': '잘못된 요청 방식입니다.'})

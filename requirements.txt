@@ -1,0 +1,13 @@
+asgiref==3.8.1
+certifi==2025.4.26
+Django==5.2.1
+django-resized==1.0.3
+elastic-transport==8.17.1
+elasticsearch==8.18.0
+pillow==11.2.1
+python-dateutil==2.9.0.post0
+python-dotenv==1.1.0
+six==1.17.0
+sqlparse==0.5.3
+typing_extensions==4.13.2
+urllib3==2.4.0

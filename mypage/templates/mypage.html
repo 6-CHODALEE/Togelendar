@@ -37,7 +37,8 @@
                     {% for req in received_requests %}
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span>{{ req.from_user.username }}님이 요청을 보냈습니다.</span>
-                            <button class="btn btn-sm btn-success" onclick="acceptRequest('{{ req.from_user.username }}')">수락하기</button>
+                            <button class="btn btn-sm btn-success accept-btn" data-username="{{ req.from_user.username }}">수락하기</button>
+                            <button class="btn btn-sm btn-danger reject-btn" data-username="{{ req.from_user.username }}">거절하기</button>
                         </div>
                     {% endfor %}
                 {% else %}
@@ -137,12 +138,18 @@ btn.addEventListener("click", (e) => {
     showPopover();
 });
 
-// ✅ 팝업 열기 함수
 function showPopover() {
     const rect = btn.getBoundingClientRect();
     popover.style.top = `${rect.bottom + window.scrollY + 5}px`;
     popover.style.left = `${rect.left + window.scrollX}px`;
     popover.style.display = "block";
+
+    // ✅ 수락 완료된 요청 항목들 제거
+    document.querySelectorAll('.accept-btn').forEach(button => {
+        if (button.disabled) {
+            button.parentElement.remove();  // 버튼 감싸는 div 통째로 제거
+        }
+    });
 }
 
 // ✅ 팝업 닫기 함수
@@ -155,6 +162,9 @@ closeBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     clearSearchState();
     hidePopover();
+
+    // ✅ 팝업 닫을 때 URL을 /mypage/<username>으로 강제 이동
+    window.location.href = `/togelendar/mypage/${currentUsername}/`;
 });
 
 // ✅ 검색 상태 초기화
@@ -173,13 +183,16 @@ function clearSearchState() {
 window.addEventListener("click", (e) => {
     if (!popover.contains(e.target) && e.target !== btn) {
         hidePopover();
+        window.location.href = `/togelendar/mypage/${currentUsername}/`;
     }
 });
 
 // ✅ 검색 결과 렌더링
 const jsonDataElement = document.getElementById('search-results-data');
+
 if (jsonDataElement) {
     const mockUsers = JSON.parse(jsonDataElement.textContent);
+
     if (mockUsers.length > 0) {
         resultsContainer.innerHTML = "";
         mockUsers.forEach(user => {
@@ -190,12 +203,21 @@ if (jsonDataElement) {
             infoSpan.innerHTML = `<strong>${user.username}</strong> (${user.email})`;
 
             const addButton = document.createElement("button");
-            addButton.textContent = "요청보내기";
-            addButton.className = "btn btn-sm btn-primary";
-            addButton.onclick = (e) => {
-                e.stopPropagation();
-                sendFriendRequest(user.username, addButton);
-            };
+            addButton.className = "btn btn-sm";
+
+            // ✅ 상태에 따라 버튼 표시 변경
+            if (user.request_status === 'pending') {
+                addButton.textContent = "요청 보냄";
+                addButton.classList.add('btn-secondary');
+                addButton.disabled = true;
+            } else {
+                addButton.textContent = "요청보내기";
+                addButton.classList.add('btn-primary');
+                addButton.onclick = (e) => {
+                    e.stopPropagation();
+                    sendFriendRequest(user.username, addButton);
+                };
+            }
 
             li.appendChild(infoSpan);
             li.appendChild(addButton);
@@ -238,7 +260,8 @@ function addFriend(nickname, button) {
     alert(`'${nickname}'님에게 요청을 보냈습니다.`);
 }
 
-function acceptRequest(fromUsername) {
+
+function acceptRequest(fromUsername, button) {  // ✅ button 파라미터 추가
     fetch(`/togelendar/mypage/${currentUsername}/friend/accept/`, {
         method: 'POST',
         headers: {
@@ -247,20 +270,82 @@ function acceptRequest(fromUsername) {
         },
         body: JSON.stringify({ from_username: fromUsername })
     })
-    .then(res => res.json())
+    .then(async res => {
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`서버 응답 오류 (${res.status}): ${text}`);
+        }
+        return res.json();
+    })
     .then(data => {
         if (data.success) {
-            alert(`${fromUsername}님과 맞팔로우되었습니다!`);
-            // TODO: 화면에서 이 요청 항목 제거
+            acceptFriend(fromUsername, button);  // ✅ 여기서 button 제대로 전달
         } else {
             alert("에러: " + data.error);
         }
     })
     .catch(err => {
-        console.error(err);
+        console.error('에러 발생:', err);
         alert("요청 중 오류가 발생했습니다.");
     });
 }
 
+function acceptFriend(fromUsername, button) {
+    button.textContent = "수락 완료";
+    button.className = "btn btn-sm btn-secondary";
+    button.disabled = true;
+    alert(`${fromUsername}님과 맞팔로우되었습니다!`);
+}
+
+function rejectRequest(fromUsername, button) {
+    fetch(`/togelendar/mypage/${currentUsername}/friend/reject/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify({ from_username: fromUsername })
+    })
+    .then(async res => {
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`서버 응답 오류 (${res.status}): ${text}`);
+        }
+        return res.json();
+    })
+    .then(data => {
+        if (data.success) {
+            removeFriendRequestItem(button);
+            alert(`${fromUsername}님의 요청을 거절했습니다.`);
+        } else {
+            alert("에러: " + data.error);
+        }
+    })
+    .catch(err => {
+        console.error('에러 발생:', err);
+        alert("요청 중 오류가 발생했습니다.");
+    });
+}
+
+function removeFriendRequestItem(button) {
+    button.closest('.d-flex').remove();
+}
+
+document.querySelectorAll('.accept-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const fromUsername = button.dataset.username;
+        acceptRequest(fromUsername, button);
+    });
+});
+
+
+document.querySelectorAll('.reject-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const fromUsername = button.dataset.username;
+        rejectRequest(fromUsername, button);
+    });
+});
 </script>
 {% endblock %}
