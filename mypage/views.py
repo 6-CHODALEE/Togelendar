@@ -4,7 +4,7 @@ from django.views.decorators.http import require_POST
 from .forms import CreateCommunityFrom
 from elasticsearch import Elasticsearch
 from django.conf import settings
-from .models import FriendRequest, CommunityMember, CreateCommunity
+from .models import FriendRequest, CommunityMember, CreateCommunity, CommunityInvite
 from django.contrib.auth import get_user_model
 import json
 from django.http import JsonResponse
@@ -42,12 +42,18 @@ def mypage(request, username):
     )
     friend_count = friend_list.count()
 
+    invite_requests = CommunityInvite.objects.filter(
+        to_user=request.user,
+        status='pending'
+    )
+
     context = {
         'me': me,
         'received_requests': received_requests,
         'communities': my_communities,
         'friend_count': friend_count,
         'friend_list': friend_list,
+        'invite_requests': invite_requests,
     }
 
     return render(request, 'mypage.html', context)
@@ -238,3 +244,25 @@ def send_friend_reject(request, username):
         return JsonResponse({'success': True})
 
     return JsonResponse({'success': False, 'error': '잘못된 요청 방식입니다.'})
+
+@require_POST
+@login_required
+def respond_invite(request):
+    data = json.loads(request.body)
+    invite_id = data.get("invite_id")
+    action = data.get("action")
+
+    invite = CommunityInvite.objects.get(id=invite_id, to_user=request.user)
+
+    if action == "accept":
+        invite.status = 'accepted'
+        CommunityMember.objects.create(
+            community_name=invite.community.community_name,
+            create_user = invite.community.create_user,
+            member = invite.to_user.username
+        )
+    else:
+        invite.status = 'rejected'
+
+    invite.save()
+    return JsonResponse({'success': True})

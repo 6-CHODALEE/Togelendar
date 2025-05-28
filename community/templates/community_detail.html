@@ -35,17 +35,53 @@
         <!--오른쪽 정보-->
         <div class="col-md-4 border-start ps-3" style="border-color: black;">
             <!--커뮤니티 멤버 리스트-->
-            <div class="bg-light p-3 mb-3" style="min-height: 100px;">
+            <div class="bg-light p-3 mb-3" style="min-height: 100px; position: relative;">
                 <h6 class="fw-bold d-flex justify-content-between">
                     커뮤니티 멤버
-                    <a href="#" class="btn btn-outline-secondary btn-sm">
+                    <a href="#" id="showMemberPopover" class="btn btn-outline-secondary btn-sm">
                         멤버 추가
                     </a>
-                </h6>
-                <div>
-                    <!--멤버 리스트-->
+                    <!--멤버 추가 팝업-->
+                    <div id="memberPopover" class="popover-form" style="display: none;">
+                        <div class="popover-arrow"></div>
+                        <h6>친구 목록</h6>
+                        <ul class="list-group">
+                            {% for friend in friend_users %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{friend.username}}
+                                {% if friend.is_member %}
+                                <button class="btn btn-sm btn-secondary">이미 멤버</button>
+                                {% else %}
+                                <button class="btn btn-sm btn-primary invite-member-btn"
+                                data-username="{{friend.username}}">
+                                초대
+                            </button>
+                            {% endif %}
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item text-muted">친구가 없습니다.</li>
+                        {% endfor %}
+                    </ul>
+                    <div class="text-end mt-2">
+                        <button class="btn btn-sm btn-secondary" id="closeMemberPopover">닫기</button>
+                    </div>
+                </div>
+            </h6>
+                <!--커뮤니티 멤버 목록 표시-->
+                <div class="bg-light p-3 mb-3" style="min-height: 100px;">
+                    <h6 class="fw-bold">참여 중인 멤버</h6>
+                    {% if members %}
+                        <ul id="memberList" class="list-unstyled mb-0">
+                            {% for member in members %}
+                                <li>👤 {{member.member}}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                    <p class="text-muted">아직 멤버가 없습니다.</p>
+                    {% endif %}
                 </div>
             </div>
+    
 
             <!--약속 정하기-->
             <div class="bg-light p-3 mb-3" style="min-height: 100px;">
@@ -106,5 +142,99 @@
         justify-content: center;
         font-size: 18px;
     }
+
+    .popover-form {
+        position: absolute;
+        top: 40px;
+        right: 0;
+        width: 400px;
+        background: white;
+        border: 1px solid #ccc;
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        z-index: 1000;
+    }
+
+    .popover-arrow {
+        position: absolute;
+        top: -10px;
+        left: 20px;
+        width: 0;
+        height: 0;
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-bottom: 10px solid white;
+    }
 </style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleBtn = document.getElementById("showMemberPopover");
+        const popover = document.getElementById("memberPopover");
+        const closeBtn = document.getElementById("closeMemberPopover");
+        
+        toggleBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            popover.style.display = "block";
+        });
+        
+        closeBtn.addEventListener("click", function () {
+            popover.style.display = "none";
+        });
+        
+        document.querySelectorAll('.invite-member-btn').forEach(button => {
+            button.addEventListener("click", () => {
+                const username = button.dataset.username;
+                
+                fetch("{% url 'community:invite_member_ajax' community.id %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{csrf_token}}"
+                    },
+                    body: JSON.stringify({
+                        community_id: "{{community.id}}",
+                        username: username
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        button.textContent = "초대 보냄";
+                        button.className = "btn btn-sm btn-success";
+                        button.disabled = true;
+                    } else {
+                        alert("초대 실패: " + (data.message || data.error || "알 수 없는 오류"));
+                    }
+                })
+                .catch(err => {
+                    console.error("요청 실패: ", err);
+                    alert("서버 오류 발생");
+                });
+                // 멤버 추가 후, 자동으로 목록 갱신
+                if (data.success) {
+                    button.textContent = "추가됨";
+                    button.className = "btn btn-sm btn-success";
+                    button.disabled = true;
+
+                    // 멤버 리스트에 추가
+                    const memberList = document.getElementById("memberList");
+
+                    // 리스트가 없으면 ul태그 생성
+                    if (!memberList) {
+                        const newList = document.createElement("ul");
+                        newList.id = "memberList";
+                        newList.className = "list-unstyled mb-0";
+                        document.querySelector(".bg-light.p-3.mb-3").appendChild(newList);
+                    }
+
+                    const li = document.createElement("li");
+                    li.textContent = "👤 " + username;
+                    document.getElementById("memberList").appendChild(li);
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

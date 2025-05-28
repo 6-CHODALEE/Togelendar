@@ -65,7 +65,29 @@
     <!-- 아래: 커뮤니티 리스트 -->
     <div class="d-flex justify-content-between align-items-center bg-light p-3 mt-4">
         <h5 class="mb-0">{{ me }}의 커뮤니티 리스트</h5>
+
+        {% if invite_requests %}
+            <a href="" id="showInvitePopover" class="btn btn-outline-secondary btn-sm">가입 요청 {{invite_requests|length}}건</a>
+        {% endif %}
+
         <a href="{% url 'mypage:create_community' me %}" class="btn btn-warning btn-sm">커뮤니티 생성하기</a>
+    </div>
+
+    <!--커뮤니티 가입 요청 팝업-->
+    <div id="invitePopover" class="popover-form" style="display: none;">
+        <div class="popover-arrow"></div>
+        <h6>커뮤니티 가입 요청</h6>
+        {% for invite in invite_requests %}
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span>{{invite.community.community_name}} (by {{invite.from_user.username}})</span>
+                <div>
+                    <button class="btn btn-sm btn-success accept-invite-btn" date-id="{{invite.id}}">수락</button>
+                    <button class="btn btn-sm btn-danger reject-invite-btn" data-id="{{invite.id}}">거절</button>
+                </div>
+            </div>
+        {% empty %}
+            <p class="text-muted">요청이 없습니다.</p>
+        {% endfor %}
     </div>
 
     <div class="mt-3">
@@ -351,5 +373,28 @@ document.querySelectorAll('.reject-btn').forEach(button => {
         rejectRequest(fromUsername, button);
     });
 });
+
+const inviteBtn = document.getElementById("showInvitePopover");
+const invitePopover = document.getElementById("invitePopover");
+
+if (inviteBtn && invitePopover) {
+    inviteBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        const rect = inviteBtn.getBoundingClientRect();
+        invitePopover.style.top = '${rect.bottom + window.scrollY + 5}px';
+        invitePopover.style.left = '${rect.left + window.scrollX}px';
+        invitePopover.style.display = "block";
+    });
+
+// 팝업 외부 클릭 시 닫기
+window.addEventListener("click", function (e) {
+    if (invitePopover.style.display === "block" &&
+        !invitePopover.contains(e.target) &&
+        !inviteBtn.contains(e.target)
+    ) {
+        invitePopover.style.display = "none";
+    }
+});
+}
 </script>
 {% endblock %}
