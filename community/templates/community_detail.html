@@ -5,9 +5,10 @@
     <div class=" text-center py-3 mb-3">
         <div style="width: 100%; height: 240px; overflow: hidden; border-radius: 8px; position: relative;">
             <!--그냥 임의로 설정한 것-->
-            <img src="https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyMDAyMTFfMzAw%2FMDAxNTgxMzkwMTk3MzAw.CuYEfB_h9aSPxhV8PDomPAQEZbBq_2hAvN0hfIR1YsQg.I1wF5cHXxMXcu0l44kQmT91xf9_S1y5ysoSXEhSNKv8g.GIF.lovea2204%2F7.gif&type=sc960_832_gif" 
-            alt="짱구 배경화면"
+            <img src="{{community.community_image.url}}" 
+            alt="{{community.community_name}} 대표사진"
             style="width:100%; height: 100%; object-fit: cover; object-position: center;">
+            <p>경로 확인: {{ community.community_image.url }}</p>
 
             <a href="#" class="round-edit-button btn btn-outline-secondary btn-sm">
                 ✎
@@ -50,7 +51,7 @@
             <div class="bg-light p-3 mb-3" style="min-height: 100px;">
                 <h6 class="fw-bold d-flex justify-content-between">
                     약속
-                    <a href="{% url 'promise:promise' %}" class="btn btn-outline-secondary btn-sm">약속 날짜 정하기</a>
+                    <a href="{% url 'promise:create_promise' community.id %}" class="btn btn-outline-secondary btn-sm">약속 날짜 정하기</a>
                 </h6>
                 <div>
                     {% if promises %}

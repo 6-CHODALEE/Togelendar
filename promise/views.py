@@ -6,11 +6,12 @@ from .forms import PromiseForm
 from datetime import timedelta
 import json
 from django.urls import reverse
+from mypage.models import CreateCommunity
 
 # Create your views here.
 @login_required
-def promise(request):
-    # promise_obj = Promise.objects.get(promise_name=promise_name)
+def create_promise(request, community_id):
+    community = CreateCommunity.objects.get(id=community_id)
 
     current_year = datetime.now().year
     
@@ -38,15 +39,14 @@ def promise(request):
 
         form = PromiseForm(post_data)
 
-        # print("📌 POST 데이터:", request.POST)
-        # print("📌 조합된 날짜:", start_date, end_date)
         # 모든 값이 입력되었는지 확인 후 날짜 조합
         if form.is_valid():
-            # print("📌 form 유효, 저장 시도")
-            saved_promise = form.save()
+            promise = form.save(commit=False)
+            promise.community = community
+            promise.save()
+
             # 저장 후 이동할 페이지
-            # print("📌 저장 완료, redirect 시도")
-            return redirect('promise:promise_vote', promise_id=saved_promise.id)
+            return redirect('promise:promise_vote', community_id=community.id, promise_id=promise.id)
 
     else:
         form = PromiseForm()
@@ -59,10 +59,11 @@ def promise(request):
         'months': months,
         'days': days
     }
-    return render(request, 'promise.html', context)
+    return render(request, 'create_promise.html', context)
 
 @login_required
-def promise_vote(request, promise_id):
+def promise_vote(request, promise_id, community_id):
+    community = CreateCommunity.objects.get(id=community_id)
     promise = Promise.objects.get(id=promise_id)
     inclusive_end = promise.end_date + timedelta(days=1)
 
@@ -70,7 +71,7 @@ def promise_vote(request, promise_id):
     # 중복 투표 여부 확인
         has_voted = PromiseVote.objects.filter(username=request.user, promise=promise).exists()
         if has_voted:
-            return redirect('promise:promise_result', promise_id=promise.id)
+            return redirect('promise:promise_result', community_id=community.id, promise_id=promise.id)
 
         selected = request.POST.get("selected_dates", "")
         selected_list = selected.split(",") if selected else []
@@ -94,13 +95,14 @@ def promise_vote(request, promise_id):
     # GET요청인 경우 결과 화면을 보여줌
 
 @login_required
-def promise_result(request, promise_id):
+def promise_result(request, promise_id, community_id):
+    community = CreateCommunity.objects.get(id=community_id)
     promise = Promise.objects.get(id=promise_id)
     
     if request.method == "POST":
         has_voted = PromiseVote.objects.filter(username=request.user, promise=promise).exists()
         if has_voted:
-            return redirect('promise:promise_result', promise_id=promise.id)
+            return redirect('promise:promise_result', community_id=community.id, promise_id=promise.id)
 
         selected = request.POST.get("selected_dates", "")
         selected_list = selected.split(",") if selected else []
@@ -114,7 +116,7 @@ def promise_result(request, promise_id):
             )
             vote.save()
 
-        return redirect('promise:promise_result', promise_id=promise.id)
+        return redirect('promise:promise_result', community_id=community.id, promise_id=promise.id)
         
     else:
         selected_list = PromiseVote.objects.filter(username=request.user, promise=promise).values_list('selected_date', flat=True)

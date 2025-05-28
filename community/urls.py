@@ -4,6 +4,5 @@ from . import views
 app_name = 'community'
 
 urlpatterns = [
-    path('community/', views.community, name = 'community'),
-    path('community/', include('promise.urls')),
+    path('<int:community_id>/', views.community_detail, name = 'community_detail'),
     ]

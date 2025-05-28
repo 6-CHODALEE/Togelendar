@@ -7,7 +7,11 @@
     <div class="row">
         <div class="col-md-4 text-center position-relative">
             <p class="fw-bold">{{ me }}</p>
-            <p>함친: 명</p>
+            {% if friend_count > 0 %}
+                <p>함친 <strong>{{friend_count}}명</strong></p>
+            {% else %}
+                <p class="text-muted">아직 함친이 없습니다.</p>
+            {% endif %}
 
             <!-- ✅ 함친 추가 버튼 -->
             <a href="#" id="togglePopover" class="btn btn-secondary btn-sm mb-2">함친 추가</a><br>
@@ -68,7 +72,7 @@
         {% for community in communities %}
             <div class="d-flex justify-content-between align-items-center p-3 mb-2 border rounded bg-light">
                 <div># {{ community.community_name }}</div>
-                <a href="#" class="btn btn-outline-dark btn-sm">입장하기</a>
+                <a href="{% url 'community:community_detail' community.id %}" class="btn btn-outline-dark btn-sm">입장하기</a>
             </div>
         {% empty %}
             <p class="text-muted">참여 중인 커뮤니티가 없습니다.</p>

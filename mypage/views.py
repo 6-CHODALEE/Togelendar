@@ -36,10 +36,18 @@ def mypage(request, username):
         if community:
             my_communities.append(community)
 
+    friend_list = FriendRequest.objects.filter(
+        Q(from_user=me) | Q(to_user=me),
+        status='accepted'
+    )
+    friend_count = friend_list.count()
+
     context = {
         'me': me,
         'received_requests': received_requests,
-        'communities': my_communities  # ✅ 추가
+        'communities': my_communities,
+        'friend_count': friend_count,
+        'friend_list': friend_list,
     }
 
     return render(request, 'mypage.html', context)
