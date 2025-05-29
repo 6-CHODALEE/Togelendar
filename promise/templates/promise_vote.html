@@ -17,6 +17,28 @@
     </div>
 
 </form>
+
+<style>
+        /* 평일 색 지정 */
+        .fc-col-header-cell:nth-child(2) .fc-col-header-cell-cushion,
+        .fc-col-header-cell:nth-child(3) .fc-col-header-cell-cushion,
+        .fc-col-header-cell:nth-child(4) .fc-col-header-cell-cushion,
+        .fc-col-header-cell:nth-child(5) .fc-col-header-cell-cushion,
+        .fc-col-header-cell:nth-child(6) .fc-col-header-cell-cushion,
+        .fc-day-mon .fc-daygrid-day-number,
+        .fc-day-tue .fc-daygrid-day-number,
+        .fc-day-wed .fc-daygrid-day-number,
+        .fc-day-thu .fc-daygrid-day-number,
+        .fc-day-fri .fc-daygrid-day-number {color: black;}
+
+        /* 토요일 색 지정 */
+        .fc-col-header-cell:nth-child(7) .fc-col-header-cell-cushion,
+        .fc-day-sat .fc-daygrid-day-number {color: blue;}
+        
+        /* 일요일 색 지정*/
+        .fc-col-header-cell:nth-child(1) .fc-col-header-cell-cushion,
+        .fc-day-sun .fc-daygrid-day-number {color: red;}
+</style>
 {% endblock %}
 
 {% block scripts %}

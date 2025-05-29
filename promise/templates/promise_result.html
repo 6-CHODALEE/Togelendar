@@ -2,14 +2,12 @@
 
 {% block body %}
 <div class="container my-5">
-    <div class="text-center">
-        <h2>{{promise.promise_name}}의 약속 날짜가 정해졌어요!</h2>
-        <!--필요없으면 지워도됨-->
-        <ul style="display: inline-block; text-align: left;">
-            {% for date in selected_dates %}
-                <li>{{date}}</li>
-            {% endfor %}
-        </ul>
+    <div class="text-center mb-5">
+        {% if all_voted %}
+            <h2><strong>{{promise.promise_name}}</strong>의 약속 날짜가 정해졌어요!</h2>
+        {% else %}
+            <h2>아직 <strong>{{promise.promise_name}}</strong>의 약속 날짜 투표가 진행중이에요!</h2>
+        {% endif %}
     </div>
     <div id="calendar" style="max-width: 800px; margin: 0 auto;"></div>
     <div style="max-width: 800px; margin: 10px auto 0 auto; display: flex; justify-content: flex-end; padding-right: 20px;">
@@ -23,6 +21,41 @@
     .fc-day-today {
         background-color: transparent !important;
     }
+
+    .fc-daygrid-day-frame {
+        position: relative;
+    }
+
+    .fc-vote-count {
+        font-size: 0.75rem;
+        font-weight: bold;
+        text-align: center;
+        position: absolute;
+        bottom: 2px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+    }
+        
+        /* 평일 색 지정 */
+        .fc-col-header-cell:nth-child(2) .fc-col-header-cell-cushion,
+        .fc-col-header-cell:nth-child(3) .fc-col-header-cell-cushion,
+        .fc-col-header-cell:nth-child(4) .fc-col-header-cell-cushion,
+        .fc-col-header-cell:nth-child(5) .fc-col-header-cell-cushion,
+        .fc-col-header-cell:nth-child(6) .fc-col-header-cell-cushion,
+        .fc-day-mon .fc-daygrid-day-number,
+        .fc-day-tue .fc-daygrid-day-number,
+        .fc-day-wed .fc-daygrid-day-number,
+        .fc-day-thu .fc-daygrid-day-number,
+        .fc-day-fri .fc-daygrid-day-number {color: black;}
+
+        /* 토요일 색 지정 */
+        .fc-col-header-cell:nth-child(7) .fc-col-header-cell-cushion,
+        .fc-day-sat .fc-daygrid-day-number {color: blue;}
+        
+        /* 일요일 색 지정*/
+        .fc-col-header-cell:nth-child(1) .fc-col-header-cell-cushion,
+        .fc-day-sun .fc-daygrid-day-number {color: red;}
 </style>
 {% endblock %}
 
@@ -33,27 +66,50 @@
 
         // 전체 투표 데이터 받아오기
         const allVotes = JSON.parse('{{all_vote_data|safe}}');
+        const totalMembers = parseInt(`{{total_members|default:1}}`);
 
         // FullCalendar 초기화
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
             locale: 'ko',
             initialDate: allVotes.length > 0 ? allVotes[0].date : undefined,
-            events: allVotes.map(item => {
-                const intensity = Math.min(item.intensity, 1);
-                // 점점 진하게 색 조절
-                const color = `rgba(251, 211, 141, ${intensity})`
-                return {
+            events: allVotes.map(item => ({
                     start: item.date,
                     end: item.date,
                     allDay: true,
                     display: 'background',
-                    color: color
-                };
-            })
+                    color: `rgba(251, 211, 141, ${item.intensity})`,
+                    extendedProps: {
+                        count: item.count,
+                    }
+            })),
+            eventDidMount: function(info) {
+                const count = info.event.extendedProps.count;
+                const dateCell = info.el.closest(".fc-daygrid-day");
+                const frame = dateCell ? dateCell.querySelector(".fc-daygrid-day-frame") : null;
+
+                if (dateCell && count >0) {
+                    const text = document.createElement("div");
+                    text.className = "fc-vote-count";
+
+                    if (count === 1) {
+                        text.innerText = "1명 가능";
+                        text.style.color = "blue";
+                    } else if (count === totalMembers) {
+                        text.innerText = "모두 가능";
+                        text.style.color = "red";
+                    } else {
+                        text.innerText = `${count}명 가능`;
+                        text.style.color = "blue"
+                    }
+
+                    frame.appendChild(text);
+                }
+            }
         });
 
         calendar.render();
     });
+    
 </script>
 {% endblock %}
