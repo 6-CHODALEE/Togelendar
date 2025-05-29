@@ -459,10 +459,20 @@ document.querySelectorAll('.reject-invite-btn').forEach(button => {
         })
         .then(res => res.json())
         .then(data => {
-            if (data.sucess) {
+            if (data.success) {
                 alert("가입 요청을 거절했습니다.");
-                // UI에서도 제거
+                window.location.reload();
+                // 해당 요청 항목 삭제
                 button.closest('.d-flex').remove();
+                
+                // 남은 요청이 없으면 팝업 닫기
+                const remaining = document.querySelectorAll('.reject-invite-btn');
+                if (remaining.length === 0) {
+                    const invitePopover = document.getElementById("invitePopover");
+                    if (invitePopover) invitePopover.style.display = "none";
+                }
+            } else {
+                alert("거절 처리에 실패했습니다.")
             }
         });
     });

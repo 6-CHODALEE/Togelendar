@@ -253,24 +253,22 @@ def respond_invite(request, username):
     action = data.get("action")
 
     try:
-        invite = CommunityInvite.objects.get(id=invite_id, to_user=request.user)
+        invite = CommunityInvite.objects.get(id=invite_id)
 
         if action == "accept":
+            # 멤버로 추가
             CommunityMember.objects.create(
                 community_name=invite.community.community_name,
                 create_user = invite.community.create_user,
                 member = invite.to_user.username
             )
-            invite.status = 'accepted'
-            invite.save()
+            invite.delete()
+        
         elif action == 'reject':
-            invite.status = 'rejected'
-            invite.save()
-
+            invite.delete()
+            
         return JsonResponse({'success': True})
 
-    except CommunityInvite.DoesNotExist:
-        return JsonResponse({'success': False, 'error': '초대가 존재하지 않습니다.'})
 
-    except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
+    except CommunityInvite.DoesNotExist:
+        return JsonResponse({'success': False, 'error': '초대 기록을 찾을 수 없습니다.'})

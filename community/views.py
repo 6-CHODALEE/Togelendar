@@ -12,7 +12,7 @@ import logging
 @login_required
 def community_detail(request, community_id):
     community = CreateCommunity.objects.get(id=community_id)
-    promises = Promise.objects.all()
+    promises = Promise.objects.filter(community=community)
 
     # 친구 리스트 생성
     friend_list = FriendRequest.objects.filter(
@@ -24,16 +24,26 @@ def community_detail(request, community_id):
     friend_users = []
     for fr in friend_list:
         friend = fr.to_user if fr.from_user == request.user else fr.from_user
+
         # 이미 멤버인지 체크
         is_member = CommunityMember.objects.filter(
             community_name = community.community_name,
             create_user = community.create_user,
             member = friend.username
         ).exists()
+
+        # 초대 했는지 체크
+        has_invite = CommunityInvite.objects.filter(
+            community = community,
+            to_user = friend,
+            status = 'pending'
+        ).exists()
+
         friend_users.append({
             'username': friend.username,
             'email': friend.email,
             'is_member': is_member,
+            'has_invite': has_invite,
         })
 
     # 커뮤니티 멤버 가져오기
@@ -53,41 +63,6 @@ def community_detail(request, community_id):
         'friend_users': friend_users,
     }
     return render(request, 'community_detail.html', context)
-
-# def add_member_ajax(request, community_id):
-#     logger = logging.getLogger(__name__)
-#     User = get_user_model()
-    
-#     try:
-#         data = json.loads(request.body)
-#         community_id = data.get('community_id')
-#         username = data.get('username')
-
-#         # 커뮤니티, 유저 찾기
-#         community = CreateCommunity.objects.get(id=community_id)
-#         user_to_add = User.objects.get(username=username)
-
-#         # 이미 멤버인지 확인
-#         if CommunityMember.objects.filter(
-#                 community_name = community.community_name,
-#                 create_user = community.create_user,
-#                 member = username
-#             ).exists():
-
-#             return JsonResponse({'success': False, 'error': '이미 멤버입니다.'})
-
-#         # 멤버 추가
-#         CommunityMember.objects.create(
-#             community_name = community.community_name,
-#             create_user = community.create_user,
-#             member = user_to_add.username
-#         )
-
-#         return JsonResponse({'success': True})
-
-#     except Exception as e:
-#         logger.error(f"[add_member_ajax] 오류 발생: {e}")
-#         return JsonResponse({'suceess': False, 'error': str(e)})
 
 def invite_member_ajax(request, community_id):
     data = json.loads(request.body)

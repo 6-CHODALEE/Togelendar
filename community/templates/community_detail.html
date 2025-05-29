@@ -50,10 +50,12 @@
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 {{friend.username}}
                                 {% if friend.is_member %}
-                                <button class="btn btn-sm btn-secondary">이미 멤버</button>
+                                    <button class="btn btn-sm btn-secondary">이미 멤버</button>
+                                {% elif friend.has_invite %}
+                                    <button class="btn btn-sm btn-success">요청 보냄</button>
                                 {% else %}
-                                <button class="btn btn-sm btn-primary invite-member-btn"
-                                data-username="{{friend.username}}">
+                                    <button class="btn btn-sm btn-primary invite-member-btn"
+                                    data-username="{{friend.username}}">
                                 초대
                             </button>
                             {% endif %}
@@ -96,12 +98,12 @@
                                 <li>
                                     {% if promise.id in voted_ids %}
                                         <!--투표 완료한 경우-->
-                                        <a href="{% url 'promise:promise_result' promise.id %}">
+                                        <a href="{% url 'promise:promise_result' community.id promise.id %}">
                                             📅{{promise.promise_name}}
                                         </a>
                                     {% else %}
                                         <!--투표하지 않은 경우-->
-                                        <a href="{% url 'promise:promise_vote' promise.id %}">
+                                        <a href="{% url 'promise:promise_vote' community.id promise.id %}">
                                             📅{{promise.promise_name}}
                                         </a>
                                     {% endif %}

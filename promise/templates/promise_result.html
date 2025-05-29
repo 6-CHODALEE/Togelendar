@@ -13,7 +13,7 @@
     </div>
     <div id="calendar" style="max-width: 800px; margin: 0 auto;"></div>
     <div style="max-width: 800px; margin: 10px auto 0 auto; display: flex; justify-content: flex-end; padding-right: 20px;">
-        <a href="{% url 'community:community_detail' community.id%}" class="btn btn-outline-secondary btn-sm">
+        <a href="{% url 'community:community_detail' community.id %}" class="btn btn-outline-secondary btn-sm">
             커뮤니티로 이동하기
         </a>
     </div>
@@ -31,19 +31,26 @@
     document.addEventListener('DOMContentLoaded', function () {
         const calendarEl = document.getElementById('calendar');
 
-        const selectedDates = JSON.parse('{{js_selected_dates|safe}}');
+        // 전체 투표 데이터 받아오기
+        const allVotes = JSON.parse('{{all_vote_data|safe}}');
 
+        // FullCalendar 초기화
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
             locale: 'ko',
-            initialDate: selectedDates[0],
-            events: selectedDates.map(date => ({
-                start: date,
-                end: date,
-                allDay: true,
-                display: 'background',
-                color: '#fbd38d'
-            }))
+            initialDate: allVotes.length > 0 ? allVotes[0].date : undefined,
+            events: allVotes.map(item => {
+                const intensity = Math.min(item.intensity, 1);
+                // 점점 진하게 색 조절
+                const color = `rgba(251, 211, 141, ${intensity})`
+                return {
+                    start: item.date,
+                    end: item.date,
+                    allDay: true,
+                    display: 'background',
+                    color: color
+                };
+            })
         });
 
         calendar.render();

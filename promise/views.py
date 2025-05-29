@@ -7,6 +7,7 @@ from datetime import timedelta
 import json
 from django.urls import reverse
 from mypage.models import CreateCommunity
+from collections import Counter
 
 # Create your views here.
 @login_required
@@ -62,9 +63,10 @@ def create_promise(request, community_id):
     return render(request, 'create_promise.html', context)
 
 @login_required
-def promise_vote(request, promise_id, community_id):
+def promise_vote(request, community_id, promise_id):
     community = CreateCommunity.objects.get(id=community_id)
-    promise = Promise.objects.get(id=promise_id)
+    promise = Promise.objects.get(id=promise_id, community=community)
+ 
     inclusive_end = promise.end_date + timedelta(days=1)
 
     if request.method == "POST":
@@ -83,6 +85,7 @@ def promise_vote(request, promise_id, community_id):
                 username=request.user
             )
             vote.save()
+        return redirect('promise:promise_result', community_id=community.id, promise_id=promise.id)
 
     context = {
         'promise': promise,
@@ -96,11 +99,12 @@ def promise_vote(request, promise_id, community_id):
     # GET요청인 경우 결과 화면을 보여줌
 
 @login_required
-def promise_result(request, promise_id, community_id):
+def promise_result(request, community_id, promise_id):
     community = CreateCommunity.objects.get(id=community_id)
-    promise = Promise.objects.get(id=promise_id)
-    
+    promise = Promise.objects.get(id=promise_id, community=community)
+
     if request.method == "POST":
+        # 중복 투표 여부 확인
         has_voted = PromiseVote.objects.filter(username=request.user, promise=promise).exists()
         if has_voted:
             return redirect('promise:promise_result', community_id=community.id, promise_id=promise.id)
@@ -123,12 +127,28 @@ def promise_result(request, promise_id, community_id):
         selected_list = PromiseVote.objects.filter(username=request.user, promise=promise).values_list('selected_date', flat=True)
         selected_list = [d.strftime('%Y-%m-%d') for d in selected_list]
 
+    # 전체 투표 수 집계
+    votes = PromiseVote.objects.filter(promise=promise)
+    vote_counter = Counter(vote.selected_date.strftime('%Y-%m-%d') for vote in votes)
+
+    max_count = max(vote_counter.values()) if vote_counter else 1
+
+    date_votes = [
+        {
+            "date": date,
+            "count": count, 
+            "intensity": round(count / max_count, 2)
+        }
+        for date, count in vote_counter.items()
+    ]
+
     context = {
         'promise': promise, 
         'community': community,
-        # JS에서 사용 가능하게 json 변환
         'selected_dates': selected_list,
+        # JS에서 사용 가능하게 json 변환
         'js_selected_dates': json.dumps(selected_list),
+        'all_vote_data': json.dumps(date_votes),
     }
 
     return render(request, 'promise_result.html', context)
