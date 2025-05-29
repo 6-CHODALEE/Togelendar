@@ -7,14 +7,43 @@
     <div class="row">
         <div class="col-md-4 text-center position-relative">
             <p class="fw-bold">{{ me }}</p>
-            {% if friend_count > 0 %}
-                <p>함친 <strong>{{friend_count}}명</strong></p>
-            {% else %}
-                <p class="text-muted">아직 함친이 없습니다.</p>
-            {% endif %}
+            <p>함친 
+                <strong id="showFriendList" style="cursor:pointer;" class="fw-bold">
+                    {{friend_count}}명
+                </strong>
+            </p>
 
+            <!--친구 리스트 팝업-->
+            <div id="friendListPopover" class="popover-form" style="display: none;">
+                <div class="popover-arrow"></div>
+                <h6 class="fw-bold">함친 목록</h6>
+                <ul class="list-group">
+                    {% for friend in friend_list %}
+                        <li class="list-group-item">
+                            {% if friend.from_user == request.user %}
+                                {{friend.to_user.username}}
+                            {% else %}
+                                {{friend.from_user.username}}
+                            {% endif %}
+                        </li>
+                        {% empty %}
+                            <li class="list-group-item text-muted">친구가 없습니다.</li>
+                        {% endfor %}
+                </ul>
+                <div class="text-end mt-2">
+                    <button id="closeFriendListPopover" class="btn btn-sm btn-secondary">닫기</button>
+                </div>
+            </div>
+            
             <!-- ✅ 함친 추가 버튼 -->
-            <a href="#" id="togglePopover" class="btn btn-secondary btn-sm mb-2">함친 추가</a><br>
+            <a href="#" id="togglePopover" class="btn btn-secondary btn-sm mb-2 position-relative">
+                함친 추가
+                {% if received_requests %}
+                    <span class="badge bg-danger position-absolute top-0 start-100 translate-middle badge-friend">
+                        {{received_requests|length}}
+                    </span>
+                {% endif %}
+            </a><br>
             <a href="#" class="btn btn-outline-dark btn-sm">프로필 편집</a>
 
             <!-- ✅ 팝업 폼 -->
@@ -22,7 +51,7 @@
                 <div class="popover-arrow"></div>
 
                 <form method="get" action="{% url 'mypage:search_friends' me %}" id="searchForm">
-                    <label for="friendName" class="form-label mb-1">닉네임 검색</label>
+                    <label for="friendName" class="form-label mb-1 fw-bold">닉네임 검색</label>
                     <div class="input-group mb-2">
                         <input type="text" name="q" class="form-control" placeholder="닉네임 입력">
                         <button class="btn btn-primary btn-sm" type="submit">검색</button>
@@ -36,7 +65,7 @@
                     <button type="button" class="btn btn-secondary btn-sm" id="closePopover">닫기</button>
                 </div>
                 <div class="friend-requests mt-2">
-                <h6>친구 요청</h6>
+                <h6 class="fw-bold">친구 요청</h6>
                 {% if received_requests %}
                     {% for req in received_requests %}
                         <div class="d-flex justify-content-between align-items-center mb-1">
@@ -64,24 +93,29 @@
 
     <!-- 아래: 커뮤니티 리스트 -->
     <div class="d-flex justify-content-between align-items-center bg-light p-3 mt-4">
-        <h5 class="mb-0">{{ me }}의 커뮤니티 리스트</h5>
-
-        {% if invite_requests %}
-            <a href="" id="showInvitePopover" class="btn btn-outline-secondary btn-sm">가입 요청 {{invite_requests|length}}건</a>
-        {% endif %}
-
-        <a href="{% url 'mypage:create_community' me %}" class="btn btn-warning btn-sm">커뮤니티 생성하기</a>
+        <h5 class="mb-0 d-inline">{{ me }}의 커뮤니티 리스트</h5>
+        
+        <div>
+            {% if invite_requests %}
+                <a href="" id="showInvitePopover" class="btn btn-outline-secondary btn-sm me-2">
+                    가입 요청 {{invite_requests|length}}건
+                </a>
+            {% endif %}
+            <a href="{% url 'mypage:create_community' me %}" class="btn btn-warning btn-sm">
+                커뮤니티 생성하기
+            </a>
+        </div>
     </div>
 
     <!--커뮤니티 가입 요청 팝업-->
     <div id="invitePopover" class="popover-form" style="display: none;">
         <div class="popover-arrow"></div>
-        <h6>커뮤니티 가입 요청</h6>
+        <h6 class="fw-bold">커뮤니티 가입 요청</h6>
         {% for invite in invite_requests %}
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <span>{{invite.community.community_name}} (by {{invite.from_user.username}})</span>
                 <div>
-                    <button class="btn btn-sm btn-success accept-invite-btn" date-id="{{invite.id}}">수락</button>
+                    <button class="btn btn-sm btn-success accept-invite-btn" data-id="{{invite.id}}">수락</button>
                     <button class="btn btn-sm btn-danger reject-invite-btn" data-id="{{invite.id}}">거절</button>
                 </div>
             </div>
@@ -116,7 +150,7 @@
     border-radius: 10px;
     z-index: 1000;
     width: 400px;
-    display: none;
+    /* display: none; */
 }
 .popover-arrow {
     position: absolute;
@@ -127,6 +161,12 @@
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
     border-bottom: 10px solid white;
+}
+
+.badge-friend {
+    font-size: 0.65rem;
+    padding: 4px 6px;
+    border-radius: 50%;
 }
 </style>
 
@@ -166,8 +206,8 @@ btn.addEventListener("click", (e) => {
 
 function showPopover() {
     const rect = btn.getBoundingClientRect();
-    popover.style.top = `${rect.bottom + window.scrollY + 5}px`;
-    popover.style.left = `${rect.left + window.scrollX}px`;
+    popover.style.top = `${rect.bottom + window.scrollY - 50}px`;
+    popover.style.left = `${rect.left + window.scrollX - 100}px`;
     popover.style.display = "block";
 
     // ✅ 수락 완료된 요청 항목들 제거
@@ -205,13 +245,6 @@ function clearSearchState() {
     window.history.replaceState({}, document.title, cleanUrl);
 }
 
-// ✅ 팝업 외부 클릭 시 닫기
-window.addEventListener("click", (e) => {
-    if (!popover.contains(e.target) && e.target !== btn) {
-        hidePopover();
-        window.location.href = `/togelendar/mypage/${currentUsername}/`;
-    }
-});
 
 // ✅ 검색 결과 렌더링
 const jsonDataElement = document.getElementById('search-results-data');
@@ -381,20 +414,107 @@ if (inviteBtn && invitePopover) {
     inviteBtn.addEventListener("click", function (e) {
         e.preventDefault();
         const rect = inviteBtn.getBoundingClientRect();
-        invitePopover.style.top = '${rect.bottom + window.scrollY + 5}px';
-        invitePopover.style.left = '${rect.left + window.scrollX}px';
+        invitePopover.style.top = `${rect.bottom + window.scrollY + 5}px`;
+        invitePopover.style.left = `${rect.left + window.scrollX}px`;
         invitePopover.style.display = "block";
     });
+}
 
-// 팝업 외부 클릭 시 닫기
+// 커뮤니티 가입 요청 수락
+document.querySelectorAll('.accept-invite-btn').forEach(button => {
+    button.addEventListener('click', function () {
+        const inviteId = button.getAttribute('data-id');
+        
+        fetch('/togelendar/mypage/${currentUsername}/respond_invite/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({invite_id: inviteId, action: 'accept'})
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert("가입 요청을 수락했습니다.");
+                // 새로고침으로 커뮤니티 리스트 반영
+                window.location.reload();
+            }
+        });
+    });
+});
+
+// 커뮤니티 가입 요청 거절
+document.querySelectorAll('.reject-invite-btn').forEach(button => {
+    button.addEventListener('click', function () {
+        const inviteId = button.getAttribute('data-id');
+        
+        fetch('/togelendar/mypage/${currentUsername}/respond_invite/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({ invite_id: inviteId, action: 'reject'})
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.sucess) {
+                alert("가입 요청을 거절했습니다.");
+                // UI에서도 제거
+                button.closest('.d-flex').remove();
+            }
+        });
+    });
+});
+
+// 친구 리스트 팝업창
+const showFriendList = document.getElementById("showFriendList");
+const friendListPopover = document.getElementById("friendListPopover");
+
+if (showFriendList && friendListPopover) {
+    showFriendList.addEventListener("click", function (e) {
+        const rect = showFriendList.getBoundingClientRect();
+        friendListPopover.style.top = `${rect.bottom + window.scrollY - 50}px`;
+        friendListPopover.style.left = `${rect.left + window.scrollX - 100}px`;
+        friendListPopover.style.display = "block";
+    });
+
+    closeFriendListPopover.addEventListener("click", function () {
+        friendListPopover.style.display = "none";
+    });
+
+}
+
+// 외부 클릭 시 팝업창 닫기
+// -> 함친추가, 가입요청 두개의 팝업 다 닫는 통합 로직
 window.addEventListener("click", function (e) {
-    if (invitePopover.style.display === "block" &&
+    // 함친 추가 팝업
+    if (
+        popover.style.display === "block" &&
+        !popover.contains(e.target) &&
+        e.target !== btn
+    ) {
+        hidePopover();
+    }
+
+    // 커뮤니티 가입 요청 팝업
+    if (
+        invitePopover.style.display === "block" &&
         !invitePopover.contains(e.target) &&
-        !inviteBtn.contains(e.target)
+            e.target !== inviteBtn
     ) {
         invitePopover.style.display = "none";
     }
+
+    // 친구 리스트 팝업
+    if (
+        friendListPopover.style.display === "block" &&
+        !friendListPopover.contains(e.target) &&
+        e.target !== showFriendList
+    ) {
+        friendListPopover.style.display = "none";
+    }
 });
-}
 </script>
 {% endblock %}

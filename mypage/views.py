@@ -247,22 +247,30 @@ def send_friend_reject(request, username):
 
 @require_POST
 @login_required
-def respond_invite(request):
+def respond_invite(request, username):
     data = json.loads(request.body)
     invite_id = data.get("invite_id")
     action = data.get("action")
 
-    invite = CommunityInvite.objects.get(id=invite_id, to_user=request.user)
+    try:
+        invite = CommunityInvite.objects.get(id=invite_id, to_user=request.user)
 
-    if action == "accept":
-        invite.status = 'accepted'
-        CommunityMember.objects.create(
-            community_name=invite.community.community_name,
-            create_user = invite.community.create_user,
-            member = invite.to_user.username
-        )
-    else:
-        invite.status = 'rejected'
+        if action == "accept":
+            CommunityMember.objects.create(
+                community_name=invite.community.community_name,
+                create_user = invite.community.create_user,
+                member = invite.to_user.username
+            )
+            invite.status = 'accepted'
+            invite.save()
+        elif action == 'reject':
+            invite.status = 'rejected'
+            invite.save()
 
-    invite.save()
-    return JsonResponse({'success': True})
+        return JsonResponse({'success': True})
+
+    except CommunityInvite.DoesNotExist:
+        return JsonResponse({'success': False, 'error': '초대가 존재하지 않습니다.'})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})

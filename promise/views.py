@@ -86,6 +86,7 @@ def promise_vote(request, promise_id, community_id):
 
     context = {
         'promise': promise,
+        'community': community,
         'start_date': promise.start_date.strftime('%Y-%m-%d'),
         'end_date': inclusive_end.strftime('%Y-%m-%d'),
     }
@@ -124,6 +125,7 @@ def promise_result(request, promise_id, community_id):
 
     context = {
         'promise': promise, 
+        'community': community,
         # JS에서 사용 가능하게 json 변환
         'selected_dates': selected_list,
         'js_selected_dates': json.dumps(selected_list),

@@ -3,16 +3,20 @@
 {% block body %}
 <div class="container my-5">
     <div class="text-center">
-        <h2>{{모임이름}}의 약속 날짜가 정해졌어요!</h2>
+        <h2>{{promise.promise_name}}의 약속 날짜가 정해졌어요!</h2>
         <!--필요없으면 지워도됨-->
         <ul style="display: inline-block; text-align: left;">
             {% for date in selected_dates %}
-            <li>{{date}}</li>
+                <li>{{date}}</li>
             {% endfor %}
         </ul>
     </div>
     <div id="calendar" style="max-width: 800px; margin: 0 auto;"></div>
-    <a href="{% url 'community:community' %}" class="btn btn-outline-secondary btn-sm">커뮤니티로 이동하기</a>
+    <div style="max-width: 800px; margin: 10px auto 0 auto; display: flex; justify-content: flex-end; padding-right: 20px;">
+        <a href="{% url 'community:community_detail' community.id%}" class="btn btn-outline-secondary btn-sm">
+            커뮤니티로 이동하기
+        </a>
+    </div>
 </div>
 
 <style>

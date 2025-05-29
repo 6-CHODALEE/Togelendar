@@ -12,4 +12,6 @@ urlpatterns = [
     path('<str:username>/friend/accept/', views.send_friend_accept, name='send_friend_accept'),
     path('<str:username>/friend/reject/', views.send_friend_reject, name='send_friend_reject'),
 
+    path('<str:username>/respond_invite/', views.respond_invite, name='respond_invite'),
+
 ]
