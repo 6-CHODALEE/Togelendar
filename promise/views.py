@@ -6,7 +6,7 @@ from .forms import PromiseForm
 from datetime import timedelta
 import json
 from django.urls import reverse
-from mypage.models import CreateCommunity
+from mypage.models import CreateCommunity, CommunityMember
 from collections import Counter
 
 # Create your views here.
@@ -131,13 +131,19 @@ def promise_result(request, community_id, promise_id):
     votes = PromiseVote.objects.filter(promise=promise)
     vote_counter = Counter(vote.selected_date.strftime('%Y-%m-%d') for vote in votes)
 
-    max_count = max(vote_counter.values()) if vote_counter else 1
+    total_members = CommunityMember.objects.filter(
+        community_name = community.community_name,
+        create_user = community.create_user
+    ).count()
+    responded_members = PromiseVote.objects.filter(promise=promise).values('username').distinct().count()
+
+    all_voted = (responded_members == total_members)
 
     date_votes = [
         {
             "date": date,
             "count": count, 
-            "intensity": round(count / max_count, 2)
+            "intensity": round(count / total_members, 2) if total_members > 0 else 0 
         }
         for date, count in vote_counter.items()
     ]
@@ -149,6 +155,8 @@ def promise_result(request, community_id, promise_id):
         # JS에서 사용 가능하게 json 변환
         'js_selected_dates': json.dumps(selected_list),
         'all_vote_data': json.dumps(date_votes),
+        'total_members': total_members,
+        'all_voted': all_voted,
     }
 
     return render(request, 'promise_result.html', context)
