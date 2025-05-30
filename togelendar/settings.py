@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'promise',
     'community',
     'mypage',
+    'promiselocation',
 ]
 
 MIDDLEWARE = [

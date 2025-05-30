@@ -425,7 +425,7 @@ document.querySelectorAll('.accept-invite-btn').forEach(button => {
     button.addEventListener('click', function () {
         const inviteId = button.getAttribute('data-id');
         
-        fetch('/togelendar/mypage/${currentUsername}/respond_invite/', {
+        fetch(`/togelendar/mypage/${currentUsername}/respond_invite/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
