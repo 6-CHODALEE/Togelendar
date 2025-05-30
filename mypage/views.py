@@ -4,7 +4,8 @@ from django.views.decorators.http import require_POST
 from .forms import CreateCommunityFrom
 from elasticsearch import Elasticsearch
 from django.conf import settings
-from .models import FriendRequest, CommunityMember, CreateCommunity, CommunityInvite
+from .models import CreateCommunity, FriendRequest
+from community.models import CommunityMember, CommunityInvite
 from django.contrib.auth import get_user_model
 import json
 from django.http import JsonResponse
@@ -262,11 +263,12 @@ def respond_invite(request, username):
                 create_user = invite.community.create_user,
                 member = invite.to_user.username
             )
-            invite.delete()
+            invite.status = 'accepted'
         
         elif action == 'reject':
-            invite.delete()
-            
+            invite.status = 'rejected'
+        
+        invite.save()
         return JsonResponse({'success': True})
 
 
