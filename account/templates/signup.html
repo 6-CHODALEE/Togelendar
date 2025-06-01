@@ -1,9 +1,61 @@
 {% extends 'base.html' %}
 
 {% block body %}
-    <form action="" method="POST", enctype="multipart/form-data">
-        {% csrf_token %}
-        {{form}}
-        <input type="submit", class="btn btn-primary">
-    </form>
+    <form action="" method="POST" enctype="multipart/form-data" class="container mt-4">
+    {% csrf_token %}
+
+    {% for field in form %}
+        {% if field.name == 'postcode' or field.name == 'address' %}
+            {{ field.as_hidden }}
+        {% else %}
+            <div class="mb-3">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.help_text %}
+                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                {% endif %}
+                {% for error in field.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endfor %}
+
+    <div class="mb-3 row">
+        <div class="col">
+            <label for="visible_postcode" class="form-label">우편번호</label>
+            <input type="text" id="visible_postcode" class="form-control" readonly>
+        </div>
+        <div class="col-auto align-self-end">
+            <button type="button" class="btn btn-secondary" onclick="execDaumPostcode()">우편번호 찾기</button>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label for="visible_address" class="form-label">주소</label>
+        <input type="text" id="visible_address" class="form-control" readonly>
+    </div>
+
+    <button type="submit" class="btn btn-primary">제출</button>
+</form>
+
+<script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script>
+function execDaumPostcode() {
+    new daum.Postcode({
+        oncomplete: function(data) {
+            const zonecode = data.zonecode;
+            const address = data.roadAddress ? data.roadAddress : data.jibunAddress;
+
+            // 사용자에게 보이는 input
+            document.getElementById('visible_postcode').value = zonecode;
+            document.getElementById('visible_address').value = address;
+
+            // 숨겨진 Django form 필드도 채워주기
+            document.getElementById('id_postcode').value = zonecode;
+            document.getElementById('id_address').value = address;
+        }
+    }).open();
+}
+</script>
 {% endblock %}

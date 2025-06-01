@@ -24,6 +24,7 @@ urlpatterns = [
     path('togelendar/', include('account.urls')),
     path('togelendar/', include('promise.urls')),
     path('togelendar/', include('community.urls')),
+    path('togelendar/', include('promiselocation.urls')),
     path('togelendar/mypage/', include('mypage.urls')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
