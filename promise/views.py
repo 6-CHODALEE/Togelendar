@@ -1,12 +1,12 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from datetime import datetime
-from .models import Promise, PromiseVote
+from .models import Promise, PromiseVote, PromiseResult
 from .forms import PromiseForm
-from datetime import timedelta
+from datetime import datetime, timedelta
 import json
 from django.urls import reverse
-from mypage.models import CreateCommunity, CommunityMember
+from community.models import CreateCommunity, CommunityMember
 from collections import Counter
 
 # Create your views here.
@@ -37,6 +37,7 @@ def create_promise(request, community_id):
         post_data = request.POST.copy()
         post_data['start_date'] = start_date
         post_data['end_date'] = end_date
+        post_data['pormise_name'] = request.POST.get('promise_name', '')
 
         form = PromiseForm(post_data)
 
@@ -44,6 +45,7 @@ def create_promise(request, community_id):
         if form.is_valid():
             promise = form.save(commit=False)
             promise.community = community
+            promise.promise_creator = request.user.username
             promise.save()
 
             # 저장 후 이동할 페이지
@@ -80,7 +82,8 @@ def promise_vote(request, community_id, promise_id):
 
         for date_str in selected_list:
             vote = PromiseVote(
-                promise=promise,
+                promise = promise,
+                promise_name=promise.promise_name,
                 selected_date=date_str,
                 username=request.user
             )
@@ -102,6 +105,10 @@ def promise_vote(request, community_id, promise_id):
 def promise_result(request, community_id, promise_id):
     community = CreateCommunity.objects.get(id=community_id)
     promise = Promise.objects.get(id=promise_id, community=community)
+    
+    # 전체 투표 수 집계
+    votes = PromiseVote.objects.filter(promise=promise)
+    vote_counter = Counter(vote.selected_date.strftime('%Y-%m-%d') for vote in votes)
 
     if request.method == "POST":
         # 중복 투표 여부 확인
@@ -127,17 +134,43 @@ def promise_result(request, community_id, promise_id):
         selected_list = PromiseVote.objects.filter(username=request.user, promise=promise).values_list('selected_date', flat=True)
         selected_list = [d.strftime('%Y-%m-%d') for d in selected_list]
 
-    # 전체 투표 수 집계
-    votes = PromiseVote.objects.filter(promise=promise)
-    vote_counter = Counter(vote.selected_date.strftime('%Y-%m-%d') for vote in votes)
 
     total_members = CommunityMember.objects.filter(
         community_name = community.community_name,
         create_user = community.create_user
     ).count()
     responded_members = PromiseVote.objects.filter(promise=promise).values('username').distinct().count()
-
     all_voted = (responded_members == total_members)
+
+    if all_voted and not PromiseResult.objects.filter(promise=promise).exists():
+        if vote_counter:
+            max_votes = max(vote_counter.values())
+            top_dates = sorted([
+                datetime.strptime(date_str, '%Y-%m-%d').date()
+                 for date_str, count in vote_counter.items() if count == max_votes
+            ])
+
+            # 연속된 날짜 그룹 나누기
+            ranges = []
+            group = [top_dates[0]]
+
+            for i in range(1, len(top_dates)):
+                if (top_dates[i] - top_dates[i - 1]).days == 1:
+                    group.append(top_dates[i])
+                else:
+                    ranges.append(group)
+                    group = [top_dates[i]]
+            ranges.append(group)
+
+            for date_group in ranges:
+                PromiseResult.objects.create(
+                    promise = promise,
+                    promise_name = promise.promise_name,
+                    promise_creator = promise.promise_creator,
+                    start_date = date_group[0],
+                    end_date = date_group[-1],
+                    place = None, # 추후 입력
+                )
 
     date_votes = [
         {

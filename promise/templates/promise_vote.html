@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block body %}
-<form method="POST" action="{% url 'promise:promise_result' community.id promise.id %}">
+<form method="POST" action="{% url 'promise:promise_vote' community.id promise.id %}">
     {% csrf_token %}
     
     <div class="container mt-5 text-center" style="max-width: 800px; margin: 0 auto;">

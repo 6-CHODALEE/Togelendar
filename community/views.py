@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from promise.models import Promise, PromiseVote
-from mypage.models import CreateCommunity, FriendRequest, CommunityMember, CommunityInvite
+from mypage.models import CreateCommunity, FriendRequest
+from community.models import CommunityMember, CommunityInvite
 from django.db.models import Q
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
@@ -71,10 +72,19 @@ def invite_member_ajax(request, community_id):
     community = CreateCommunity.objects.get(id=community_id)
 
     # 이미 보냈는지 확인
-    existing = CommunityInvite.objects.filter(community=community, to_user=to_user)
-    if existing.exists():
-        return JsonResponse({'success': False, 'message': '이미 초대 보냄'})
+    existing = CommunityInvite.objects.filter(community=community, to_user=to_user).first()
 
+    if existing:
+        if existing.status == 'pending':
+            return JsonResponse({'success': False, 'message': '이미 초대 보냄'})
+        # 상대방이 초대를 거절한 경우 다시 초대
+        else:
+            existing.status = 'pending'
+            existing.from_user = request.user
+            existing.save()
+            return JsonResponse({'success': True, 'message': '재초대 보냄'})
+
+    # 기존 초대가 없으면 새로 생성
     CommunityInvite.objects.create(
         community=community,
         from_user=request.user,
