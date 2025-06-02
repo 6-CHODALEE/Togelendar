@@ -34,4 +34,5 @@ class PromiseResult(models.Model):
     promise_creator = models.CharField(max_length=100, null=True)
     start_date = models.DateField()
     end_date = models.DateField()
-    place = models.CharField(max_length=255, null=True, blank=True) # 장소는 선택
+    center_latitude = models.FloatField(null=True, blank=True)
+    center_longitude = models.FloatField(null=True, blank=True)

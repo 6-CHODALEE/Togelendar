@@ -10,3 +10,5 @@ from django.contrib.auth.models import AbstractUser
 class User(AbstractUser):
     postcode = models.CharField(max_length=10, blank=True)
     address = models.CharField(max_length=255, blank=True)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)

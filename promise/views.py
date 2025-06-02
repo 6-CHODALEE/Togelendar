@@ -49,7 +49,7 @@ def create_promise(request, community_id):
             promise.save()
 
             # 저장 후 이동할 페이지
-            return redirect('promise:promise_vote', community_id=community.id, promise_id=promise.id)
+            return redirect('community:promise:promise_vote', community_id=community.id, promise_id=promise.id)
 
     else:
         form = PromiseForm()
@@ -75,7 +75,7 @@ def promise_vote(request, community_id, promise_id):
     # 중복 투표 여부 확인
         has_voted = PromiseVote.objects.filter(username=request.user, promise=promise).exists()
         if has_voted:
-            return redirect('promise:promise_result', community_id=community.id, promise_id=promise.id)
+            return redirect('community:promise:promise_result', community_id=community.id, promise_id=promise.id)
 
         selected = request.POST.get("selected_dates", "")
         selected_list = selected.split(",") if selected else []
@@ -88,7 +88,7 @@ def promise_vote(request, community_id, promise_id):
                 username=request.user
             )
             vote.save()
-        return redirect('promise:promise_result', community_id=community.id, promise_id=promise.id)
+        return redirect('community:promise:promise_result', community_id=community.id, promise_id=promise.id)
 
     context = {
         'promise': promise,
@@ -111,15 +111,13 @@ def promise_result(request, community_id, promise_id):
     vote_counter = Counter(vote.selected_date.strftime('%Y-%m-%d') for vote in votes)
 
     if request.method == "POST":
-        # 중복 투표 여부 확인
         has_voted = PromiseVote.objects.filter(username=request.user, promise=promise).exists()
         if has_voted:
-            return redirect('promise:promise_result', community_id=community.id, promise_id=promise.id)
+            return redirect('community:promise:promise_result', community_id=community.id, promise_id=promise.id)
 
         selected = request.POST.get("selected_dates", "")
         selected_list = selected.split(",") if selected else []
 
-        # 선택된 날짜들 각각을 Vote 테이블에 저장
         for date_str in selected_list:
             vote = PromiseVote(
                 promise=promise,
@@ -128,12 +126,11 @@ def promise_result(request, community_id, promise_id):
             )
             vote.save()
 
-        return redirect('promise:promise_result', community_id=community.id, promise_id=promise.id)
+        return redirect('community:promise:promise_result', community_id=community.id, promise_id=promise.id)
         
     else:
         selected_list = PromiseVote.objects.filter(username=request.user, promise=promise).values_list('selected_date', flat=True)
         selected_list = [d.strftime('%Y-%m-%d') for d in selected_list]
-
 
     total_members = CommunityMember.objects.filter(
         community_name = community.community_name,
@@ -150,7 +147,6 @@ def promise_result(request, community_id, promise_id):
                  for date_str, count in vote_counter.items() if count == max_votes
             ])
 
-            # 연속된 날짜 그룹 나누기
             ranges = []
             group = [top_dates[0]]
 
@@ -169,7 +165,8 @@ def promise_result(request, community_id, promise_id):
                     promise_creator = promise.promise_creator,
                     start_date = date_group[0],
                     end_date = date_group[-1],
-                    place = None, # 추후 입력
+                    center_latitude = 0,
+                    center_longitude = 0
                 )
 
     date_votes = [
@@ -181,15 +178,25 @@ def promise_result(request, community_id, promise_id):
         for date, count in vote_counter.items()
     ]
 
+    # ⭐ 중간지점 좌표 불러오기
+    try:
+        promise_result = PromiseResult.objects.get(promise=promise)
+        center_latitude = promise_result.center_latitude
+        center_longitude = promise_result.center_longitude
+    except PromiseResult.DoesNotExist:
+        center_latitude = 0
+        center_longitude = 0
+
     context = {
         'promise': promise, 
         'community': community,
         'selected_dates': selected_list,
-        # JS에서 사용 가능하게 json 변환
         'js_selected_dates': json.dumps(selected_list),
         'all_vote_data': json.dumps(date_votes),
         'total_members': total_members,
         'all_voted': all_voted,
+        'center_latitude': center_latitude,  # ⭐ 추가
+        'center_longitude': center_longitude,  # ⭐ 추가
     }
 
     return render(request, 'promise_result.html', context)

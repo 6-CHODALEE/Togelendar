@@ -10,11 +10,12 @@
         {% endif %}
     </div>
     <div id="calendar" style="max-width: 800px; margin: 0 auto;"></div>
+    <div id="map" style="height: 400px; max-width: 800px; margin: 20px auto 0 auto;"></div>
     <div style="max-width: 800px; margin: 10px auto 0 auto; display: flex; justify-content: flex-end; padding-right: 20px;">
         <a href="{% url 'community:community_detail' community.id %}" class="btn btn-outline-secondary btn-sm">
             커뮤니티로 이동하기
         </a>
-        <a href="{% url 'promiselocation:location' community.id promise.id %}" class="btn btn-outline-secondary btn-sm">
+        <a href="{% url 'community:promise:promiselocation:location' community.id promise.id %}" class="btn btn-outline-secondary btn-sm">
             장소 정하기
         </a>
     </div>
@@ -114,5 +115,12 @@
         calendar.render();
     });
     
+    var centerLat = parseFloat("{{ center_latitude|default:'37.5665' }}");
+    var centerLng = parseFloat("{{ center_longitude|default:'126.9780' }}");
+
+    var map = L.map('map').setView([centerLat, centerLng], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    L.marker([centerLat, centerLng]).addTo(map)
+        .bindPopup('약속 중간지점').openPopup();
 </script>
 {% endblock %}
