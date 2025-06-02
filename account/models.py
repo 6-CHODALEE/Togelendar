@@ -8,4 +8,5 @@ from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
 class User(AbstractUser):
-    address = models.CharField(max_length=255)
+    postcode = models.CharField(max_length=10, blank=True)
+    address = models.CharField(max_length=255, blank=True)
