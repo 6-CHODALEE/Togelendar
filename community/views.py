@@ -102,3 +102,19 @@ def update_image(request, community_id):
         return JsonResponse({'success': True})
 
     return JsonResponse({'success': False, "message": "이미지가 없습니다."})
+
+
+def update_community_info(request, community_id):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            community = CreateCommunity.objects.get(id=community_id)
+            community.community_name = data.get('community_name', community.community_name)
+            community.community_intro = data.get('community_intro', community.community_intro)
+            community.save()
+            return JsonResponse({'success': True})
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+        
+        return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)

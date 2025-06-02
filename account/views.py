@@ -52,4 +52,4 @@ def login(request):
 @login_required
 def logout(request):
     auth_logout(request)
-    return redirect('account:index')
+    return redirect('index:index')
