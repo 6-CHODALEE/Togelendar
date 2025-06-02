@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from promise.models import Promise, PromiseVote
 from mypage.models import CreateCommunity, FriendRequest
-from community.models import CommunityMember, CommunityInvite
+from community.models import CommunityMember, CommunityInvite, Photo
 from django.db.models import Q
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
@@ -118,3 +118,17 @@ def update_community_info(request, community_id):
             return JsonResponse({'success': False, 'message': str(e)})
         
         return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
+
+def album_detail(request, community_id, album_name):
+    # 해당 커뮤니티 id와 약속 이름에 해당하는 Promise 가져오기
+    promise = Promise.objects.filter(community_id=community_id, promise_name=album_name).first()
+    
+    photos = Photo.objects.filter(promise=promise)
+
+    context = {
+        'community_id': community_id,
+        'promise': promise,
+        'album_name': promise.promise_name,
+        'photos': photos,
+    }
+    return render(request, 'album_detail.html', context)

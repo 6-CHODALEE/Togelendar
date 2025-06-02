@@ -11,4 +11,7 @@ urlpatterns = [
     path('<int:community_id>/update_info/', views.update_community_info, name='update_community_info'),
     # ajax : asynchromous javascript and xml => 페이지 전체를 새로고침하지 않고, 서버에 데이터를 주고 받는 기술
     path('<int:community_id>/invite_member/', views.invite_member_ajax, name = 'invite_member_ajax'),
+
+    path('<int:community_id>/album/<str:album_name>', views.album_detail, name='album_detail'),
+    path('upload/', views.upload_photo, name='upload_photo'),
     ]

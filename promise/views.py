@@ -49,7 +49,7 @@ def create_promise(request, community_id):
             promise.save()
 
             # 저장 후 이동할 페이지
-            return redirect('promise:promise_vote', community_id=community.id, promise_id=promise.id)
+            return redirect('community:promise:promise_vote', community_id=community.id, promise_id=promise.id)
 
     else:
         form = PromiseForm()
@@ -75,7 +75,7 @@ def promise_vote(request, community_id, promise_id):
     # 중복 투표 여부 확인
         has_voted = PromiseVote.objects.filter(username=request.user, promise=promise).exists()
         if has_voted:
-            return redirect('promise:promise_result', community_id=community.id, promise_id=promise.id)
+            return redirect('community:promise:promise_result', community_id=community.id, promise_id=promise.id)
 
         selected = request.POST.get("selected_dates", "")
         selected_list = selected.split(",") if selected else []
@@ -88,7 +88,7 @@ def promise_vote(request, community_id, promise_id):
                 username=request.user
             )
             vote.save()
-        return redirect('promise:promise_result', community_id=community.id, promise_id=promise.id)
+        return redirect('community:promise:promise_result', community_id=community.id, promise_id=promise.id)
 
     context = {
         'promise': promise,

@@ -1,6 +1,8 @@
 from django.db import models
 from django.conf import settings
+from account.models import User
 from mypage.models import CreateCommunity
+from promise.models import Promise
 
 # Create your models here.
 class CommunityMember(models.Model):
@@ -37,3 +39,15 @@ class CommunityInvite(models.Model):
 
     def __str__(self):
         return f"{self.to_user.username}에게 {self.community.community_name}초대"
+
+class Photo(models.Model):
+    promise = models.ForeignKey(Promise, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='album/photos/'),
+    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True),
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+class PhotoComment(models.Model):
+    photo = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)

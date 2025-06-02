@@ -95,12 +95,12 @@
                     const text = document.createElement("div");
                     text.className = "fc-vote-count";
 
-                    if (count === 1) {
-                        text.innerText = "1명 가능";
-                        text.style.color = "blue";
-                    } else if (count === totalMembers) {
+                    if (count === totalMembers) {
                         text.innerText = "모두 가능";
                         text.style.color = "red";
+                    } else if (count === 1) {
+                        text.innerText = "1명 가능";
+                        text.style.color = "blue";
                     } else {
                         text.innerText = `${count}명 가능`;
                         text.style.color = "blue"
