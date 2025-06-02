@@ -50,7 +50,7 @@ def community_detail(request, community_id):
     # 커뮤니티 멤버 가져오기
     members = CommunityMember.objects.filter(
         community_name = community.community_name,
-        create_user = community.create_user
+        create_user = community.create_user,
     )
     
     # 현재 유저가 투표한 약속 id들
@@ -92,3 +92,13 @@ def invite_member_ajax(request, community_id):
     )
 
     return JsonResponse({'success': True})
+
+def update_image(request, community_id):
+    community = CreateCommunity.objects.get(id=community_id)
+
+    if request.method == "POST" and request.FILES.get("image"):
+        community.community_image = request.FILES["image"]
+        community.save()
+        return JsonResponse({'success': True})
+
+    return JsonResponse({'success': False, "message": "이미지가 없습니다."})

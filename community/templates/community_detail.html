@@ -10,17 +10,23 @@
             style="width:100%; height: 100%; object-fit: cover; object-position: center;">
             <p>경로 확인: {{ community.community_image.url }}</p>
 
-            <a href="#" class="round-edit-button btn btn-outline-secondary btn-sm">
-                ✎
-            </a>
+            <a id="editImageBtn" href="#" class="round-edit-button btn btn-outline-secondary btn-sm">✎</a>
+            <div id="editImageModal" style="display: none; position: absolute; top: 60px; right: 20px; background: white; padding: 20px; border-radius: 10px; border: 1px solid #ccc;">
+                <h6>대표 사진 바꾸기</h6>
+                <form id="imageUploadForm" enctype="multipart/form-data">
+                    <input type="file" name="image" accept="image/*"><br>
+                    <button type="submit" class="btn btn-sm btn-primary">수정</button>
+                    <button type="button" class="btn btn-sm btn-secondary" id="closeEditImage">취소</button>
+                </form>
+            </div>
         </div>
-        <h4 class="mt-3 text-dark fw-bold">대표 사진</h4>
     </div>
 
     <div class="row">
         <!--왼쪽 폴더 리스트-->
         <div class="col-md-8" style="padding-left: 2rem;">
-            <h5 class="fw-bold mb-3">모임 이름</h5>
+            <h4 class="fw-bold mb-3">{{community.community_name}}</h4>
+            <h5>{{community.community_intro}}</h5>
             <div class="row">
                 <div class="col-4 col-md-2 mb-4 text-center">
                     <img src="https://cdn-icons-png.flaticon.com/512/716/716784.png" 
@@ -175,7 +181,7 @@
         const toggleBtn = document.getElementById("showMemberPopover");
         const popover = document.getElementById("memberPopover");
         const closeBtn = document.getElementById("closeMemberPopover");
-        
+
         toggleBtn.addEventListener("click", function (e) {
             e.preventDefault();
             popover.style.display = "block";
@@ -235,6 +241,48 @@
                     li.textContent = "👤 " + username;
                     document.getElementById("memberList").appendChild(li);
                 }
+            });
+        });
+
+        const editImageBtn = document.querySelector(".round-edit-button");
+        const editImageModal = document.getElementById("editImageModal");
+        const closeEditImage = document.getElementById('closeEditImage');
+        const imageUploadForm = document.getElementById('imageUploadForm');
+
+        // 모달 열기
+        editImageBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            editImageModal.style.display = "block";
+        });
+
+        // 모달 닫기
+        closeEditImage.addEventListener("click", function (){
+            editImageModal.style.display = "none";
+        });
+
+        // 이미지 업로드 AJAZ 처리
+        imageUploadForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(imageUploadForm);
+
+            fetch("{% url 'community:update_image' community.id %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{csrf_token}}"
+                },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert("업로드 실패: " + data.message);
+                }
+            })
+            .catch(err => {
+                console.error("업로드 오류: ", err);
+                alert("서버 오류");
             });
         });
     });
