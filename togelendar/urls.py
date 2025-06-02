@@ -21,10 +21,12 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('togelendar/', include('account.urls')),
-    path('togelendar/', include('promise.urls')),
-    path('togelendar/', include('community.urls')),
+
+    path('', include('index.urls')),
+    path('account/', include('account.urls')),
+    path('mypage/', include('mypage.urls')),
+    # path('togelendar/', include('promise.urls')),
+    path('community/', include('community.urls')),
     path('togelendar/', include('promiselocation.urls')),
-    path('togelendar/mypage/', include('mypage.urls')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

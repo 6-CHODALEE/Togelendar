@@ -230,7 +230,7 @@ closeBtn.addEventListener("click", (e) => {
     hidePopover();
 
     // ✅ 팝업 닫을 때 URL을 /mypage/<username>으로 강제 이동
-    window.location.href = `/togelendar/mypage/${currentUsername}/`;
+    window.location.href = `/mypage/${currentUsername}/`;
 });
 
 // ✅ 검색 상태 초기화
@@ -289,7 +289,7 @@ if (jsonDataElement) {
 
 // ✅ 요청보내기 Ajax 함수 (이 부분 새로 추가됨!)
 function sendFriendRequest(nickname, button) {
-    fetch(`/togelendar/mypage/${currentUsername}/friend/request/`, {
+    fetch(`/mypage/${currentUsername}/friend/request/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -321,7 +321,7 @@ function addFriend(nickname, button) {
 
 
 function acceptRequest(fromUsername, button) {  // ✅ button 파라미터 추가
-    fetch(`/togelendar/mypage/${currentUsername}/friend/accept/`, {
+    fetch(`/mypage/${currentUsername}/friend/accept/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -357,7 +357,7 @@ function acceptFriend(fromUsername, button) {
 }
 
 function rejectRequest(fromUsername, button) {
-    fetch(`/togelendar/mypage/${currentUsername}/friend/reject/`, {
+    fetch(`/mypage/${currentUsername}/friend/reject/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -425,7 +425,7 @@ document.querySelectorAll('.accept-invite-btn').forEach(button => {
     button.addEventListener('click', function () {
         const inviteId = button.getAttribute('data-id');
         
-        fetch(`/togelendar/mypage/${currentUsername}/respond_invite/`, {
+        fetch(`/mypage/${currentUsername}/respond_invite/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -449,7 +449,7 @@ document.querySelectorAll('.reject-invite-btn').forEach(button => {
     button.addEventListener('click', function () {
         const inviteId = button.getAttribute('data-id');
         
-        fetch(`/togelendar/mypage/${currentUsername}/respond_invite/`, {
+        fetch(`/mypage/${currentUsername}/respond_invite/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
