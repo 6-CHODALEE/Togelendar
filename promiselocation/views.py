@@ -3,11 +3,12 @@ from mypage.models import CreateCommunity
 from community.models import CommunityMember
 from account.models import User
 from promise.models import PromiseResult
-
+from django.http import HttpResponse
 import requests
 from dotenv import load_dotenv
 import os
 import time
+from django.contrib import messages
 # .env 파일에서 환경변수 로드
 load_dotenv()
 
@@ -84,14 +85,17 @@ def find_optimal_midpoint(points, api_key, standard_time_gap=20, sleep_seconds=1
         time.sleep(sleep_seconds)
 
 
+from django.http import JsonResponse
+from django.urls import reverse
+
 def location(request, community_id, promise_id):
-    # 1️⃣ 멤버 정보 가져오기
+    # POST나 GET 관계없이 허용 → 버튼 클릭은 GET 요청
     community = CreateCommunity.objects.get(id=community_id)
     community_members = CommunityMember.objects.filter(community_name=community.community_name)
     member_usernames = community_members.values_list('member', flat=True)
     members = User.objects.filter(username__in=member_usernames)
 
-    # 2️⃣ members_with_coords 만들기
+    # 멤버 좌표 수집
     members_with_coords = []
     for member in members:
         members_with_coords.append({
@@ -101,23 +105,26 @@ def location(request, community_id, promise_id):
             'latitude': member.latitude,
         })
 
-    # 3️⃣ points 딕셔너리 생성
     points = {
         m['username']: np.array([m['latitude'], m['longitude']])
         for m in members_with_coords
     }
 
-    # 4️⃣ API 키 가져오기 (dotenv에서)
     api_key = os.getenv('ODsay_APIKEY')
 
-    # 5️⃣ 알고리즘 함수 호출 → 중간지점 계산
-    mid_point, defult_time = find_optimal_midpoint(points, api_key)
+    # ✅ 모두 투표 완료 여부 확인
+    promise_result = PromiseResult.objects.filter(promise_id=promise_id).first()
+    if not promise_result:
+        messages.warning(request, '투표가 종료된 후 눌러주세요!')
+        return redirect('community:promise:promise_result', community_id=community_id, promise_id=promise_id)
 
-    # 6️⃣ PromiseResult 모델 업데이트
-    promise_result = PromiseResult.objects.get(promise_id=promise_id)
+    # ✅ 중간지점 계산 (이미 투표 완료된 경우만)
+    mid_point, default_time = find_optimal_midpoint(points, api_key)
+
+    # ✅ 계산 결과 저장
     promise_result.center_latitude = float(mid_point[0])
     promise_result.center_longitude = float(mid_point[1])
     promise_result.save()
 
-    # 7️⃣ redirect → context 대신 promise_id만 넘기기
+    # ✅ 결과 페이지로 redirect
     return redirect('community:promise:promise_result', community_id=community_id, promise_id=promise_id)

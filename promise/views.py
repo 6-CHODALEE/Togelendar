@@ -8,6 +8,7 @@ import json
 from django.urls import reverse
 from community.models import CreateCommunity, CommunityMember
 from collections import Counter
+from account.models import User  # ⭐ account.User import 추가
 
 # Create your views here.
 @login_required
@@ -101,12 +102,12 @@ def promise_vote(request, community_id, promise_id):
 
     # GET요청인 경우 결과 화면을 보여줌
 
+
 @login_required
 def promise_result(request, community_id, promise_id):
     community = CreateCommunity.objects.get(id=community_id)
     promise = Promise.objects.get(id=promise_id, community=community)
     
-    # 전체 투표 수 집계
     votes = PromiseVote.objects.filter(promise=promise)
     vote_counter = Counter(vote.selected_date.strftime('%Y-%m-%d') for vote in votes)
 
@@ -133,8 +134,8 @@ def promise_result(request, community_id, promise_id):
         selected_list = [d.strftime('%Y-%m-%d') for d in selected_list]
 
     total_members = CommunityMember.objects.filter(
-        community_name = community.community_name,
-        create_user = community.create_user
+        community_name=community.community_name,
+        create_user=community.create_user
     ).count()
     responded_members = PromiseVote.objects.filter(promise=promise).values('username').distinct().count()
     all_voted = (responded_members == total_members)
@@ -160,43 +161,48 @@ def promise_result(request, community_id, promise_id):
 
             for date_group in ranges:
                 PromiseResult.objects.create(
-                    promise = promise,
-                    promise_name = promise.promise_name,
-                    promise_creator = promise.promise_creator,
-                    start_date = date_group[0],
-                    end_date = date_group[-1],
-                    center_latitude = 0,
-                    center_longitude = 0
+                    promise=promise,
+                    promise_name=promise.promise_name,
+                    promise_creator=promise.promise_creator,
+                    start_date=date_group[0],
+                    end_date=date_group[-1],
+                    center_latitude=0,
+                    center_longitude=0
                 )
 
     date_votes = [
         {
             "date": date,
-            "count": count, 
-            "intensity": round(count / total_members, 2) if total_members > 0 else 0 
+            "count": count,
+            "intensity": round(count / total_members, 2) if total_members > 0 else 0
         }
         for date, count in vote_counter.items()
     ]
-
-    # ⭐ 중간지점 좌표 불러오기
     try:
         promise_result = PromiseResult.objects.get(promise=promise)
         center_latitude = promise_result.center_latitude
         center_longitude = promise_result.center_longitude
     except PromiseResult.DoesNotExist:
+        promise_result = None
         center_latitude = 0
         center_longitude = 0
 
+    voted_user_ids = PromiseVote.objects.filter(promise=promise).values_list('username', flat=True).distinct()
+    user_locations = User.objects.filter(id__in=voted_user_ids).values('username', 'latitude', 'longitude')
+    user_locations_list = list(user_locations)
+
     context = {
-        'promise': promise, 
+        'promise': promise,
         'community': community,
         'selected_dates': selected_list,
         'js_selected_dates': json.dumps(selected_list),
         'all_vote_data': json.dumps(date_votes),
         'total_members': total_members,
         'all_voted': all_voted,
-        'center_latitude': center_latitude,  # ⭐ 추가
-        'center_longitude': center_longitude,  # ⭐ 추가
+        'center_latitude': center_latitude,
+        'center_longitude': center_longitude,
+        'user_locations': json.dumps(user_locations_list),
+        'promise_result': promise_result,  # None일 수도 있음
     }
 
     return render(request, 'promise_result.html', context)

@@ -10,7 +10,13 @@
         {% endif %}
     </div>
     <div id="calendar" style="max-width: 800px; margin: 0 auto;"></div>
-    <div id="map" style="height: 400px; max-width: 800px; margin: 20px auto 0 auto;"></div>
+    {% if promise_result %}
+        <div id="map" style="height: 400px; max-width: 800px; margin: 20px auto 0 auto;"></div>
+    {% else %}
+        <div style="text-align: center; margin: 20px auto; color: gray;">
+            <p>아직 장소가 정해지지 않았습니다.</p>
+        </div>
+    {% endif %}
     <div style="max-width: 800px; margin: 10px auto 0 auto; display: flex; justify-content: flex-end; padding-right: 20px;">
         <a href="{% url 'community:community_detail' community.id %}" class="btn btn-outline-secondary btn-sm">
             커뮤니티로 이동하기
@@ -120,7 +126,55 @@
 
     var map = L.map('map').setView([centerLat, centerLng], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    // 중간지점 마커
     L.marker([centerLat, centerLng]).addTo(map)
         .bindPopup('약속 중간지점').openPopup();
+
+    // ⭐ 유저 위치들 마커 추가
+    const userLocations = JSON.parse('{{ user_locations|safe }}');
+    userLocations.forEach(user => {
+        if (user.latitude !== null && user.longitude !== null) {
+            L.circleMarker([user.latitude, user.longitude], {
+                radius: 8,         // 크기
+                color: 'red',      // 테두리 색
+                fillColor: 'red',  // 채움 색
+                fillOpacity: 1     // 채움 투명도
+            }).addTo(map)
+            .bindPopup(`${user.username}의 위치`);
+        }
+    });
+
+    document.getElementById('location-button').addEventListener('click', function(e) {
+        e.preventDefault();
+
+        fetch("{% url 'community:promise:promiselocation:location' community.id promise.id %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // 성공: 결과 페이지로 이동
+                window.location.href = data.redirect_url;
+            } else {
+                // 실패: 메시지 팝업
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            alert('서버 오류가 발생했습니다. 다시 시도해주세요.');
+        });
+    });
 </script>
+<!-- ✅ Django messages 처리 (JS 블록 바깥에서 별도 실행) -->
+{% if messages %}
+<script>
+    {% for message in messages %}
+        alert("{{ message }}");
+    {% endfor %}
+</script>
+{% endif %}
 {% endblock %}

@@ -26,6 +26,8 @@ def get_coordinates(address):
     }
 
     response = requests.get(url, params=params)
+    print(response.status_code)
+    print(response.text)  # 🔥 응답 전체 보기
     if response.status_code == 200:
         result = response.json()
         if result['results']:
@@ -34,25 +36,26 @@ def get_coordinates(address):
             lng = location['lng']
             return lng, lat  # 경도, 위도
     return 126.978219, 37.566588  # 실패 시
+    
 
 
 def signup(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST, request.FILES)
         if form.is_valid():
-            user = form.save(commit=False) 
-            lng, lat = get_coordinates(form.address)
+            user = form.save(commit=False)
+            lng, lat = get_coordinates(form.cleaned_data['address'])  # ✅ 수정
             user.longitude = lng
             user.latitude = lat
 
             user.save()  # 🔥 이제 최종 저장
 
-            #Elasticsearch 색인
+            # Elasticsearch 색인
             es = settings.ES_CLIENT
             es.index(index='user-index', id=user.id, body={
                 'username': user.username,
                 'email': user.email,
-                'address': user.address,  # 별도 필드가 있다면 추가
+                'address': user.address,  # user.address는 모델 필드임
             })
 
             return redirect('account:login')
