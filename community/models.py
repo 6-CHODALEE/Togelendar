@@ -42,9 +42,19 @@ class CommunityInvite(models.Model):
 
 class Photo(models.Model):
     promise = models.ForeignKey(Promise, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='album/photos/'),
-    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True),
+    image = models.ImageField(upload_to='album/photos/')
+    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+class MoodVote(models.Model):
+    promise = models.ForeignKey(Promise, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    mood = models.CharField(max_length=20)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        # 중복투표 방지
+        unique_together = ('promise', 'user')
 
 class PhotoComment(models.Model):
     photo = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name='comments')
