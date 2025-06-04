@@ -36,3 +36,4 @@ class PromiseResult(models.Model):
     end_date = models.DateField()
     center_latitude = models.FloatField(null=True, blank=True)
     center_longitude = models.FloatField(null=True, blank=True)
+    places_json = models.JSONField(null=True, blank=True)

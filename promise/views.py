@@ -9,6 +9,7 @@ from django.urls import reverse
 from community.models import CreateCommunity, CommunityMember
 from collections import Counter
 from account.models import User  # ⭐ account.User import 추가
+from django.shortcuts import get_object_or_404
 
 # Create your views here.
 @login_required
@@ -105,9 +106,14 @@ def promise_vote(request, community_id, promise_id):
 
 @login_required
 def promise_result(request, community_id, promise_id):
-    community = CreateCommunity.objects.get(id=community_id)
-    promise = Promise.objects.get(id=promise_id, community=community)
-    
+    from django.shortcuts import get_object_or_404
+    import json
+    from collections import Counter
+    from datetime import datetime
+
+    community = get_object_or_404(CreateCommunity, id=community_id)
+    promise = get_object_or_404(Promise, id=promise_id, community=community)
+
     votes = PromiseVote.objects.filter(promise=promise)
     vote_counter = Counter(vote.selected_date.strftime('%Y-%m-%d') for vote in votes)
 
@@ -128,7 +134,7 @@ def promise_result(request, community_id, promise_id):
             vote.save()
 
         return redirect('community:promise:promise_result', community_id=community.id, promise_id=promise.id)
-        
+
     else:
         selected_list = PromiseVote.objects.filter(username=request.user, promise=promise).values_list('selected_date', flat=True)
         selected_list = [d.strftime('%Y-%m-%d') for d in selected_list]
@@ -145,7 +151,7 @@ def promise_result(request, community_id, promise_id):
             max_votes = max(vote_counter.values())
             top_dates = sorted([
                 datetime.strptime(date_str, '%Y-%m-%d').date()
-                 for date_str, count in vote_counter.items() if count == max_votes
+                for date_str, count in vote_counter.items() if count == max_votes
             ])
 
             ranges = []
@@ -178,14 +184,33 @@ def promise_result(request, community_id, promise_id):
         }
         for date, count in vote_counter.items()
     ]
+
+    selected_type = request.GET.get('type', 'all')
     try:
         promise_result = PromiseResult.objects.get(promise=promise)
         center_latitude = promise_result.center_latitude
         center_longitude = promise_result.center_longitude
+
+        places_raw = promise_result.places_json
+        if isinstance(places_raw, str):
+            all_places = json.loads(places_raw)
+        else:
+            all_places = places_raw
+
+        if selected_type == 'all':
+            places = all_places
+        else:
+            places = [p for p in all_places if p.get('type') == selected_type]
+
+        places_json = json.dumps(places)
+
     except PromiseResult.DoesNotExist:
         promise_result = None
         center_latitude = 0
         center_longitude = 0
+        places = []
+        places_json = json.dumps([])
+        selected_type = 'all'
 
     voted_user_ids = PromiseVote.objects.filter(promise=promise).values_list('username', flat=True).distinct()
     user_locations = User.objects.filter(id__in=voted_user_ids).values('username', 'latitude', 'longitude')
@@ -202,7 +227,10 @@ def promise_result(request, community_id, promise_id):
         'center_latitude': center_latitude,
         'center_longitude': center_longitude,
         'user_locations': json.dumps(user_locations_list),
-        'promise_result': promise_result,  # None일 수도 있음
+        'promise_result': promise_result,
+        'places': places,
+        'places_json': places_json,
+        'selected_type': selected_type,
     }
 
     return render(request, 'promise_result.html', context)

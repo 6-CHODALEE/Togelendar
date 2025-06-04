@@ -9,14 +9,54 @@ from dotenv import load_dotenv
 import os
 import time
 from django.contrib import messages
+import numpy as np
+import json
 # .env 파일에서 환경변수 로드
 load_dotenv()
 
-import numpy as np
-import requests
-import time
+def get_nearby_places_all_types(lat, lng, api_key, radius=500):
+    """
+    지정된 다섯 가지 타입(cafe, convenience_store 등)의 장소를 가져온다.
+    결과가 없어도 함수는 빈 리스트를 반환한다.
+    """
+    place_types = ['cafe', 'convenience_store', 'subway_station', 'supermarket', 'restaurant']
+    all_places = []
 
-def find_optimal_midpoint(points, api_key, standard_time_gap=20, sleep_seconds=10):
+    for place_type in place_types:
+        try:
+            url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+            params = {
+                "location": f"{lat},{lng}",
+                "radius": radius,
+                "type": place_type,
+                "key": api_key,
+            }
+
+            response = requests.get(url, params=params)
+            data = response.json()
+
+            if data.get("status") == "OK":
+                for place in data["results"]:
+                    all_places.append({
+                        'name': place['name'],
+                        'address': place.get('vicinity'),
+                        'rating': place.get('rating'),
+                        'type': place_type,
+                        'location': place['geometry']['location']
+                    })
+            elif data.get("status") == "ZERO_RESULTS":
+                print(f"[{place_type}] 반경 내 결과 없음.")
+            else:
+                print(f"Places API Error ({place_type}):", data.get("error_message", data.get("status", "알 수 없는 오류")))
+
+        except Exception as e:
+            print(f"[{place_type}] 요청 중 오류 발생:", e)
+
+    print("총 검색된 장소 수:", len(all_places))
+    return all_places
+
+
+def find_optimal_midpoint(points, api_key, standard_time_gap=15, sleep_seconds=10):
     """
     사용자 좌표(points)와 ODsay API를 사용해 
     최적의 중간지점을 찾아 반환하는 함수.
@@ -111,6 +151,7 @@ def location(request, community_id, promise_id):
     }
 
     api_key = os.getenv('ODsay_APIKEY')
+    Google_api_key = os.getenv('Google_API')
 
     # ✅ 모두 투표 완료 여부 확인
     promise_result = PromiseResult.objects.filter(promise_id=promise_id).first()
@@ -118,13 +159,25 @@ def location(request, community_id, promise_id):
         messages.warning(request, '투표가 종료된 후 눌러주세요!')
         return redirect('community:promise:promise_result', community_id=community_id, promise_id=promise_id)
 
-    # ✅ 중간지점 계산 (이미 투표 완료된 경우만)
+    # ✅ 중간지점 계산
     mid_point, default_time = find_optimal_midpoint(points, api_key)
 
-    # ✅ 계산 결과 저장
+    # ✅ 장소 데이터 가져오기
+    places = get_nearby_places_all_types(
+        lat=mid_point[0],
+        lng=mid_point[1],
+        api_key=Google_api_key,
+        radius=500
+    )
+
+    # 중간지점/places 저장
     promise_result.center_latitude = float(mid_point[0])
     promise_result.center_longitude = float(mid_point[1])
+    promise_result.places_json = json.dumps(places, ensure_ascii=False)
     promise_result.save()
 
-    # ✅ 결과 페이지로 redirect
-    return redirect('community:promise:promise_result', community_id=community_id, promise_id=promise_id)
+    # ✅ JS에서 리디렉션 처리하게 URL만 반환
+    return JsonResponse({
+        "success": True,
+        "redirect_url": reverse("community:promise:promise_result", args=[community_id, promise_id])
+    })
