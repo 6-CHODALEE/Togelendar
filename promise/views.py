@@ -212,9 +212,14 @@ def promise_result(request, community_id, promise_id):
         places_json = json.dumps([])
         selected_type = 'all'
 
-    voted_user_ids = PromiseVote.objects.filter(promise=promise).values_list('username', flat=True).distinct()
-    user_locations = User.objects.filter(id__in=voted_user_ids).values('username', 'latitude', 'longitude')
+    voted_usernames = PromiseVote.objects.filter(promise=promise).values_list('username', flat=True).distinct()
+    user_locations = User.objects.filter(username__in=voted_usernames).values('username', 'latitude', 'longitude')
     user_locations_list = list(user_locations)
+
+    is_location_decided = (
+        promise_result is not None and
+        (promise_result.center_latitude != 0 or promise_result.center_longitude != 0)
+    )
 
     context = {
         'promise': promise,
@@ -231,6 +236,8 @@ def promise_result(request, community_id, promise_id):
         'places': places,
         'places_json': places_json,
         'selected_type': selected_type,
+        'is_location_decided': is_location_decided,
+
     }
 
     return render(request, 'promise_result.html', context)

@@ -19,7 +19,7 @@ def get_nearby_places_all_types(lat, lng, api_key, radius=500):
     지정된 다섯 가지 타입(cafe, convenience_store 등)의 장소를 가져온다.
     결과가 없어도 함수는 빈 리스트를 반환한다.
     """
-    place_types = ['cafe', 'convenience_store', 'subway_station', 'supermarket', 'restaurant']
+    place_types = ['cafe', 'convenience_store', 'subway_station', 'restaurant']
     all_places = []
 
     for place_type in place_types:

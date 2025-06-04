@@ -12,51 +12,49 @@
 
     <div id="calendar" style="max-width: 800px; margin: 0 auto;"></div>
 
-        {% if promise_result %}
-        <div id="map" style="height: 400px; max-width: 800px; margin: 20px auto 0 auto;"></div>
+    {% if promise_result and is_location_decided %}
+    <div id="map" style="height: 400px; max-width: 800px; margin: 20px auto 0 auto;"></div>
 
-        <div class="mt-4" style="max-width: 800px; margin: 0 auto;">
-            <h4 class="mb-3">중간지점 주변 장소 추천 (반경 500m)</h4>
+    <div class="mt-4" style="max-width: 800px; margin: 0 auto;">
+        <h4 class="mb-3">중간지점 주변 장소 추천 (반경 500m)</h4>
 
-            <!-- 카테고리 버튼들 -->
-            <div class="mb-3 text-center" id="category-buttons">
-                <button data-type="all" class="btn btn-sm me-2 {% if selected_type == 'all' %}btn-dark{% else %}btn-outline-dark{% endif %}">전체</button>
-                <button data-type="cafe" class="btn btn-sm me-2 {% if selected_type == 'cafe' %}btn-primary{% else %}btn-outline-primary{% endif %}">카페</button>
-                <button data-type="restaurant" class="btn btn-sm me-2 {% if selected_type == 'restaurant' %}btn-danger{% else %}btn-outline-danger{% endif %}">음식점</button>
-                <button data-type="convenience_store" class="btn btn-sm me-2 {% if selected_type == 'convenience_store' %}btn-success{% else %}btn-outline-success{% endif %}">편의점</button>
-                <button data-type="supermarket" class="btn btn-sm me-2 {% if selected_type == 'supermarket' %}btn-warning text-dark{% else %}btn-outline-warning{% endif %}">마트</button>
-                <button data-type="subway_station" class="btn btn-sm me-2 {% if selected_type == 'subway_station' %}btn-info text-white{% else %}btn-outline-info{% endif %}">지하철</button>
-            </div>
-
-            <!-- ✅ 장소 리스트 조건부 출력 -->
-            {% if places and places|length > 0 %}
-            <ul class="list-group" id="place-list">
-                {% for place in places %}
-                <li class="list-group-item place-item" data-type="{{ place.type }}" data-name="{{ place.name }}">
-                    <strong>{{ place.name }}</strong>
-                    <span class="badge bg-secondary">{{ place.type }}</span><br>
-                    {{ place.address }}<br>
-                    {% if place.rating %} 평점: {{ place.rating }} {% endif %}
-                </li>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <div class="text-center text-muted mt-2">
-                <p>선택한 카테고리에 해당하는 장소가 없습니다.</p>
-            </div>
-            {% endif %}
+        <!-- 카테고리 버튼들 -->
+        <div class="mb-3 text-center" id="category-buttons">
+            <button data-type="all" class="btn btn-sm me-2 btn-dark">전체</button>
+            <button data-type="cafe" class="btn btn-sm me-2 btn-outline-primary">카페</button>
+            <button data-type="restaurant" class="btn btn-sm me-2 btn-outline-danger">음식점</button>
+            <button data-type="convenience_store" class="btn btn-sm me-2 btn-outline-success">편의점</button>
+            <button data-type="subway_station" class="btn btn-sm me-2 btn-outline-info">지하철</button>
         </div>
+
+        {% if places and places|length > 0 %}
+        <ul class="list-group" id="place-list">
+            {% for place in places %}
+            <li class="list-group-item place-item" data-type="{{ place.type }}" data-name="{{ place.name }}">
+                <strong>{{ place.name }}</strong>
+                <span class="badge bg-secondary">{{ place.type }}</span><br>
+                {{ place.address }}<br>
+                {% if place.rating %} 평점: {{ place.rating }} {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="text-center text-muted mt-2">
+            <p>선택한 카테고리에 해당하는 장소가 없습니다.</p>
+        </div>
+        {% endif %}
+    </div>
     {% else %}
-        <div style="text-align: center; margin: 20px auto; color: gray;">
-            <p>아직 장소가 정해지지 않았습니다.</p>
-        </div>
+    <div style="text-align: center; margin: 20px auto; color: gray;">
+        <p>아직 장소가 정해지지 않았습니다.</p>
+    </div>
     {% endif %}
 
     <div style="max-width: 800px; margin: 10px auto 0 auto; display: flex; justify-content: flex-end; padding-right: 20px;">
         <a href="{% url 'community:community_detail' community.id %}" class="btn btn-outline-secondary btn-sm">
             커뮤니티로 이동하기
         </a>
-        <a href="{% url 'community:promise:promiselocation:location' community.id promise.id %}" class="btn btn-outline-secondary btn-sm" id="location-button">
+        <a href="#" class="btn btn-outline-secondary btn-sm" id="location-button">
             장소 정하기
         </a>
     </div>
@@ -115,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     calendar.render();
 
-    // 지도 초기화
+    {% if is_location_decided %}
     const map = L.map('map').setView([
         parseFloat("{{ center_latitude|default:'37.5665' }}"),
         parseFloat("{{ center_longitude|default:'126.9780' }}")
@@ -124,7 +122,6 @@ document.addEventListener('DOMContentLoaded', function () {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
     L.marker([{{ center_latitude }}, {{ center_longitude }}]).addTo(map).bindPopup('약속 중간지점').openPopup();
 
-    // 유저 위치 마커
     const userLocations = JSON.parse('{{ user_locations|safe }}');
     userLocations.forEach(user => {
         if (user.latitude !== null && user.longitude !== null) {
@@ -134,14 +131,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // 장소 마커
     const typeColors = {
         cafe: 'blue', restaurant: 'red',
         convenience_store: 'green', supermarket: 'orange',
         subway_station: 'purple'
     };
-    const markerMap = {}; // 클릭 시 접근 용도
 
+    const allMarkers = [];
     const places = JSON.parse(`{{ places_json|safe }}`);
     places.forEach(place => {
         const color = typeColors[place.type] || 'gray';
@@ -152,34 +148,66 @@ document.addEventListener('DOMContentLoaded', function () {
             radius: 8, color: color, fillColor: color, fillOpacity: 0.8
         }).addTo(map).bindPopup(`${place.name}<br><small>${place.address}</small>`);
 
-        markerMap[place.name] = marker;
+        marker.type = place.type;
+        marker.name = place.name;
+        allMarkers.push(marker);
     });
 
-    // 스크롤 유지용 버튼 클릭 필터링
     document.querySelectorAll('#category-buttons button').forEach(button => {
         button.addEventListener('click', function (e) {
             e.preventDefault();
             const type = this.dataset.type;
-            const url = new URL(window.location.href);
-            url.searchParams.set('type', type);
-            history.pushState(null, '', url);  // 주소만 바꿈 (스크롤 안 튐)
-            location.reload();  // JS로 리로드하면 스크롤 위치 유지됨
+
+            // 마커 필터링
+            allMarkers.forEach(marker => {
+                if (type === 'all' || marker.type === type) {
+                    marker.addTo(map);
+                } else {
+                    map.removeLayer(marker);
+                }
+            });
+
+            // 리스트 필터링
+            document.querySelectorAll('#place-list .place-item').forEach(item => {
+                const itemType = item.dataset.type;
+                item.style.display = (type === 'all' || itemType === type) ? 'block' : 'none';
+            });
+
+            // 버튼 UI 갱신
+            document.querySelectorAll('#category-buttons button').forEach(btn => {
+                btn.classList.remove('btn-dark', 'btn-primary', 'btn-danger', 'btn-success', 'btn-info', 'text-white');
+                btn.classList.add('btn-outline-dark', 'btn-outline-primary', 'btn-outline-danger', 'btn-outline-success', 'btn-outline-info');
+            });
+
+            if (type === 'all') this.classList.replace('btn-outline-dark', 'btn-dark');
+            if (type === 'cafe') this.classList.replace('btn-outline-primary', 'btn-primary');
+            if (type === 'restaurant') this.classList.replace('btn-outline-danger', 'btn-danger');
+            if (type === 'convenience_store') this.classList.replace('btn-outline-success', 'btn-success');
+            if (type === 'subway_station') this.classList.replace('btn-outline-info', 'btn-info');
+            this.classList.add('text-white');
         });
     });
+    {% endif %}
 
-    // 장소 정하기 버튼
-    document.getElementById('location-button')?.addEventListener('click', function(e) {
-        e.preventDefault();
-        fetch("{% url 'community:promise:promiselocation:location' community.id promise.id %}", {
-            method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) window.location.href = data.redirect_url;
-            else alert(data.message);
-        })
-        .catch(() => alert('서버 오류가 발생했습니다. 다시 시도해주세요.'));
-    });
+    const locationBtn = document.getElementById('location-button');
+    if (locationBtn) {
+        locationBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            fetch("{% url 'community:promise:promiselocation:location' community.id promise.id %}", {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(() => alert('서버 오류가 발생했습니다. 다시 시도해주세요.'));
+        });
+    }
 });
 </script>
 

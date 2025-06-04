@@ -4,10 +4,10 @@ from mypage.models import CreateCommunity
 
 # Create your models here.
 class CommunityMember(models.Model):
+    id = models.AutoField(primary_key=True)  # 기본 PK 필드
     community_name = models.CharField(max_length=100)
     create_user = models.CharField(max_length=100)
-    member = models.CharField(max_length=100)  # username 값 직접 저장
-    joined_at = models.DateTimeField(auto_now_add=True)
+    member = models.CharField(max_length=100)
 
     class Meta:
         unique_together = ('community_name', 'member')
