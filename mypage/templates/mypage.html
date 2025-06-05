@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load custom_filters %}
 
 {% block body %}
     <div class="row align-items-start mb-4">
@@ -28,19 +29,65 @@
                         {{ friend_count }}명
                     </strong>
                 </p>
-                <a href="#" id="togglePopover" class="btn btn-secondary btn-sm mb-2">함친 추가</a><br>
+                <a href="#" id="togglePopover" class="btn btn-secondary btn-sm mb-2 position-relative">
+                    함친 추가
+                    {% if received_requests %}
+                        <span class="badge-friend bg-danger text-white position-absolute top-0 start-100 translate-middle">
+                            {{ received_requests|length }}
+                        </span>
+                    {% endif %}
+                </a>
                 <a href="#" class="btn btn-outline-dark btn-sm">프로필 편집</a>
             </div>
-        </div>
+            <div class="col ms-4">
+                <div class="mx-auto border rounded shadow-sm bg-white p-4" style="width: 100%; max-width: 1400px; min-width: 1000px;">                    <!-- 상단 -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold mb-0">{{ week_dates.0|date:"Y년 n월" }}</h4>
+                        <div>
+                            <button class="btn btn-secondary btn-sm me-1">today</button>
+                            <button class="btn btn-secondary btn-sm me-1">&lt;</button>
+                            <button class="btn btn-secondary btn-sm">&gt;</button>
+                        </div>
+                    </div>
 
-        <!-- 오른쪽: 날씨 정보 -->
-        <div class="col">
-            <h5>오늘의 날씨</h5>
-            <div class="border p-3 bg-white" style="height: 100px;">
-                날씨 정보 출력 예정
+                    <p class="mb-3">이번 주: {{ week_dates.0|date:"m/d" }} ~ {{ week_dates.6|date:"m/d" }}</p>
+
+                    <!-- 캘린더 테이블 -->
+                    <table class="table calendar-table table-bordered text-center align-middle mb-0">
+                        <thead>
+                            <tr>
+                                {% for label in weekday_labels %}
+                                    <th class="fw-bold {% if label == '일' %}text-danger{% elif label == '토' %}text-primary{% endif %}">
+                                        {{ label }}
+                                    </th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                {% for date in week_dates %}
+                                    <td>
+                                        <div class="calendar-date text-muted small fw-bold">
+                                            {{ date|date:"j일" }}
+                                        </div>
+
+                                        <div class="calendar-promises-wrapper">
+                                            {% for promise in weekly_promises|get_item:date %}
+                                                <div class="calendar-promise" title="{{ promise.promise_name }}">
+                                                    {{ promise.promise_name }}
+                                                </div>
+                                            {% empty %}
+                                                <div class="small text-muted">약속 없음</div>
+                                            {% endfor %}
+                                        </div>
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
 
             <!--친구 리스트 팝업-->
             <div id="friendListPopover" class="popover-form" style="display: none;">
@@ -154,6 +201,65 @@
 
 <!-- ✅ 팝업 스타일 -->
 <style>
+/* 📌 달력 셀: 고정된 너비 설정 */
+.calendar-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.calendar-table td {
+    width: 14.28%;               /* 100% / 7일 */
+    max-width: 14.28%;
+    min-width: 14.28%;
+    overflow: hidden;
+    position: relative;
+    height: 100px;
+    vertical-align: top;
+    padding: 0.5rem;
+    box-sizing: border-box;
+}
+
+/* 📌 날짜 (우측 상단) */
+/* 날짜는 위 고정 */
+.calendar-date {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    z-index: 2;
+}
+
+
+/* 약속 배지 */
+.calendar-promise {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 8px;
+    background-color: #6c757d;
+    color: white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 2px 6px;
+    box-sizing: border-box;
+}
+
+/* 📌 약속 없음 메시지도 동일한 줄 위치에 정렬 */
+.calendar-empty {
+    margin-top: 28px;
+    font-size: 0.75rem;
+    color: #aaa;
+} 
+/* 약속 영역은 아래에 여유 공간 */
+.calendar-promises-wrapper {
+    margin-top: 22px; /* 날짜 아래 공간 확보 */
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+ 
 .popover-form {
     position: absolute;
     background: white;
@@ -179,7 +285,10 @@
 .badge-friend {
     font-size: 0.65rem;
     padding: 4px 6px;
-    border-radius: 50%;
+    border-radius: 999px;
+    min-width: 20px;
+    text-align: center;
+    line-height: 1;
 }
 </style>
 
@@ -363,9 +472,20 @@ function acceptRequest(fromUsername, button) {  // ✅ button 파라미터 추�
 }
 
 function acceptFriend(fromUsername, button) {
+    // ✅ 수락 버튼 비활성화
     button.textContent = "수락 완료";
     button.className = "btn btn-sm btn-secondary";
     button.disabled = true;
+
+    // ✅ 같은 줄의 거절 버튼도 찾아서 비활성화
+    const parent = button.closest('.d-flex');
+    const rejectBtn = parent.querySelector('.reject-btn');
+    if (rejectBtn) {
+        rejectBtn.disabled = true;
+        rejectBtn.classList.add('btn-secondary');
+        rejectBtn.textContent = "처리됨";
+    }
+
     alert(`${fromUsername}님과 맞팔로우되었습니다!`);
 }
 
@@ -512,20 +632,22 @@ if (showFriendList && friendListPopover) {
 // 외부 클릭 시 팝업창 닫기
 // -> 함친추가, 가입요청 두개의 팝업 다 닫는 통합 로직
 window.addEventListener("click", function (e) {
-    // 함친 추가 팝업
+    // 함친 추가 팝업 외부 클릭 처리
     if (
         popover.style.display === "block" &&
         !popover.contains(e.target) &&
         e.target !== btn
     ) {
-        hidePopover();
+        clearSearchState();  // ✅ 검색 input 초기화 + results 비우기
+        hidePopover();       // ✅ 팝업 숨기기
+        window.location.href = `/mypage/${currentUsername}/`;  // ✅ 새로고침 또는 URL 초기화
     }
 
     // 커뮤니티 가입 요청 팝업
     if (
         invitePopover.style.display === "block" &&
         !invitePopover.contains(e.target) &&
-            e.target !== inviteBtn
+        e.target !== inviteBtn
     ) {
         invitePopover.style.display = "none";
     }

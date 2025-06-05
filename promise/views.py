@@ -182,6 +182,7 @@ def promise_result(request, community_id, promise_id):
     ]
 
     selected_type = request.GET.get('type', 'all')
+    # 중복 제거 - 딱 한 번만 호출
     promise_result = PromiseResult.objects.filter(promise=promise).first()
 
     if not promise_result:
@@ -207,14 +208,15 @@ def promise_result(request, community_id, promise_id):
 
         places_json = json.dumps(places)
 
+    # ✅ is_location_decided 계산 (중복 제거 후)
+    is_location_decided = (
+        promise_result is not None and
+        (promise_result.center_latitude != 0 or promise_result.center_longitude != 0)
+    )
+
     voted_usernames = PromiseVote.objects.filter(promise=promise).values_list('username', flat=True).distinct()
     user_locations = User.objects.filter(username__in=voted_usernames).values('username', 'latitude', 'longitude')
     user_locations_list = list(user_locations)
-
-    is_location_decided = (
-        promise_result is not None and
-        (promise_result[0].center_latitude != 0 or promise_result[0].center_longitude != 0)
-    )
 
     context = {
         'promise': promise,

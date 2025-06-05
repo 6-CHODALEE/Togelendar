@@ -10,6 +10,11 @@ from django.contrib.auth import get_user_model
 import json
 from django.http import JsonResponse
 from django.db.models import Q
+from datetime import date, timedelta
+from community.models import CommunityMember
+from collections import defaultdict
+from promise.models import Promise, PromiseResult
+
 
 User = get_user_model()
 # Create your views here.
@@ -18,34 +23,51 @@ User = get_user_model()
 def mypage(request, username):
     me = request.user
 
-    # ✅ 받은 친구 요청 리스트
+    # 이번 주 일요일 ~ 토요일 날짜 계산
+    today = date.today()
+    days_since_sunday = (today.weekday() + 1) % 7
+    start_of_week = today - timedelta(days=days_since_sunday)
+    week_dates = [start_of_week + timedelta(days=i) for i in range(7)]
+    weekday_labels = ['일', '월', '화', '수', '목', '금', '토']
+
+    # 받은 친구 요청
     received_requests = FriendRequest.objects.filter(
-        to_user=request.user,
-        status='pending'
+        to_user=me, status='pending'
     ).select_related('from_user')
 
-    # ✅ 내가 참여 중인 커뮤니티들 가져오기
+    # 내가 참여 중인 커뮤니티
     my_memberships = CommunityMember.objects.filter(member=me.username)
-
-    # ✅ CreateCommunity에서 해당 커뮤니티 정보 가져오기
-    my_communities = []
-    for membership in my_memberships:
-        community = CreateCommunity.objects.filter(
-            community_name=membership.community_name,
-            create_user=membership.create_user
+    my_communities = [
+        CreateCommunity.objects.filter(
+            community_name=m.community_name,
+            create_user=m.create_user
         ).first()
-        if community:
-            my_communities.append(community)
+        for m in my_memberships
+    ]
+    my_communities = [c for c in my_communities if c is not None]
+    community_names = [c.community_name for c in my_communities]
 
+    # 커뮤니티의 약속 및 결과
+    promises = Promise.objects.filter(community__community_name__in=community_names)
+    results = PromiseResult.objects.filter(promise__in=promises)
+
+    weekly_promises = defaultdict(list)
+    for result in results:
+        current_date = result.start_date
+        while current_date <= result.end_date:
+            if current_date in week_dates:
+                weekly_promises[current_date].append(result)
+            current_date += timedelta(days=1)
+
+    # 친구 목록
     friend_list = FriendRequest.objects.filter(
-        Q(from_user=me) | Q(to_user=me),
-        status='accepted'
+        Q(from_user=me) | Q(to_user=me), status='accepted'
     )
     friend_count = friend_list.count()
 
+    # 커뮤니티 초대
     invite_requests = CommunityInvite.objects.filter(
-        to_user=request.user,
-        status='pending'
+        to_user=me, status='pending'
     )
 
     context = {
@@ -55,8 +77,10 @@ def mypage(request, username):
         'friend_count': friend_count,
         'friend_list': friend_list,
         'invite_requests': invite_requests,
+        'week_dates': week_dates,
+        'weekday_labels': weekday_labels,
+        'weekly_promises': weekly_promises,
     }
-
     return render(request, 'mypage.html', context)
 
 
