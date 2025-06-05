@@ -6,10 +6,20 @@
     <!--사진 + 댓글 영역-->
     <div class="d-flex mt-4">
         <div style="flex: 2;">
+            <!--선택한 사진 : 확대-->
             <img id="mainPhoto" 
                 src="{% if selected_photo %}{{selected_photo.image.url}}{% endif %}" 
                 style="width: 100%; max-height: 400px; object-fit: contain; {% if not selected_photo %}display: none;{% endif %}">
             <input type="hidden" id="initialPhotoId" value="{% if selected_photo %}{{selected_photo.id}}{% endif %}">
+
+            <!--대표사진 설정 버튼-->
+            <button
+                id="albumMainPhotoBtn" 
+                class="btn btn-sm btn-outline-secondary mt-2" 
+                style="position: relative; left: 700px; display: none;">
+
+                대표사진으로 설정
+            </button>
 
             <div id="gallery" class="d-flex flex-wrap gap-3 mt-3" style="flex: 2;">
                 <!--filepond 업로드 input-->
@@ -37,17 +47,17 @@
                         <!--약속이 어땠는지-->
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="mood" value="😊 좋았어" id="mood1"
-                                {% if user_mood == "좋았어" %}checked{% endif %}>
+                                {% if user_mood == "😊 좋았어" %}checked{% endif %}>
                             <label class="form-check-label" for="mood1">😊 좋았어</label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="mood" value="😐 그냥 그랬어" id="mood2"
-                                {% if user_mood == "그냥 그랬어" %}checked{% endif %}>
+                                {% if user_mood == "😐 그냥 그랬어" %}checked{% endif %}>
                             <label class="form-check-label" for="mood2">😐 그냥 그랬어</label>
                         </div>
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="radio" name="mood" value="😞 별로였어" id="mood3"
-                                {% if user_mood == "별로였어" %}checked{% endif %}>
+                                {% if user_mood == "😞 별로였어" %}checked{% endif %}>
                             <label class="form-check-label" for="mood3">😞 별로였어</label>
                         </div>
                         <button type="submit" class="btn btn-outline-primary btn-sm">선택</button>
@@ -87,7 +97,7 @@
                             {% if selected_photo %}
                                 {% for comment in comments %}
                                 <div>
-                                    <strong>{{comment.author.username}}</strong>: {{comment.text}}
+                                    <strong>{{comment.user.username}}</strong>: {{comment.content}}
                                     <br><small>{{comment.created_at|date:"Y-m-d H-i"}}</small>
                                 </div>
                                 {% empty %}
@@ -99,6 +109,11 @@
             </div>
             
         </div>
+    </div>
+    <div class="text-center mt-4">
+        <a href="{% url 'community:community_detail' community_id %}" class="btn btn-outline-dark" style="position: absolute; right: 130px;">
+            커뮤니티로 이동하기
+        </a>
     </div>
 </div>
 
@@ -240,6 +255,9 @@
                 mainPhoto.src = e.target.src;
                 mainPhoto.style.display = "block";
 
+                // 대표사진 버튼 보이게
+                albumMainPhotoBtn.style.display = "inline-block";
+
                 // 댓글창 띄우기
                 commentBox.style.display = "block";
                 commentInput.value = '';
@@ -250,9 +268,10 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
+                        commentList.innerHTML = '';
                         data.comments.forEach(comment => {
                             const item = document.createElement("div");
-                            item.innerHTML = `<strong>${comment.author}</strong>: ${comment.text} <br><small>${comment.created_at}</small>`;
+                            item.innerHTML = `<strong>${comment.user}</strong>: ${comment.content} <br><small>${comment.created_at}</small>`;
                             commentList.appendChild(item);
                         });
                     } else {
@@ -270,23 +289,23 @@
         // 댓글 등록(POST)
         commentForm.addEventListener("submit", function (e) {
             e.preventDefault();
-            const text = commentInput.value.trim();
+            const content = commentInput.value.trim();
 
-            if (text && selectedPhotoId) {
+            if (content && selectedPhotoId) {
                 fetch(`/community/{{community_id}}/album/{{album_name}}/${selectedPhotoId}/comment/`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         "X-CSRFToken": "{{csrf_token}}"
                     },
-                    body: JSON.stringify({text: text})
+                    body: JSON.stringify({content: content})
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         // 새 댓글 렌더링
                         const item = document.createElement("div");
-                        item.innerText = `<strong>${data.comment.author}</strong>: ${data.comment.text} <br><small>${data.comment.created_at}</small>`;
+                        item.innerHTML = `<strong>${data.comment.user}</strong>: ${data.comment.content} <br><small>${data.comment.created_at}</small>`;
                         commentList.appendChild(item);
 
                         commentInput.value = ''; // AJAX로 댓글 저장
@@ -297,29 +316,64 @@
             }
         });
 
-        // 새로고침시 commentList 비우고 댓글 다시 불러오기
+        // 새로고침시 모두 댓글 다시 불러오기
+        const pathParts = window.location.pathname.split('/');
+        const photoIdFromUrl = (pathParts.includes("comment") && pathParts.length >= 6)
+            ? pathParts[pathParts.length -2]
+            : null;
+
         if (selectedPhotoId) {
+            selectedPhotoId = photoIdFromUrl;
+
             const targetImg = document.querySelector(`.album-image[data-photo-id="${selectedPhotoId}"]`);
             if (targetImg) {
                 mainPhoto.src = targetImg.src;
                 mainPhoto.style.display = "block";
                 commentBox.style.display = "block";
                 commentInput.value = '';
-                commentList.innerHTML = '';
+                albumMainPhotoBtn.style.display = "inline-block";
 
                 fetch(`/community/{{community_id}}/album/{{album_name}}/${selectedPhotoId}/comment/`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
+                            commentList.innerHTML = '';
                             data.comments.forEach(comment => {
                                 const item = document.createElement("div");
-                                item.innerHTML = `<strong>${comment.author}</strong>: ${comment.text} <br><small>${comment.created_at}</small>`;
+                                item.innerHTML = `<strong>${comment.user}</strong>: ${comment.content} <br><small>${comment.created_at}</small>`;
                                 commentList.appendChild(item);
                             });
                         }
                     });
             }
         }
+
+        // 앨범 대표사진 설정
+        const albumMainPhotoBtn = document.getElementById('albumMainPhotoBtn');
+
+        albumMainPhotoBtn.addEventListener("click", function () {
+            
+            if (!selectedPhotoId) return;
+
+            fetch(`/community/{{community_id}}/album/{{album_name}}/${selectedPhotoId}/album_main/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{csrf_token}}"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("대표사진으로 설정되었습니다!");
+                } else {
+                    alert("설정 실패: " + data.message);
+                }
+            });
+
+            mainPhoto.style.display = "block";
+            albumMainPhotoBtn.style.display = "inline-block";
+        });
     });
 </script>
 {% endblock %}

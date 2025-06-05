@@ -45,6 +45,7 @@ class Photo(models.Model):
     image = models.ImageField(upload_to='album/photos/')
     uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    is_main = models.BooleanField(default=False)
 
 class MoodVote(models.Model):
     promise = models.ForeignKey(Promise, on_delete=models.CASCADE)

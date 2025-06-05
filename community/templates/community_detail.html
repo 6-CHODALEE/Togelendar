@@ -54,15 +54,17 @@
             <div class="row">
                 <div class="col-4 col-md-2 mb-4 text-center">
                     {% for promise in promises %}
-                    <a href="{% url 'community:album_detail' community.id promise.promise_name %}">
-                        <div class="text-center mt-3">
-                            <img src="https://cdn-icons-png.flaticon.com/512/716/716784.png" 
-                            alt="앨범으로 가기" 
-                            class="img-fluid" 
-                            style="max-height: 80px;">
-                            <div class="mt-2 fw-bold">모임 날짜</div>
-                        </div>
-                    </a>
+                        <a href="{% url 'community:album_detail' community.id promise.promise_name %}">
+                            <div class="text-center mt-3">
+                                {% if main_photo %}
+                                    <img src="{{main_photo.image.url}}" style="max-height: 80px;">
+                                {% else %}
+                                    <img src="https://cdn-icons-png.flaticon.com/512/716/716784.png" 
+                                        style="max-height: 80px;">
+                                {% endif %}
+                                <div class="mt-2 fw-bold">{{promise.promise_name}}</div>
+                            </div>
+                        </a>
                     {% endfor %}
                 </div>
             </div>

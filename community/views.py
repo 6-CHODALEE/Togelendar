@@ -15,6 +15,13 @@ def community_detail(request, community_id):
     community = CreateCommunity.objects.get(id=community_id)
     promises = Promise.objects.filter(community=community)
 
+    # 앨범 대표사진
+    main_photos = {}
+    for promise in promises:
+        main_photo = promise.photo_set.filter(is_main=True).first()
+        if main_photo:
+            main_photos[promise.id] = main_photo
+
     # 친구 리스트 생성
     friend_list = FriendRequest.objects.filter(
         Q(from_user=request.user) | Q(to_user=request.user),
@@ -55,13 +62,14 @@ def community_detail(request, community_id):
     
     # 현재 유저가 투표한 약속 id들
     voted_ids = PromiseVote.objects.filter(username=request.user).values_list('promise_id', flat=True)
-    
+
     context = {
         'community': community,
         'members': members,
         'promises': promises,
         'voted_ids': list(voted_ids),
         'friend_users': friend_users,
+        'main_photos': main_photos,
     }
     return render(request, 'community_detail.html', context)
 
@@ -124,8 +132,10 @@ def update_community_info(request, community_id):
 @login_required
 def album_detail(request, community_id, album_name):
     # 해당 커뮤니티 id와 약속 이름에 해당하는 Promise 가져오기
-    promise = Promise.objects.filter(community_id=community_id, promise_name=album_name).first()
+    community = CreateCommunity.objects.get(id=community_id)
+    promise = Promise.objects.get(community_id=community_id, promise_name=album_name)
     photos = Photo.objects.filter(promise=promise)
+    main_photo = photos.filter(is_main=True).first()
 
     # 내 기분
     user_mood = None
@@ -141,12 +151,14 @@ def album_detail(request, community_id, album_name):
         mood_votes = [{'username': vote.user.username, 'mood': vote.mood} for vote in votes]
 
     context = {
+        'community': community,
         'community_id': community_id,
         'promise': promise,
         'album_name': promise.promise_name,
         'photos': photos,
         'user_mood': user_mood,
         'mood_votes': mood_votes,
+        'main_photo': main_photo,
     }
     return render(request, 'album_detail.html', context)
 
@@ -186,24 +198,34 @@ def mood_vote(request, community_id, album_name):
 def photo_comment(request, community_id, album_name, photo_id):
     photo = Photo.objects.get(id=photo_id)
 
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            comment_text = data.get('text')
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        if request.method == "POST":
+            try:
+                data = json.loads(request.body)
+                comment_content = data.get('content')
 
-            comment = PhotoComment.objects.create(photo=photo, author=request.user, text=comment_text)
+                comment = PhotoComment.objects.create(photo=photo, user=request.user, content=comment_content)
 
-            return JsonResponse({
-                'success': True, 
-                'comment': {
-                    'author': request.user.username,
-                    'text': comment.text,
-                    'created_at': comment.created_at.strftime("%Y-%m-%d %H:%M"),
-                }
-            })
-        except Exception as e:
-            return JsonResponse({'success': False, 'message': str(e)}, status=400)
-        
+
+                return JsonResponse({
+                    'success': True, 
+                    'comment': {
+                        'user': request.user.username,
+                        'content': comment.content,
+                        'created_at': comment.created_at.strftime("%Y-%m-%d %H:%M"),
+                    }
+                })
+            except Exception as e:
+                return JsonResponse({'success': False, 'message': str(e)}, status=400)
+        else:
+            comments = PhotoComment.objects.filter(photo=photo).order_by('created_at')
+            comment_list = [{
+                'user': comment.user.username,
+                'content': comment.content,
+                'created_at': comment.created_at.strftime("%Y-%m-%d %H:%M")
+            } for comment in comments ]
+            return JsonResponse({'success': True, 'comments': comment_list})
+
     # GET 요청이 아니라 - JSON이 아니라 HTML 전체 렌더링
     context = {
         'community_id': community_id,
@@ -232,3 +254,23 @@ def get_mood_votes(album_name):
         return [{'username': vote.user.username, 'mood': vote.mood} for vote in votes]
     except Promise.DoesNotExist:
         return []
+
+@login_required
+def album_main_photo(request, community_id, album_name, photo_id):
+    if request.method != "POST":
+        return JsonResponse({'success': False, 'message': 'POST 요청만 허용됩니다.'}, status=405)
+
+    try:
+        promise = Promise.objects.get(community__id=community_id, promise_name=album_name)
+        selected_photo = Photo.objects.get(id=photo_id, promise=promise)
+
+        # 기존 대표사진 false로 초기화
+        Photo.objects.filter(promise=promise).update(is_main=False)
+
+        # 현재 사진을 대표사진으로
+        selected_photo.is_main = True
+        selected_photo.save()
+        return JsonResponse({'success': True})
+
+    except Exception as e:
+        return JsonResponse({'sueccess': False, 'message': str(e)}, status=500)

@@ -12,8 +12,10 @@ urlpatterns = [
     # ajax : asynchromous javascript and xml => 페이지 전체를 새로고침하지 않고, 서버에 데이터를 주고 받는 기술
     path('<int:community_id>/invite_member/', views.invite_member_ajax, name = 'invite_member_ajax'),
 
+    path('<int:community_id>/album/<str:album_name>/<int:photo_id>/comment/', views.photo_comment, name='photo_comment'),
+    path('<int:community_id>/album/<str:album_name>/<int:photo_id>/album_main/', views.album_main_photo, name='album_main_photo'),
     path('<int:community_id>/album/<str:album_name>', views.album_detail, name='album_detail'),
     path('<int:community_id>/album/<str:album_name>/upload/', views.upload_photo, name='upload_photo'),
     path('<int:community_id>/album/<str:album_name>/mood_vote/', views.mood_vote, name='mood_vote'),
-    path('<int:community_id>/album/<str:album_name>/<str:photo_id>/comment/', views.photo_comment, name='photo_comment'),
+
     ]
