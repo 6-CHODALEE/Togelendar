@@ -87,49 +87,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const allVotes = JSON.parse('{{ all_vote_data|safe }}');
     const totalMembers = parseInt(`{{ total_members|default:1 }}`);
 
-<<<<<<< HEAD
-        // 전체 투표 데이터 받아오기
-        const allVotes = JSON.parse('{{all_vote_data|safe}}');
-        const totalMembers = parseInt(`{{total_members|default:1}}`);
-
-        // FullCalendar 초기화
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            locale: 'ko',
-            initialDate: allVotes.length > 0 ? allVotes[0].date : undefined,
-            events: allVotes.map(item => ({
-                    start: item.date,
-                    end: item.date,
-                    allDay: true,
-                    display: 'background',
-                    color: `rgba(251, 211, 141, ${item.intensity})`,
-                    extendedProps: {
-                        count: item.count,
-                    }
-            })),
-            eventDidMount: function(info) {
-                const count = info.event.extendedProps.count;
-                const dateCell = info.el.closest(".fc-daygrid-day");
-                const frame = dateCell ? dateCell.querySelector(".fc-daygrid-day-frame") : null;
-
-                if (dateCell && count >0) {
-                    const text = document.createElement("div");
-                    text.className = "fc-vote-count";
-
-                    if (count === totalMembers) {
-                        text.innerText = "모두 가능";
-                        text.style.color = "red";
-                    } else if (count === 1) {
-                        text.innerText = "1명 가능";
-                        text.style.color = "blue";
-                    } else {
-                        text.innerText = `${count}명 가능`;
-                        text.style.color = "blue"
-                    }
-
-                    frame.appendChild(text);
-                }
-=======
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         locale: 'ko',
@@ -151,7 +108,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 text.innerText = count === totalMembers ? "모두 가능" : `${count}명 가능`;
                 text.style.color = count === totalMembers ? "red" : "blue";
                 frame.appendChild(text);
->>>>>>> 3bed793405ca2d15adf3cec2bf49ba8764429ed2
             }
         }
     });

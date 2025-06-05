@@ -184,12 +184,13 @@ def mood_vote(request, community_id, album_name):
 
 @login_required
 def photo_comment(request, community_id, album_name, photo_id):
+    photo = Photo.objects.get(id=photo_id)
+
     if request.method == "POST":
         try:
             data = json.loads(request.body)
             comment_text = data.get('text')
 
-            photo = Photo.objects.get(id=photo_id)
             comment = PhotoComment.objects.create(photo=photo, author=request.user, text=comment_text)
 
             return JsonResponse({
@@ -203,15 +204,31 @@ def photo_comment(request, community_id, album_name, photo_id):
         except Exception as e:
             return JsonResponse({'success': False, 'message': str(e)}, status=400)
         
-    else: # GET
-        try:
-            photo = Photo.objects.get(id=photo_id)
-            comments = PhotoComment.objects.filter(photo=photo).order_by('created_at')
-            comment_list = [{
-                'author': comment.author.username,
-                'text': comment.text,
-                'created_at': comment.created_at.strftime("%Y-%m-%d %H:%M")
-            } for comment in comments]
-            return JsonResponse({'success': True, 'comments': comment_list})
-        except Photo.DoesNotExist:
-            return JsonResponse({'success': False, 'message': '사진을 찾을 수 없습니다.'}, status=404)
+    # GET 요청이 아니라 - JSON이 아니라 HTML 전체 렌더링
+    context = {
+        'community_id': community_id,
+        'album_name': album_name,
+        'photos': Photo.objects.filter(promise__community_id=community_id, promise__promise_name=album_name),
+        'selected_photo': photo,
+        'comments': PhotoComment.objects.filter(photo=photo).order_by('created_at'),
+        'user_mood': get_user_mood(user=request.user, album_name=album_name),
+        'mood_votes': get_mood_votes(album_name=album_name),
+    }
+
+    return render(request, 'album_detail.html', context)
+
+def get_user_mood(user, album_name):
+    try:
+        promise = Promise.objects.get(promise_name=album_name)
+        vote = MoodVote.objects.get(user=user, promise=promise)
+        return vote.mood
+    except (Promise.DoesNotExist, MoodVote.DoesNotExist):
+        return None
+
+def get_mood_votes(album_name):
+    try:
+        promise = Promise.objects.get(promise_name=album_name)
+        votes = MoodVote.objects.filter(promise=promise).select_related('user')
+        return [{'username': vote.user.username, 'mood': vote.mood} for vote in votes]
+    except Promise.DoesNotExist:
+        return []

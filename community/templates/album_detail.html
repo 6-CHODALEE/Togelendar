@@ -5,19 +5,26 @@
     <h3 class="fw-bold mb-4">{{album_name}}</h3>
     <!--사진 + 댓글 영역-->
     <div class="d-flex mt-4">
-        <div id="gallery" class="d-flex flex-wrap gap-3" style="flex: 2;">
-            <!--filepond 업로드 input-->
-            <div style="width: 150px; height: 150px;">
-                <input type="file" class="filepond" name="file" multiple data-max-files="10">
-            </div>
-        
-            <!--좌측 : 업로드된 사진 썸네일 목록-->
-            {% for photo in photos %}
+        <div style="flex: 2;">
+            <img id="mainPhoto" 
+                src="{% if selected_photo %}{{selected_photo.image.url}}{% endif %}" 
+                style="width: 100%; max-height: 400px; object-fit: contain; {% if not selected_photo %}display: none;{% endif %}">
+            <input type="hidden" id="initialPhotoId" value="{% if selected_photo %}{{selected_photo.id}}{% endif %}">
+
+            <div id="gallery" class="d-flex flex-wrap gap-3 mt-3" style="flex: 2;">
+                <!--filepond 업로드 input-->
+                <div style="width: 150px; height: 150px;">
+                    <input type="file" class="filepond" name="file" multiple data-max-files="10">
+                </div>
+                
+                <!--좌측 : 업로드된 사진 썸네일 목록-->
+                {% for photo in photos %}
                 <img src="{{photo.image.url}}"
                 class="album-image rounded"
                 data-photo-id="{{photo.id}}"
                 style="width: 150px; height: 150px; object-fit: cover; cursor: pointer;">
-            {% endfor %}
+                {% endfor %}
+            </div>
         </div>
         
         <!--우측 : 댓글창(사진 클릭 시 열림)-->
@@ -69,14 +76,25 @@
             </div>
             
             <!--댓글창(사진 클릭 시 나타남)-->
-            <div id="commentBox" class="card" style="display: none;">
+            <div id="commentBox" class="card" {% if not selected_photo %}style="display: none;"{% endif %}>
                 <div class="card-body">
                     <h5 class="card-title">댓글 남기기</h5>
                         <form id="commentForm">
                             <textarea id="commentInput" class="form-control mb-2" placeholder="댓글을 입력하세요" rows="2"></textarea>
                             <button type="submit" class="btn btn-outline-primary btn-sm">댓글</button>
                         </form>
-                        <div id="commentList" class="mt-3"></div>
+                        <div id="commentList" class="mt-3">
+                            {% if selected_photo %}
+                                {% for comment in comments %}
+                                <div>
+                                    <strong>{{comment.author.username}}</strong>: {{comment.text}}
+                                    <br><small>{{comment.created_at|date:"Y-m-d H-i"}}</small>
+                                </div>
+                                {% empty %}
+                                    <p>아직 댓글이 없습니다.</p>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
                 </div>
             </div>
             
@@ -103,6 +121,7 @@
     width: 100% !important;
     padding: 0 !important;
 }
+
 
 </style>
 {% endblock %}
@@ -169,12 +188,13 @@
         const gallery = document.getElementById('gallery');
         const moodForm = document.getElementById('moodForm');
         const moodResults = document.getElementById('moodResults');
+        const mainPhoto = document.getElementById('mainPhoto');
         const commentBox = document.getElementById('commentBox');
         const commentInput = document.getElementById('commentInput');
         const commentList = document.getElementById('commentList');
         const commentForm = document.getElementById('commentForm');
 
-        let selectedPhotoId = null;
+        let selectedPhotoId = document.getElementById('initialPhotoId')?.value || null;
 
         // 기분 선택 제출
         moodForm.addEventListener("submit", function (e) {
@@ -216,19 +236,44 @@
         gallery.addEventListener("click", function (e) {
             if (e.target.classList.contains("album-image")) {
                 selectedPhotoId = e.target.dataset.photoId;
+                // 대표 이미지 변경
+                mainPhoto.src = e.target.src;
+                mainPhoto.style.display = "block";
+
+                // 댓글창 띄우기
                 commentBox.style.display = "block";
                 commentInput.value = '';
                 commentList.innerHTML = ''; // AJAX로 해당 사진의 댓글 불러오기
+                
+                // 댓글 불러오기(GET)
+                fetch(`/community/{{community_id}}/album/{{album_name}}/${selectedPhotoId}/comment/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        data.comments.forEach(comment => {
+                            const item = document.createElement("div");
+                            item.innerHTML = `<strong>${comment.author}</strong>: ${comment.text} <br><small>${comment.created_at}</small>`;
+                            commentList.appendChild(item);
+                        });
+                    } else {
+                        commentList.innerHTML = "<p>댓글을 불러올 수 없습니다.</p>";
+                    }
+                });
+                
+                // 주소도 바꾸기(히스토리만, 실제 이동 X)
+                const newUrl = `/community/{{community_id}}/album/{{album_name}}/${selectedPhotoId}/comment/`;
+                history.pushState({}, '', newUrl);
             }    
         });
 
-        // 댓글 등록
+
+        // 댓글 등록(POST)
         commentForm.addEventListener("submit", function (e) {
             e.preventDefault();
             const text = commentInput.value.trim();
 
             if (text && selectedPhotoId) {
-                fetch(`/community/{{community_id}}/album/{{album_name}}/${selectedPhotoId}`, {
+                fetch(`/community/{{community_id}}/album/{{album_name}}/${selectedPhotoId}/comment/`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -251,6 +296,30 @@
                 });
             }
         });
+
+        // 새로고침시 commentList 비우고 댓글 다시 불러오기
+        if (selectedPhotoId) {
+            const targetImg = document.querySelector(`.album-image[data-photo-id="${selectedPhotoId}"]`);
+            if (targetImg) {
+                mainPhoto.src = targetImg.src;
+                mainPhoto.style.display = "block";
+                commentBox.style.display = "block";
+                commentInput.value = '';
+                commentList.innerHTML = '';
+
+                fetch(`/community/{{community_id}}/album/{{album_name}}/${selectedPhotoId}/comment/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            data.comments.forEach(comment => {
+                                const item = document.createElement("div");
+                                item.innerHTML = `<strong>${comment.author}</strong>: ${comment.text} <br><small>${comment.created_at}</small>`;
+                                commentList.appendChild(item);
+                            });
+                        }
+                    });
+            }
+        }
     });
 </script>
 {% endblock %}
