@@ -9,64 +9,85 @@
             <h2>아직 <strong>{{promise.promise_name}}</strong>의 약속 날짜 투표가 진행중이에요!</h2>
         {% endif %}
     </div>
+
     <div id="calendar" style="max-width: 800px; margin: 0 auto;"></div>
+
+    {% if promise_result and is_location_decided %}
+    <div id="map" style="height: 400px; max-width: 800px; margin: 20px auto 0 auto;"></div>
+
+    <div class="mt-4" style="max-width: 800px; margin: 0 auto;">
+        <h4 class="mb-3">중간지점 주변 장소 추천 (반경 500m)</h4>
+
+        <!-- 카테고리 버튼들 -->
+        <div class="mb-3 text-center" id="category-buttons">
+            <button data-type="all" class="btn btn-sm me-2 btn-dark">전체</button>
+            <button data-type="cafe" class="btn btn-sm me-2 btn-outline-primary">카페</button>
+            <button data-type="restaurant" class="btn btn-sm me-2 btn-outline-danger">음식점</button>
+            <button data-type="convenience_store" class="btn btn-sm me-2 btn-outline-success">편의점</button>
+            <button data-type="subway_station" class="btn btn-sm me-2 btn-outline-info">지하철</button>
+        </div>
+
+        {% if places and places|length > 0 %}
+        <ul class="list-group" id="place-list">
+            {% for place in places %}
+            <li class="list-group-item place-item" data-type="{{ place.type }}" data-name="{{ place.name }}">
+                <strong>{{ place.name }}</strong>
+                <span class="badge bg-secondary">{{ place.type }}</span><br>
+                {{ place.address }}<br>
+                {% if place.rating %} 평점: {{ place.rating }} {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="text-center text-muted mt-2">
+            <p>선택한 카테고리에 해당하는 장소가 없습니다.</p>
+        </div>
+        {% endif %}
+    </div>
+    {% else %}
+    <div style="text-align: center; margin: 20px auto; color: gray;">
+        <p>아직 장소가 정해지지 않았습니다.</p>
+    </div>
+    {% endif %}
+
     <div style="max-width: 800px; margin: 10px auto 0 auto; display: flex; justify-content: flex-end; padding-right: 20px;">
         <a href="{% url 'community:community_detail' community.id %}" class="btn btn-outline-secondary btn-sm">
             커뮤니티로 이동하기
         </a>
-        <a href="{% url 'promiselocation:location' community.id promise.id %}" class="btn btn-outline-secondary btn-sm">
+        <a href="#" class="btn btn-outline-secondary btn-sm" id="location-button">
             장소 정하기
         </a>
     </div>
 </div>
 
 <style>
-    .fc-day-today {
-        background-color: transparent !important;
-    }
-
-    .fc-daygrid-day-frame {
-        position: relative;
-    }
-
+    .fc-day-today { background-color: transparent !important; }
+    .fc-daygrid-day-frame { position: relative; }
     .fc-vote-count {
-        font-size: 0.75rem;
-        font-weight: bold;
-        text-align: center;
-        position: absolute;
-        bottom: 2px;
-        left: 50%;
-        transform: translateX(-50%);
+        font-size: 0.75rem; font-weight: bold; text-align: center;
+        position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
         width: 100%;
     }
-        
-        /* 평일 색 지정 */
-        .fc-col-header-cell:nth-child(2) .fc-col-header-cell-cushion,
-        .fc-col-header-cell:nth-child(3) .fc-col-header-cell-cushion,
-        .fc-col-header-cell:nth-child(4) .fc-col-header-cell-cushion,
-        .fc-col-header-cell:nth-child(5) .fc-col-header-cell-cushion,
-        .fc-col-header-cell:nth-child(6) .fc-col-header-cell-cushion,
-        .fc-day-mon .fc-daygrid-day-number,
-        .fc-day-tue .fc-daygrid-day-number,
-        .fc-day-wed .fc-daygrid-day-number,
-        .fc-day-thu .fc-daygrid-day-number,
-        .fc-day-fri .fc-daygrid-day-number {color: black;}
-
-        /* 토요일 색 지정 */
-        .fc-col-header-cell:nth-child(7) .fc-col-header-cell-cushion,
-        .fc-day-sat .fc-daygrid-day-number {color: blue;}
-        
-        /* 일요일 색 지정*/
-        .fc-col-header-cell:nth-child(1) .fc-col-header-cell-cushion,
-        .fc-day-sun .fc-daygrid-day-number {color: red;}
+    .fc-col-header-cell:nth-child(1) .fc-col-header-cell-cushion,
+    .fc-day-sun .fc-daygrid-day-number { color: red; }
+    .fc-col-header-cell:nth-child(7) .fc-col-header-cell-cushion,
+    .fc-day-sat .fc-daygrid-day-number { color: blue; }
+    .fc-day-mon .fc-daygrid-day-number,
+    .fc-day-tue .fc-daygrid-day-number,
+    .fc-day-wed .fc-daygrid-day-number,
+    .fc-day-thu .fc-daygrid-day-number,
+    .fc-day-fri .fc-daygrid-day-number { color: black; }
 </style>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const calendarEl = document.getElementById('calendar');
+document.addEventListener('DOMContentLoaded', function () {
+    const calendarEl = document.getElementById('calendar');
+    const allVotes = JSON.parse('{{ all_vote_data|safe }}');
+    const totalMembers = parseInt(`{{ total_members|default:1 }}`);
 
+<<<<<<< HEAD
         // 전체 투표 데이터 받아오기
         const allVotes = JSON.parse('{{all_vote_data|safe}}');
         const totalMembers = parseInt(`{{total_members|default:1}}`);
@@ -108,11 +129,137 @@
 
                     frame.appendChild(text);
                 }
+=======
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'ko',
+        initialDate: allVotes.length > 0 ? allVotes[0].date : undefined,
+        events: allVotes.map(item => ({
+            start: item.date,
+            end: item.date,
+            allDay: true,
+            display: 'background',
+            color: `rgba(251, 211, 141, ${item.intensity})`,
+            extendedProps: { count: item.count }
+        })),
+        eventDidMount: function(info) {
+            const count = info.event.extendedProps.count;
+            const frame = info.el.closest(".fc-daygrid-day")?.querySelector(".fc-daygrid-day-frame");
+            if (frame && count > 0) {
+                const text = document.createElement("div");
+                text.className = "fc-vote-count";
+                text.innerText = count === totalMembers ? "모두 가능" : `${count}명 가능`;
+                text.style.color = count === totalMembers ? "red" : "blue";
+                frame.appendChild(text);
+>>>>>>> 3bed793405ca2d15adf3cec2bf49ba8764429ed2
             }
-        });
-
-        calendar.render();
+        }
     });
-    
+    calendar.render();
+
+    {% if is_location_decided %}
+    const map = L.map('map').setView([
+        parseFloat("{{ center_latitude|default:'37.5665' }}"),
+        parseFloat("{{ center_longitude|default:'126.9780' }}")
+    ], 14);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    L.marker([{{ center_latitude }}, {{ center_longitude }}]).addTo(map).bindPopup('약속 중간지점').openPopup();
+
+    const userLocations = JSON.parse('{{ user_locations|safe }}');
+    userLocations.forEach(user => {
+        if (user.latitude !== null && user.longitude !== null) {
+            L.circleMarker([user.latitude, user.longitude], {
+                radius: 8, color: 'red', fillColor: 'red', fillOpacity: 1
+            }).addTo(map).bindPopup(`${user.username}의 위치`);
+        }
+    });
+
+    const typeColors = {
+        cafe: 'blue', restaurant: 'red',
+        convenience_store: 'green', supermarket: 'orange',
+        subway_station: 'purple'
+    };
+
+    const allMarkers = [];
+    const places = JSON.parse(`{{ places_json|safe }}`);
+    places.forEach(place => {
+        const color = typeColors[place.type] || 'gray';
+        const lat = place.location.lat;
+        const lng = place.location.lng;
+
+        const marker = L.circleMarker([lat, lng], {
+            radius: 8, color: color, fillColor: color, fillOpacity: 0.8
+        }).addTo(map).bindPopup(`${place.name}<br><small>${place.address}</small>`);
+
+        marker.type = place.type;
+        marker.name = place.name;
+        allMarkers.push(marker);
+    });
+
+    document.querySelectorAll('#category-buttons button').forEach(button => {
+        button.addEventListener('click', function (e) {
+            e.preventDefault();
+            const type = this.dataset.type;
+
+            // 마커 필터링
+            allMarkers.forEach(marker => {
+                if (type === 'all' || marker.type === type) {
+                    marker.addTo(map);
+                } else {
+                    map.removeLayer(marker);
+                }
+            });
+
+            // 리스트 필터링
+            document.querySelectorAll('#place-list .place-item').forEach(item => {
+                const itemType = item.dataset.type;
+                item.style.display = (type === 'all' || itemType === type) ? 'block' : 'none';
+            });
+
+            // 버튼 UI 갱신
+            document.querySelectorAll('#category-buttons button').forEach(btn => {
+                btn.classList.remove('btn-dark', 'btn-primary', 'btn-danger', 'btn-success', 'btn-info', 'text-white');
+                btn.classList.add('btn-outline-dark', 'btn-outline-primary', 'btn-outline-danger', 'btn-outline-success', 'btn-outline-info');
+            });
+
+            if (type === 'all') this.classList.replace('btn-outline-dark', 'btn-dark');
+            if (type === 'cafe') this.classList.replace('btn-outline-primary', 'btn-primary');
+            if (type === 'restaurant') this.classList.replace('btn-outline-danger', 'btn-danger');
+            if (type === 'convenience_store') this.classList.replace('btn-outline-success', 'btn-success');
+            if (type === 'subway_station') this.classList.replace('btn-outline-info', 'btn-info');
+            this.classList.add('text-white');
+        });
+    });
+    {% endif %}
+
+    const locationBtn = document.getElementById('location-button');
+    if (locationBtn) {
+        locationBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            fetch("{% url 'community:promise:promiselocation:location' community.id promise.id %}", {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(() => alert('서버 오류가 발생했습니다. 다시 시도해주세요.'));
+        });
+    }
+});
 </script>
+
+{% if messages %}
+<script>
+    {% for message in messages %}
+        alert("{{ message }}");
+    {% endfor %}
+</script>
+{% endif %}
 {% endblock %}
