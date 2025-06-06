@@ -128,8 +128,8 @@
                 <h6 class="fw-bold d-flex justify-content-between align-items-center">
                     약속
                     <div class="d-flex gap-2">
-                        <a href="{% url 'community:promise:no_place_promise' community.id %}" class="btn btn-outline-secondary btn-sm same-width">약속 장소 정하기</a>
-                        <a href="{% url 'community:promise:create_promise' community.id %}" class="btn btn-outline-secondary btn-sm same-width">약속 날짜 정하기</a>
+                        <a href="{% url 'community:promise:no_place_promise' community.id %}" class="btn btn-outline-secondary btn-sm same-width">장소 정하기</a>
+                        <a href="{% url 'community:promise:create_promise' community.id %}" class="btn btn-outline-secondary btn-sm same-width">날짜 정하기</a>
                     </div>
                 </h6>
                 <div>
@@ -162,7 +162,7 @@
 
 <style>
     .same-width {
-        min-width: 140px; /* 너비 맞추고 싶으면 여기 조정 */
+        min-width: 75px; /* 너비 맞추고 싶으면 여기 조정 */
         text-align: center;
     }
 

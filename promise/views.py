@@ -10,6 +10,8 @@ from community.models import CreateCommunity, CommunityMember
 from collections import Counter
 from account.models import User  # ⭐ account.User import 추가
 from django.shortcuts import get_object_or_404
+from collections import defaultdict
+
 
 # Create your views here.
 @login_required
@@ -239,15 +241,19 @@ def promise_result(request, community_id, promise_id):
 
     return render(request, 'promise_result.html', context)
 
-
 def no_place_promise(request, community_id):
-    no_place_promise_list = []
-    community_promises = Promise.objects.filter(community_id = community_id)
-    for community_promise in community_promises:
-        promise = PromiseResult.objects.get(id = community_promise.id)
-        if promise.center_latitude == 0:
-            no_place_promise_list.append(promise)
+    grouped_promises = defaultdict(list)
+
+    results = PromiseResult.objects.filter(
+        promise__community_id=community_id,
+        center_latitude=0
+    )
+
+    for result in results:
+        grouped_promises[result.promise].append(result)
+
     context = {
-        'no_place_promise_list' : no_place_promise_list
+        'grouped_promises': grouped_promises.items(),  # (Promise 객체, [PromiseResult...])
+        'community_id': community_id,
     }
     return render(request, 'no_place_promise.html', context)
