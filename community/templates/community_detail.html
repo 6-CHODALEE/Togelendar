@@ -125,9 +125,12 @@
 
             <!--약속 정하기-->
             <div class="bg-light p-3 mb-3" style="min-height: 100px;">
-                <h6 class="fw-bold d-flex justify-content-between">
+                <h6 class="fw-bold d-flex justify-content-between align-items-center">
                     약속
-                    <a href="{% url 'community:promise:create_promise' community.id %}" class="btn btn-outline-secondary btn-sm">약속 날짜 정하기</a>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'community:promise:no_place_promise' community.id %}" class="btn btn-outline-secondary btn-sm same-width">약속 장소 정하기</a>
+                        <a href="{% url 'community:promise:create_promise' community.id %}" class="btn btn-outline-secondary btn-sm same-width">약속 날짜 정하기</a>
+                    </div>
                 </h6>
                 <div>
                     {% if promises %}
@@ -153,22 +156,16 @@
                     {% endif %}
                 </div>
             </div>
-
-            <!--장소 정하기-->
-            <div class="bg-light p-3 mb-3" style="min-height: 100px;">
-                <h6 class="fw-bold d-flex justify-content-between">
-                    장소
-                    <a href="#" class="btn btn-outline-secondary">약속 장소 정하기</a>
-                </h6>
-                <div>
-                    <!--장소 리스트-->
-                </div>
-            </div>
         </div>
     </div>
 </div>
 
 <style>
+    .same-width {
+        min-width: 140px; /* 너비 맞추고 싶으면 여기 조정 */
+        text-align: center;
+    }
+
     .circle-button {
         width: 40px;
         height: 40px;

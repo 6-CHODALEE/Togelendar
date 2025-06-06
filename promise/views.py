@@ -238,3 +238,16 @@ def promise_result(request, community_id, promise_id):
     }
 
     return render(request, 'promise_result.html', context)
+
+
+def no_place_promise(request, community_id):
+    no_place_promise_list = []
+    community_promises = Promise.objects.filter(community_id = community_id)
+    for community_promise in community_promises:
+        promise = PromiseResult.objects.get(id = community_promise.id)
+        if promise.center_latitude == 0:
+            no_place_promise_list.append(promise)
+    context = {
+        'no_place_promise_list' : no_place_promise_list
+    }
+    return render(request, 'no_place_promise.html', context)

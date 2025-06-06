@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block body %}
+    {% for no_place_promsie in no_place_promise_list %}
+        <div>
+            <a href="#">{{no_place_promsie.promise_name}}</a>
+        </div>
+    {% endfor %}
+{% endblock %}
