@@ -58,7 +58,6 @@ def mypage(request, username):
             if current_date in week_dates:
                 weekly_promises[current_date].append(result)
             current_date += timedelta(days=1)
-
     # 친구 목록
     friend_list = FriendRequest.objects.filter(
         Q(from_user=me) | Q(to_user=me), status='accepted'

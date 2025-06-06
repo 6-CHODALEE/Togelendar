@@ -72,10 +72,12 @@
                                         </div>
 
                                         <div class="calendar-promises-wrapper">
-                                            {% for promise in weekly_promises|get_item:date %}
-                                                <div class="calendar-promise" title="{{ promise.promise_name }}">
-                                                    {{ promise.promise_name }}
-                                                </div>
+                                            {% for result in weekly_promises|get_item:date %}
+                                                <a href="{% url 'community:promise:promise_result' community_id=result.promise.community.id promise_id=result.promise.id %}"
+                                                class="calendar-promise"
+                                                title="{{ result.promise_name }}" style="color: white;">
+                                                    {{ result.promise_name }}
+                                                </a>
                                             {% empty %}
                                                 <div class="small text-muted">약속 없음</div>
                                             {% endfor %}
@@ -238,7 +240,6 @@
     font-weight: 500;
     border-radius: 8px;
     background-color: #6c757d;
-    color: white;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
