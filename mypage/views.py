@@ -10,7 +10,8 @@ from django.contrib.auth import get_user_model
 import json
 from django.http import JsonResponse
 from django.db.models import Q
-from datetime import date, timedelta
+from datetime import datetime, timedelta, date
+from django.utils.dateparse import parse_date
 from community.models import CommunityMember
 from collections import defaultdict
 from promise.models import Promise, PromiseResult
@@ -23,19 +24,31 @@ User = get_user_model()
 def mypage(request, username):
     me = request.user
 
-    # 이번 주 일요일 ~ 토요일 날짜 계산
-    today = date.today()
-    days_since_sunday = (today.weekday() + 1) % 7
-    start_of_week = today - timedelta(days=days_since_sunday)
+    # 📌 base_date GET 파라미터 처리
+    # 안전하게 파싱
+    base_date_str = request.GET.get('base_date')
+    if base_date_str:
+        try:
+            base_date = datetime.strptime(base_date_str, "%Y-%m-%d").date()
+        except ValueError:
+            base_date = date.today()
+    else:
+        base_date = date.today()
+
+    days_since_sunday = (base_date.weekday() + 1) % 7
+    start_of_week = base_date - timedelta(days=days_since_sunday)
     week_dates = [start_of_week + timedelta(days=i) for i in range(7)]
     weekday_labels = ['일', '월', '화', '수', '목', '금', '토']
 
-    # 받은 친구 요청
+    # 📌 이전/다음 주 계산용
+    prev_week = base_date - timedelta(days=7)
+    next_week = base_date + timedelta(days=7)
+
+    # --- 이하 기존 코드 그대로 유지 ---
     received_requests = FriendRequest.objects.filter(
         to_user=me, status='pending'
     ).select_related('from_user')
 
-    # 내가 참여 중인 커뮤니티
     my_memberships = CommunityMember.objects.filter(member=me.username)
     my_communities = [
         CreateCommunity.objects.filter(
@@ -47,10 +60,10 @@ def mypage(request, username):
     my_communities = [c for c in my_communities if c is not None]
     community_names = [c.community_name for c in my_communities]
 
-    # 커뮤니티의 약속 및 결과
     promises = Promise.objects.filter(community__community_name__in=community_names)
     results = PromiseResult.objects.filter(promise__in=promises)
 
+    from collections import defaultdict
     weekly_promises = defaultdict(list)
     for result in results:
         current_date = result.start_date
@@ -58,13 +71,12 @@ def mypage(request, username):
             if current_date in week_dates:
                 weekly_promises[current_date].append(result)
             current_date += timedelta(days=1)
-    # 친구 목록
+
     friend_list = FriendRequest.objects.filter(
         Q(from_user=me) | Q(to_user=me), status='accepted'
     )
     friend_count = friend_list.count()
 
-    # 커뮤니티 초대
     invite_requests = CommunityInvite.objects.filter(
         to_user=me, status='pending'
     )
@@ -79,6 +91,10 @@ def mypage(request, username):
         'week_dates': week_dates,
         'weekday_labels': weekday_labels,
         'weekly_promises': weekly_promises,
+        'base_date': base_date,
+        'prev_week': prev_week.isoformat(),  
+        'next_week': next_week.isoformat(),  
+        'today': date.today(),
     }
     return render(request, 'mypage.html', context)
 

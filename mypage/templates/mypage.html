@@ -7,46 +7,57 @@
         <!-- 왼쪽: 프로필 + 이름 -->
         <div class="col-auto d-flex">
             <!-- 프로필 이미지 -->
-            <div class="me-3">
+            <!-- 중앙 정렬된 프로필 박스 -->
+            <div class="text-center mb-4">
+                <!-- 프로필 이미지 -->
                 {% if me.profile_image %}
-                    <img src="{{ me.profile_image.url }}" 
-                        class="rounded-circle" 
-                        style="width: 100px; height: 100px; object-fit: cover;" 
+                    <img src="{{ me.profile_image.url }}"
+                        class="rounded-circle mb-2"
+                        style="width: 170px; height: 170px; object-fit: cover;"
                         alt="프로필 이미지">
                 {% else %}
-                    <img src="{% static 'default_profile.png' %}" 
-                        class="rounded-circle" 
-                        style="width: 100px; height: 100px; object-fit: cover;" 
+                    <img src="{% static 'default_profile.png' %}"
+                        class="rounded-circle mb-2"
+                        style="width: 100px; height: 100px; object-fit: cover;"
                         alt="기본 이미지">
                 {% endif %}
-            </div>
 
-            <!-- 이름 + 버튼 -->
-            <div>
-                <p class="fw-bold">{{ me.username }}</p>
-                <p>함친 
+                <!-- 이름 -->
+                <p class="fw-bold mb-1">{{ me.username }}</p>
+
+                <!-- 함친 수 -->
+                <p class="mb-2">
+                    함친
                     <strong id="showFriendList" style="cursor:pointer;" class="fw-bold">
                         {{ friend_count }}명
                     </strong>
                 </p>
-                <a href="#" id="togglePopover" class="btn btn-secondary btn-sm mb-2 position-relative">
-                    함친 추가
-                    {% if received_requests %}
-                        <span class="badge-friend bg-danger text-white position-absolute top-0 start-100 translate-middle">
-                            {{ received_requests|length }}
-                        </span>
-                    {% endif %}
-                </a>
-                <a href="#" class="btn btn-outline-dark btn-sm">프로필 편집</a>
+
+                <!-- 버튼 2개 수평 정렬 -->
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="#" id="togglePopover" class="btn btn-secondary btn-sm position-relative">
+                        함친 추가
+                        {% if received_requests %}
+                            <span class="badge-friend bg-danger text-white position-absolute top-0 start-100 translate-middle">
+                                {{ received_requests|length }}
+                            </span>
+                        {% endif %}
+                    </a>
+                    <a href="#" class="btn btn-outline-dark btn-sm">프로필 편집</a>
+                </div>
             </div>
             <div class="col ms-4">
-                <div class="mx-auto border rounded shadow-sm bg-white p-4" style="width: 100%; max-width: 1400px; min-width: 1000px;">                    <!-- 상단 -->
+                <div class="mx-auto border rounded shadow-sm bg-white p-4" style="width: 100%; max-width: 1400px; min-width: 1000px;">             
+                    <!-- 상단: 월 표시 + 주간 이동 버튼 -->
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h4 class="fw-bold mb-0">{{ week_dates.0|date:"Y년 n월" }}</h4>
-                        <div>
-                            <button class="btn btn-secondary btn-sm me-1">today</button>
-                            <button class="btn btn-secondary btn-sm me-1">&lt;</button>
-                            <button class="btn btn-secondary btn-sm">&gt;</button>
+                        <div class="d-flex gap-2 align-items-center">
+                            <a href="?base_date={{ prev_week }}" class="btn btn-outline-secondary btn-sm">&lt;</a>
+                            <span class="fw-bold">{{ base_date|date:"Y년 n월 j일" }} 기준 주</span>
+                            <a href="?base_date={{ next_week }}" class="btn btn-outline-secondary btn-sm">&gt;</a>
+
+                            <!-- ✅ 오늘로 이동 버튼 -->
+                            <a href="?base_date={{ today|date:'Y-m-d' }}" class="btn btn-outline-primary btn-sm ms-2">오늘</a>
                         </div>
                     </div>
 
@@ -262,16 +273,16 @@
 }
  
 .popover-form {
-    position: absolute;
-    background: white;
-    border: 1px solid #ddd;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    padding: 15px;
-    border-radius: 10px;
+    position: absolute;  /* 꼭 필요 */
     z-index: 1000;
     width: 400px;
-    /* display: none; */
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    padding: 15px;
 }
+
 .popover-arrow {
     position: absolute;
     top: -10px;
@@ -328,17 +339,22 @@ btn.addEventListener("click", (e) => {
 });
 
 function showPopover() {
-    const rect = btn.getBoundingClientRect();
-    popover.style.top = `${rect.bottom + window.scrollY - 50}px`;
-    popover.style.left = `${rect.left + window.scrollX - 100}px`;
-    popover.style.display = "block";
+    const button = document.getElementById("togglePopover");
+    const popover = document.getElementById("popoverForm");
 
-    // ✅ 수락 완료된 요청 항목들 제거
-    document.querySelectorAll('.accept-btn').forEach(button => {
-        if (button.disabled) {
-            button.parentElement.remove();  // 버튼 감싸는 div 통째로 제거
-        }
-    });
+    const buttonRect = button.getBoundingClientRect();
+    const popoverWidth = 70;
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
+
+    // 브라우저 기준 정렬
+    const left = buttonRect.left + scrollLeft + (buttonRect.width / 2) - (popoverWidth / 2);
+    const top = buttonRect.bottom + scrollTop + 8;
+
+    popover.style.position = "absolute";
+    popover.style.top = `${top}px`;
+    popover.style.left = `${Math.max(10, left)}px`;  // 좌측 오버플로 방지
+    popover.style.display = "block";
 }
 
 // ✅ 팝업 닫기 함수
