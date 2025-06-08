@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from mypage.models import CreateCommunity
 from community.models import CommunityMember
 from account.models import User
-from promise.models import PromiseResult
+from promise.models import PromiseResult, Promise
 from django.http import HttpResponse
 import requests
 from dotenv import load_dotenv
@@ -11,6 +11,8 @@ import time
 from django.contrib import messages
 import numpy as np
 import json
+from django.shortcuts import get_object_or_404
+
 # .env 파일에서 환경변수 로드
 load_dotenv()
 
@@ -129,54 +131,71 @@ from django.http import JsonResponse
 from django.urls import reverse
 
 def location(request, community_id, promise_id):
-    # POST나 GET 관계없이 허용 → 버튼 클릭은 GET 요청
-    community = CreateCommunity.objects.get(id=community_id)
+    # ✅ 1. POST 요청만 허용
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': '잘못된 요청입니다. (POST만 허용)'}, status=400)
+
+    # ✅ 2. 기본 데이터 준비
+    community = get_object_or_404(CreateCommunity, id=community_id)
+    promise = get_object_or_404(Promise, id=promise_id, community=community)
+
+    # ✅ 3. 커뮤니티 멤버들 좌표 수집
     community_members = CommunityMember.objects.filter(community_name=community.community_name)
     member_usernames = community_members.values_list('member', flat=True)
     members = User.objects.filter(username__in=member_usernames)
 
-    # 멤버 좌표 수집
     members_with_coords = []
     for member in members:
-        members_with_coords.append({
-            'username': member.username,
-            'address': member.address,
-            'longitude': member.longitude,
-            'latitude': member.latitude,
-        })
+        if member.latitude is not None and member.longitude is not None:
+            members_with_coords.append({
+                'username': member.username,
+                'latitude': member.latitude,
+                'longitude': member.longitude,
+                'address': member.address
+            })
+
+    # ✅ 4. 위치 데이터 없으면 중단
+    if not members_with_coords:
+        return JsonResponse({'success': False, 'message': '위치 정보가 등록된 멤버가 없습니다.'}, status=400)
 
     points = {
         m['username']: np.array([m['latitude'], m['longitude']])
         for m in members_with_coords
     }
 
+    # ✅ 5. API 키 준비
     api_key = os.getenv('ODsay_APIKEY')
     Google_api_key = os.getenv('Google_API')
 
-    # ✅ 모두 투표 완료 여부 확인
-    promise_result = PromiseResult.objects.filter(promise_id=promise_id).first()
+    # ✅ 6. 투표 완료 여부 확인
+    promise_result = PromiseResult.objects.filter(promise=promise).first()
     if not promise_result:
-        messages.warning(request, '투표가 종료된 후 눌러주세요!')
-        return redirect('community:promise:promise_result', community_id=community_id, promise_id=promise_id)
+        return JsonResponse({'success': False, 'message': '모든 인원이 투표를 완료한 뒤 장소를 정해주세요.'}, status=400)
 
-    # ✅ 중간지점 계산
-    mid_point, default_time = find_optimal_midpoint(points, api_key)
+    # ✅ 7. 중간지점 계산
+    try:
+        mid_point, default_time = find_optimal_midpoint(points, api_key)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'중간 지점 계산 실패: {str(e)}'}, status=500)
 
-    # ✅ 장소 데이터 가져오기
-    places = get_nearby_places_all_types(
-        lat=mid_point[0],
-        lng=mid_point[1],
-        api_key=Google_api_key,
-        radius=500
-    )
+    # ✅ 8. 장소 정보 조회
+    try:
+        places = get_nearby_places_all_types(
+            lat=mid_point[0],
+            lng=mid_point[1],
+            api_key=Google_api_key,
+            radius=500
+        )
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'장소 데이터 불러오기 실패: {str(e)}'}, status=500)
 
-    # 중간지점/places 저장
+    # ✅ 9. DB 저장
     promise_result.center_latitude = float(mid_point[0])
     promise_result.center_longitude = float(mid_point[1])
     promise_result.places_json = json.dumps(places, ensure_ascii=False)
     promise_result.save()
 
-    # ✅ JS에서 리디렉션 처리하게 URL만 반환
+    # ✅ 10. 성공 응답 → JS 리디렉션 처리
     return JsonResponse({
         "success": True,
         "redirect_url": reverse("community:promise:promise_result", args=[community_id, promise_id])

@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block body %}
+    <h1 class="center-title mb-4">
+        {% if grouped_promises %}
+            아직 약속 장소가 정해지지 않았어요!
+        {% else %}
+            모든 약속의 장소가 정해졌어요!
+        {% endif %}
+    </h1>
+
+    {% if grouped_promises %}
+    <div class="container">
+        <table class="table table-bordered text-center">
+            <thead class="table-light">
+                <tr>
+                    <th>순번</th>
+                    <th>날짜</th>
+                    <th>약속명</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for promise, results in grouped_promises %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            {% for r in results %}
+                                {% if r.start_date == r.end_date %}
+                                    {{ r.start_date|date:"Y년 n월 j일" }}
+                                {% else %}
+                                    {{ r.start_date|date:"Y년 n월 j일" }} ~ {{ r.end_date|date:"n월 j일" }}
+                                {% endif %}
+                                {% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>
+                            <a href="{% url 'community:promise:promise_result' promise.community.id promise.id %}" class="promise_name_color">
+                                {{ promise.promise_name }}
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" style="text-align: right; padding: 10px;">
+                        <a href="{% url 'community:community_detail' community_id %}" class="btn btn-outline-secondary btn-sm">
+                            커뮤니티로 이동하기
+                        </a>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    {% endif %}
+
+
+<style>
+
+  tfoot tr,
+  tfoot td {
+    border: none !important;  /* ✅ 표 끝 선 없애기 */
+  }
+  .promise_name_color{
+    display: inline-block;
+    background-color: #fffdfd;   /* 밝은 회색 배경 */
+    color: black;                /* 검정색 글자 */
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;       /* 밑줄 제거 */
+    font-weight: bold;
+    box-shadow: 1px 1px 4px rgba(0,0,0,0.1);  /* 부드러운 그림자 */
+    transition: background-color 0.2s ease;
+  }
+
+  .promise_name_color:hover {
+    background-color: #dcdcdc;   /* hover 시 진한 회색 */
+  }
+
+
+  .center-title {
+    text-align: center;
+  }
+
+  .promise-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;  /* 전체를 수평 가운데 정렬 */
+    margin-top: 30px;
+  }
+</style>
+{% endblock %}

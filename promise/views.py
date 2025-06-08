@@ -10,6 +10,8 @@ from community.models import CreateCommunity, CommunityMember
 from collections import Counter
 from account.models import User  # ⭐ account.User import 추가
 from django.shortcuts import get_object_or_404
+from collections import defaultdict
+
 
 # Create your views here.
 @login_required
@@ -106,10 +108,6 @@ def promise_vote(request, community_id, promise_id):
 
 @login_required
 def promise_result(request, community_id, promise_id):
-    from django.shortcuts import get_object_or_404
-    import json
-    from collections import Counter
-    from datetime import datetime
 
     community = get_object_or_404(CreateCommunity, id=community_id)
     promise = get_object_or_404(Promise, id=promise_id, community=community)
@@ -186,8 +184,16 @@ def promise_result(request, community_id, promise_id):
     ]
 
     selected_type = request.GET.get('type', 'all')
-    try:
-        promise_result = PromiseResult.objects.get(promise=promise)
+    # 중복 제거 - 딱 한 번만 호출
+    promise_result = PromiseResult.objects.filter(promise=promise).first()
+
+    if not promise_result:
+        center_latitude = 0
+        center_longitude = 0
+        places = []
+        places_json = json.dumps([])
+        selected_type = 'all'
+    else:
         center_latitude = promise_result.center_latitude
         center_longitude = promise_result.center_longitude
 
@@ -204,22 +210,15 @@ def promise_result(request, community_id, promise_id):
 
         places_json = json.dumps(places)
 
-    except PromiseResult.DoesNotExist:
-        promise_result = None
-        center_latitude = 0
-        center_longitude = 0
-        places = []
-        places_json = json.dumps([])
-        selected_type = 'all'
-
-    voted_usernames = PromiseVote.objects.filter(promise=promise).values_list('username', flat=True).distinct()
-    user_locations = User.objects.filter(username__in=voted_usernames).values('username', 'latitude', 'longitude')
-    user_locations_list = list(user_locations)
-
+    # ✅ is_location_decided 계산 (중복 제거 후)
     is_location_decided = (
         promise_result is not None and
         (promise_result.center_latitude != 0 or promise_result.center_longitude != 0)
     )
+
+    voted_usernames = PromiseVote.objects.filter(promise=promise).values_list('username', flat=True).distinct()
+    user_locations = User.objects.filter(username__in=voted_usernames).values('username', 'latitude', 'longitude')
+    user_locations_list = list(user_locations)
 
     context = {
         'promise': promise,
@@ -241,3 +240,20 @@ def promise_result(request, community_id, promise_id):
     }
 
     return render(request, 'promise_result.html', context)
+
+def no_place_promise(request, community_id):
+    grouped_promises = defaultdict(list)
+
+    results = PromiseResult.objects.filter(
+        promise__community_id=community_id,
+        center_latitude=0
+    )
+
+    for result in results:
+        grouped_promises[result.promise].append(result)
+
+    context = {
+        'grouped_promises': grouped_promises.items(),  # (Promise 객체, [PromiseResult...])
+        'community_id': community_id,
+    }
+    return render(request, 'no_place_promise.html', context)
