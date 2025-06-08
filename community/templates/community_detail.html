@@ -56,8 +56,8 @@
                     {% for promise in promises %}
                         <a href="{% url 'community:album_detail' community.id promise.promise_name %}">
                             <div class="text-center mt-3">
-                                {% if main_photo %}
-                                    <img src="{{main_photo.image.url}}" style="max-height: 80px;">
+                                {% if promise.main_photo %}
+                                    <img src="{{promise.main_photo.image.url}}" style="max-height: 80px;">
                                 {% else %}
                                     <img src="https://cdn-icons-png.flaticon.com/512/716/716784.png" 
                                         style="max-height: 80px;">

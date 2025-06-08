@@ -16,6 +16,10 @@ class Promise(models.Model):
 
     def __str__(self):
         return self.promise_name
+    
+    @property
+    def main_photo(self):
+        return self.photo_set.filter(is_main=True).first()
 
 
 class PromiseVote(models.Model):

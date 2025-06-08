@@ -22,8 +22,10 @@ ES_CLIENT = Elasticsearch(
     basic_auth=(os.getenv("ES_USER"), os.getenv("ES_PASSWORD")),
     verify_certs=False,  # 개발 환경에서는 OK, 운영에서는 꼭 인증서 써야 함
     headers={"Accept": "application/vnd.elasticsearch+json; compatible-with=8"}
-
+    
 )
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
