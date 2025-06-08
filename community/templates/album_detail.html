@@ -159,7 +159,7 @@
                 process: (fieldName, file, metadata, load, error, progress, abort) => {
                     const formData = new FormData();
                     formData.append('file', file);
-
+                    
                     const request = new XMLHttpRequest();
                     request.open('POST', `/community/{{community_id}}/album/{{album_name}}/upload/`);
 
@@ -168,12 +168,12 @@
                     request.upload.onprogress = (e) => {
                         progress(e.lengthComputable, e.loaded, e.total);
                     };
-
+                    
                     request.onload = () => {
                         if (request.status >= 200 && request.status < 300) {
                             const res = JSON.parse(request.responseText);
                             load(res.id);
-
+                            
                             // 업로드된 이미지 폴더에 추가
                             const img = document.createElement('img');
                             img.src = res.filename;
@@ -183,7 +183,7 @@
                             img.style.height = '150px';
                             img.style.objectFit = 'cover';
                             img.style.cursor = 'pointer';
-
+                            
                             document.getElementById('gallery').appendChild(img);
                         } else {
                             console.error('업로드 실패:', request.status, request.responseText);
@@ -192,14 +192,14 @@
                     };
                     request.onerror = () => error('서버 오류'); console.error('서버 연결 실패');
                     request.send(formData);
-
+                    
                     return {
                         abort: () => request.abort()
                     };
                 }
             }
         });
-
+        
         const gallery = document.getElementById('gallery');
         const moodForm = document.getElementById('moodForm');
         const moodResults = document.getElementById('moodResults');
@@ -208,8 +208,44 @@
         const commentInput = document.getElementById('commentInput');
         const commentList = document.getElementById('commentList');
         const commentForm = document.getElementById('commentForm');
-
+        const albumMainPhotoBtn = document.getElementById('albumMainPhotoBtn');
+        
         let selectedPhotoId = document.getElementById('initialPhotoId')?.value || null;
+        
+        function loadPhotoData(photoId) {
+            selectedPhotoId = photoId;
+            
+            const targetImg = document.querySelector(`.album-image[data-photo-id="${selectedPhotoId}"]`);
+            if (targetImg) {
+                mainPhoto.src = targetImg.src;
+                mainPhoto.style.display = "block";
+            }
+            commentBox.style.display = "block";
+            commentInput.value = '';
+            albumMainPhotoBtn.style.display = "inline-block";
+
+
+            fetch(`/community/{{community_id}}/album/{{album_name}}/${selectedPhotoId}/comment/`, {
+                method: "GET",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    commentList.innerHTML = '';
+                    data.comments.forEach(comment => {
+                        const item = document.createElement("div");
+                        item.innerHTML = `<strong>${comment.user}</strong>: ${comment.content} <br><small>${comment.created_at}</small>`;
+                        commentList.appendChild(item);
+                    });
+                }
+            });
+            
+            // URL도 함께 변경
+            history.pushState({}, '', `/community/{{community_id}}/album/{{album_name}}/${selectedPhotoId}/comment/`);
+        }
 
         // 기분 선택 제출
         moodForm.addEventListener("submit", function (e) {
@@ -250,38 +286,10 @@
         // 사진 클릭 시 댓글창 표시
         gallery.addEventListener("click", function (e) {
             if (e.target.classList.contains("album-image")) {
-                selectedPhotoId = e.target.dataset.photoId;
-                // 대표 이미지 변경
-                mainPhoto.src = e.target.src;
-                mainPhoto.style.display = "block";
+                const photoId = e.target.dataset.photoId;
+                loadPhotoData(photoId);
 
-                // 대표사진 버튼 보이게
-                albumMainPhotoBtn.style.display = "inline-block";
-
-                // 댓글창 띄우기
-                commentBox.style.display = "block";
-                commentInput.value = '';
-                commentList.innerHTML = ''; // AJAX로 해당 사진의 댓글 불러오기
-                
-                // 댓글 불러오기(GET)
-                fetch(`/community/{{community_id}}/album/{{album_name}}/${selectedPhotoId}/comment/`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        commentList.innerHTML = '';
-                        data.comments.forEach(comment => {
-                            const item = document.createElement("div");
-                            item.innerHTML = `<strong>${comment.user}</strong>: ${comment.content} <br><small>${comment.created_at}</small>`;
-                            commentList.appendChild(item);
-                        });
-                    } else {
-                        commentList.innerHTML = "<p>댓글을 불러올 수 없습니다.</p>";
-                    }
-                });
-                
-                // 주소도 바꾸기(히스토리만, 실제 이동 X)
-                const newUrl = `/community/{{community_id}}/album/{{album_name}}/${selectedPhotoId}/comment/`;
-                history.pushState({}, '', newUrl);
+                history.pushState({}, '', `/community/{{community_id}}/album/{{album_name}}/${selectedPhotoId}/comment/`);
             }    
         });
 
@@ -296,7 +304,8 @@
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": "{{csrf_token}}"
+                        "X-CSRFToken": "{{csrf_token}}",
+                        "X-Requested-With": "XMLHttpRequest"
                     },
                     body: JSON.stringify({content: content})
                 })
@@ -316,41 +325,18 @@
             }
         });
 
+        
+        
         // 새로고침시 모두 댓글 다시 불러오기
         const pathParts = window.location.pathname.split('/');
-        const photoIdFromUrl = (pathParts.includes("comment") && pathParts.length >= 6)
-            ? pathParts[pathParts.length -2]
-            : null;
+        const commentIndex = pathParts.indexOf("comment");
+        const photoIdFromUrl = (commentIndex > 0) ? pathParts[commentIndex - 1] : null;
 
-        if (selectedPhotoId) {
-            selectedPhotoId = photoIdFromUrl;
-
-            const targetImg = document.querySelector(`.album-image[data-photo-id="${selectedPhotoId}"]`);
-            if (targetImg) {
-                mainPhoto.src = targetImg.src;
-                mainPhoto.style.display = "block";
-                commentBox.style.display = "block";
-                commentInput.value = '';
-                albumMainPhotoBtn.style.display = "inline-block";
-
-                fetch(`/community/{{community_id}}/album/{{album_name}}/${selectedPhotoId}/comment/`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            commentList.innerHTML = '';
-                            data.comments.forEach(comment => {
-                                const item = document.createElement("div");
-                                item.innerHTML = `<strong>${comment.user}</strong>: ${comment.content} <br><small>${comment.created_at}</small>`;
-                                commentList.appendChild(item);
-                            });
-                        }
-                    });
-            }
+        if (photoIdFromUrl) {
+            loadPhotoData(photoIdFromUrl);
         }
-
+        
         // 앨범 대표사진 설정
-        const albumMainPhotoBtn = document.getElementById('albumMainPhotoBtn');
-
         albumMainPhotoBtn.addEventListener("click", function () {
             
             if (!selectedPhotoId) return;

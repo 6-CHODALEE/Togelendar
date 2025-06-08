@@ -206,7 +206,6 @@ def photo_comment(request, community_id, album_name, photo_id):
 
                 comment = PhotoComment.objects.create(photo=photo, user=request.user, content=comment_content)
 
-
                 return JsonResponse({
                     'success': True, 
                     'comment': {
@@ -217,13 +216,14 @@ def photo_comment(request, community_id, album_name, photo_id):
                 })
             except Exception as e:
                 return JsonResponse({'success': False, 'message': str(e)}, status=400)
-        else:
+        elif request.method == "GET":
             comments = PhotoComment.objects.filter(photo=photo).order_by('created_at')
             comment_list = [{
                 'user': comment.user.username,
                 'content': comment.content,
                 'created_at': comment.created_at.strftime("%Y-%m-%d %H:%M")
             } for comment in comments ]
+
             return JsonResponse({'success': True, 'comments': comment_list})
 
     # GET 요청이 아니라 - JSON이 아니라 HTML 전체 렌더링
