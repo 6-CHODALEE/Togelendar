@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from promise.models import Promise, PromiseVote
 from mypage.models import CreateCommunity, FriendRequest
@@ -70,6 +70,7 @@ def community_detail(request, community_id):
         'voted_ids': list(voted_ids),
         'friend_users': friend_users,
         'main_photos': main_photos,
+        'username': request.user.username,
     }
     return render(request, 'community_detail.html', context)
 
@@ -274,3 +275,14 @@ def album_main_photo(request, community_id, album_name, photo_id):
 
     except Exception as e:
         return JsonResponse({'sueccess': False, 'message': str(e)}, status=500)
+
+@login_required
+def delete_community(request, community_id):
+    community = get_object_or_404(CreateCommunity, id=community_id)
+
+    if request.method == 'POST':
+        if request.user.username == community.create_user:  # 보안 check
+            community.delete()  # 관련된 모든 데이터 CASCADE 삭제
+            return redirect('mypage:mypage', username=request.user.username)  # 삭제 후 이동할 페이지
+        else:
+            return HttpResponseForbidden("삭제 권한이 없습니다.")
