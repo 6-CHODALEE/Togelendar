@@ -9,6 +9,8 @@ urlpatterns = [
 
 
     path('<str:username>/', views.mypage, name='mypage'),
+    path('<str:username>/verify_password/', views.verify_password, name='verify_password'),
+    path('<str:username>/myprofile/', views.myprofile, name='myprofile'),
     path('<str:username>/create_community/', views.create_community, name='create_community'),
     path('<str:username>/search_friends/', views.search_friends, name='search_friends'),
 

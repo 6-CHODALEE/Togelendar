@@ -43,7 +43,7 @@
                             </span>
                         {% endif %}
                     </a>
-                    <a href="#" class="btn btn-outline-dark btn-sm">프로필 편집</a>
+                    <a href="{% url 'mypage:verify_password' me %}" class="btn btn-outline-dark btn-sm">프로필 편집</a>
                 </div>
             </div>
             <div class="col ms-4">
@@ -327,7 +327,10 @@ const hasQuery = "{{ query|default:'' }}" !== "";
 const shouldOpenPopover = "{{ open_popover|yesno:'true,false' }}" === "true";
 
 if (hasQuery && shouldOpenPopover) {
-    showPopover();
+    showPopover();  // 원래 팝업 띄우기
+    setTimeout(() => {
+        showPopover();  // 📌 팝업 위치 재조정
+    }, 10);  // 📌 DOM 렌더링 이후 실행되도록 딜레이
 } else {
     hidePopover();
 }
