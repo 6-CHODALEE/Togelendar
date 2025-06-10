@@ -1,61 +1,168 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block body %}
-    <form action="" method="POST" enctype="multipart/form-data" class="container mt-4">
-    {% csrf_token %}
+<style>
+    .signup-container {
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 40px;
+        border: 2px solid #FF41FF;
+        border-radius: 30px;
+        background-color: white;
+        font-family: 'Arial Rounded MT Bold', sans-serif;
+    }
 
-    {% for field in form %}
-        {% if field.name == 'postcode' or field.name == 'address' %}
-            {{ field.as_hidden }}
-        {% else %}
-            <div class="mb-3">
-                {{ field.label_tag }}
-                {{ field }}
-                {% if field.help_text %}
-                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                {% endif %}
-                {% for error in field.errors %}
-                    <div class="text-danger">{{ error }}</div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endfor %}
+    .signup-title {
+        text-align: center;
+        font-size: 24px;
+        margin-bottom: 30px;
+    }
 
-    <div class="mb-3 row">
-        <div class="col">
-            <label for="visible_postcode" class="form-label">우편번호</label>
-            <input type="text" id="visible_postcode" class="form-control" readonly>
+    .form-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        width: 120px;
+        text-align: left;
+        font-weight: bold;
+    }
+
+    .form-group input,
+    .form-group select {
+        flex: 1;
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        max-width: 300px;
+    }
+
+    .form-group input[type="file"] {
+        border: none;
+        padding: 0;
+    }
+
+    .zipcode-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .zipcode-group label {
+        width: 120px;
+        font-weight: bold;
+    }
+
+    .zipcode-group input {
+        width: 150px;
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        margin-right: 10px;
+    }
+
+    .zipcode-group button {
+        border: 1px solid #000;
+        background: white;
+        border-radius: 6px;
+        padding: 6px 12px;
+        white-space: nowrap;
+    }
+
+    .address-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .address-group label {
+        width: 120px;
+        font-weight: bold;
+    }
+
+    .address-group input {
+        flex: 1;
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        max-width: 300px;
+    }
+
+    .custom-btn {
+        background-color: #FFB8FF;
+        color: black;
+        border: none;
+        border-radius: 10px;
+        padding: 10px;
+        display: block;
+        width: 100%;
+        margin-top: 20px;
+        font-weight: 600;
+    }
+</style>
+
+<div class="signup-container">
+    <div class="signup-title"><B>회원가입</B></div>
+    <form action="" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        {% for field in form %}
+            {% if field.name == 'postcode' or field.name == 'address' %}
+                {{ field.as_hidden }}
+            {% elif field.name == 'profile_image' %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    <div>{{ field }}</div>
+                </div>
+            {% else %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                </div>
+            {% endif %}
+        {% endfor %}
+
+        <!-- ✅ 우편번호 -->
+        <div class="zipcode-group">
+            <label for="visible_postcode">우편번호</label>
+            <input type="text" id="visible_postcode" readonly>
+            <button type="button" onclick="execDaumPostcode()">우편번호 찾기</button>
         </div>
-        <div class="col-auto align-self-end">
-            <button type="button" class="btn btn-secondary" onclick="execDaumPostcode()">우편번호 찾기</button>
+
+        <!-- ✅ 주소 (라벨 위, 입력창 아래로 정렬) -->
+        <div class="address-group" style="flex-direction: column; align-items: flex-start;">
+            <label for="visible_address" style="font-weight: bold; margin-bottom: 5px;">주소</label>
+            <input type="text" id="visible_address" readonly style="
+                width: 100%;
+                max-width: 420px;
+                padding: 8px;
+                border-radius: 8px;
+                border: 1px solid #ccc;
+            ">
         </div>
-    </div>
 
-    <div class="mb-3">
-        <label for="visible_address" class="form-label">주소</label>
-        <input type="text" id="visible_address" class="form-control" readonly>
-    </div>
-
-    <button type="submit" class="btn btn-primary">제출</button>
-</form>
+        <button type="submit" class="custom-btn">회원가입</button>
+    </form>
+</div>
 
 <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script>
-function execDaumPostcode() {
-    new daum.Postcode({
-        oncomplete: function(data) {
-            const zonecode = data.zonecode;
-            const address = data.roadAddress ? data.roadAddress : data.jibunAddress;
+    function execDaumPostcode() {
+        new daum.Postcode({
+            oncomplete: function(data) {
+                const zonecode = data.zonecode;
+                const address = data.roadAddress ? data.roadAddress : data.jibunAddress;
 
-            // 사용자에게 보이는 input
-            document.getElementById('visible_postcode').value = zonecode;
-            document.getElementById('visible_address').value = address;
+                document.getElementById('visible_postcode').value = zonecode;
+                document.getElementById('visible_address').value = address;
 
-            // 숨겨진 Django form 필드도 채워주기
-            document.getElementById('id_postcode').value = zonecode;
-            document.getElementById('id_address').value = address;
-        }
-    }).open();
-}
+                document.getElementById('id_postcode').value = zonecode;
+                document.getElementById('id_address').value = address;
+            }
+        }).open();
+    }
 </script>
 {% endblock %}

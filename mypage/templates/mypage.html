@@ -3,683 +3,254 @@
 {% load custom_filters %}
 
 {% block body %}
-    <div class="row align-items-start mb-4">
-        <!-- 왼쪽: 프로필 + 이름 -->
-        <div class="col-auto d-flex">
-            <!-- 프로필 이미지 -->
-            <!-- 중앙 정렬된 프로필 박스 -->
-            <div class="text-center mb-4">
-                <!-- 프로필 이미지 -->
-                {% if me.profile_image %}
-                    <img src="{{ me.profile_image.url }}"
-                        class="rounded-circle mb-2"
-                        style="width: 170px; height: 170px; object-fit: cover;"
-                        alt="프로필 이미지">
-                {% else %}
-                    <img src="{% static 'default_profile.png' %}"
-                        class="rounded-circle mb-2"
-                        style="width: 100px; height: 100px; object-fit: cover;"
-                        alt="기본 이미지">
-                {% endif %}
-
-                <!-- 이름 -->
-                <p class="fw-bold mb-1">{{ me.username }}</p>
-
-                <!-- 함친 수 -->
-                <p class="mb-2">
-                    함친
-                    <strong id="showFriendList" style="cursor:pointer;" class="fw-bold">
-                        {{ friend_count }}명
-                    </strong>
-                </p>
-
-                <!-- 버튼 2개 수평 정렬 -->
-                <div class="d-flex justify-content-center gap-2">
-                    <a href="#" id="togglePopover" class="btn btn-secondary btn-sm position-relative">
-                        함친 추가
-                        {% if received_requests %}
-                            <span class="badge-friend bg-danger text-white position-absolute top-0 start-100 translate-middle">
-                                {{ received_requests|length }}
-                            </span>
-                        {% endif %}
-                    </a>
-                    <a href="{% url 'mypage:verify_password' me %}" class="btn btn-outline-dark btn-sm">프로필 편집</a>
-                </div>
-            </div>
-            <div class="col ms-4">
-                <div class="mx-auto border rounded shadow-sm bg-white p-4" style="width: 100%; max-width: 1400px; min-width: 1000px;">             
-                    <!-- 상단: 월 표시 + 주간 이동 버튼 -->
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4 class="fw-bold mb-0">{{ week_dates.0|date:"Y년 n월" }}</h4>
-                        <div class="d-flex gap-2 align-items-center">
-                            <a href="?base_date={{ prev_week }}" class="btn btn-outline-secondary btn-sm">&lt;</a>
-                            <span class="fw-bold">{{ base_date|date:"Y년 n월 j일" }} 기준 주</span>
-                            <a href="?base_date={{ next_week }}" class="btn btn-outline-secondary btn-sm">&gt;</a>
-
-                            <!-- ✅ 오늘로 이동 버튼 -->
-                            <a href="?base_date={{ today|date:'Y-m-d' }}" class="btn btn-outline-primary btn-sm ms-2">오늘</a>
-                        </div>
-                    </div>
-
-                    <p class="mb-3">이번 주: {{ week_dates.0|date:"m/d" }} ~ {{ week_dates.6|date:"m/d" }}</p>
-
-                    <!-- 캘린더 테이블 -->
-                    <table class="table calendar-table table-bordered text-center align-middle mb-0">
-                        <thead>
-                            <tr>
-                                {% for label in weekday_labels %}
-                                    <th class="fw-bold {% if label == '일' %}text-danger{% elif label == '토' %}text-primary{% endif %}">
-                                        {{ label }}
-                                    </th>
-                                {% endfor %}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                {% for date in week_dates %}
-                                    <td>
-                                        <div class="calendar-date text-muted small fw-bold">
-                                            {{ date|date:"j일" }}
-                                        </div>
-
-                                        <div class="calendar-promises-wrapper">
-                                            {% for result in weekly_promises|get_item:date %}
-                                                <a href="{% url 'community:promise:promise_result' community_id=result.promise.community.id promise_id=result.promise.id %}"
-                                                class="calendar-promise"
-                                                title="{{ result.promise_name }}" style="color: white;">
-                                                    {{ result.promise_name }}
-                                                </a>
-                                            {% empty %}
-                                                <div class="small text-muted">약속 없음</div>
-                                            {% endfor %}
-                                        </div>
-                                    </td>
-                                {% endfor %}
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-            <!--친구 리스트 팝업-->
-            <div id="friendListPopover" class="popover-form" style="display: none;">
-                <div class="popover-arrow"></div>
-                <h6 class="fw-bold">함친 목록</h6>
-                <ul class="list-group">
-                    {% for friend in friend_list %}
-                        <li class="list-group-item">
-                            {% if friend.from_user == request.user %}
-                                {{friend.to_user.username}}
-                            {% else %}
-                                {{friend.from_user.username}}
-                            {% endif %}
-                        </li>
-                        {% empty %}
-                            <li class="list-group-item text-muted">친구가 없습니다.</li>
-                        {% endfor %}
-                </ul>
-                <div class="text-end mt-2">
-                    <button id="closeFriendListPopover" class="btn btn-sm btn-secondary">닫기</button>
-                </div>
-            </div>
-        
-
-            <!-- ✅ 팝업 폼 -->
-            <div id="popoverForm" class="popover-form">
-                <div class="popover-arrow"></div>
-
-                <form method="get" action="{% url 'mypage:search_friends' me %}" id="searchForm">
-                    <label for="friendName" class="form-label mb-1 fw-bold">닉네임 검색</label>
-                    <div class="input-group mb-2">
-                        <input type="text" name="q" class="form-control" placeholder="닉네임 입력">
-                        <button class="btn btn-primary btn-sm" type="submit">검색</button>
-                    </div>
-                    <input type="hidden" name="popup_open" id="popupOpenField" value="false">
-                </form>
-
-                <ul id="searchResults" class="list-group mt-2"></ul>
-
-                <div class="d-flex justify-content-end mt-2">
-                    <button type="button" class="btn btn-secondary btn-sm" id="closePopover">닫기</button>
-                </div>
-                <div class="friend-requests mt-2">
-                <h6 class="fw-bold">친구 요청</h6>
-                {% if received_requests %}
-                    {% for req in received_requests %}
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span>{{ req.from_user.username }}님이 요청을 보냈습니다.</span>
-                            <button class="btn btn-sm btn-success accept-btn" data-username="{{ req.from_user.username }}">수락하기</button>
-                            <button class="btn btn-sm btn-danger reject-btn" data-username="{{ req.from_user.username }}">거절하기</button>
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <p class="text-muted">받은 친구 요청이 없습니다.</p>
-                {% endif %}
-            </div>
-            </div>    
-        </div>
-
-    </div>
-
-    <!-- 아래: 커뮤니티 리스트 -->
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center bg-light p-3 mt-4">
-            <h5 class="mb-0 d-inline">{{ me }}의 커뮤니티 리스트</h5>
-            
-            <div>
-                {% if invite_requests %}
-                    <a href="" id="showInvitePopover" class="btn btn-outline-secondary btn-sm me-2">
-                        가입 요청 {{invite_requests|length}}건
-                    </a>
-                {% endif %}
-                <a href="{% url 'mypage:create_community' me %}" class="btn btn-warning btn-sm">
-                    커뮤니티 생성하기
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!--커뮤니티 가입 요청 팝업-->
-    <div id="invitePopover" class="popover-form" style="display: none;">
-        <div class="popover-arrow"></div>
-        <h6 class="fw-bold">커뮤니티 가입 요청</h6>
-        {% for invite in invite_requests %}
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <span>{{invite.community.community_name}} (by {{invite.from_user.username}})</span>
-                <div>
-                    <button class="btn btn-sm btn-success accept-invite-btn" data-id="{{invite.id}}">수락</button>
-                    <button class="btn btn-sm btn-danger reject-invite-btn" data-id="{{invite.id}}">거절</button>
-                </div>
-            </div>
-        {% empty %}
-            <p class="text-muted">요청이 없습니다.</p>
-        {% endfor %}
-    </div>
-
-    <div class="container mt-3">
-        {% for community in communities %}
-            <div class="d-flex justify-content-between align-items-center p-3 mb-2 border rounded bg-light">
-                <div># {{ community.community_name }}</div>
-                <a href="{% url 'community:community_detail' community.id %}" class="btn btn-outline-dark btn-sm">입장하기</a>
-            </div>
-        {% empty %}
-            <p class="text-muted">참여 중인 커뮤니티가 없습니다.</p>
-        {% endfor %}
-    </div>
-</div>
-
-<!-- ✅ Django에서 넘긴 검색 결과 JSON 저장 -->
-{{ results|json_script:"search-results-data" }}
-
-<!-- ✅ 팝업 스타일 -->
 <style>
-/* 📌 달력 셀: 고정된 너비 설정 */
+
+.calendar-cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; 
+  align-items: center;     
+  height: 100px;
+  padding: 8px;
+  text-align: center;
+  border: 1px solid #ddd;
+}
+
+.calendar-date {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #888;
+  margin-bottom: 6px;
+}
+
+.calendar-promise {
+  background-color: #c3f0ff;
+  color: #000000;
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: 8px;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-image-wrapper {
+    width: 170px;
+    height: 170px;
+    position: relative;
+}
+
+.edit-profile-button {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: #FFB8FF;
+    color: black;
+    border: none; /* 테두리 제거 */
+    border-radius: 50%;
+    padding: 6px 9px;
+    font-size: 0.9rem;
+    text-decoration: none;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.edit-profile-button:hover {
+    background-color: #fda9f7;
+}
+.profile-box {
+    width: 220px;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    font-family: "Arial Rounded MT Bold", sans-serif;
+}
+.profile-box img {
+    width: 170px;
+    height: 170px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+.profile-box p {
+    margin-bottom: 6px;
+}
+.profile-box .btn {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+    border-radius: 10px;
+}
+
+/* 캘린더 카드 스타일 */
+.calendar-card {
+    background-color: #fff;
+    border: 2px solid #FFB8FF;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    margin-top: 20px;
+    border-radius: 30px;
+}
 .calendar-table {
     table-layout: fixed;
     width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
 }
-
+.calendar-table th,
 .calendar-table td {
-    width: 14.28%;               /* 100% / 7일 */
-    max-width: 14.28%;
-    min-width: 14.28%;
-    overflow: hidden;
-    position: relative;
-    height: 100px;
+    width: 14.28%;
     vertical-align: top;
-    padding: 0.5rem;
-    box-sizing: border-box;
+    height: 40px;
+    padding: 8px;
+    border: 1px solid #ddd;
 }
-
-/* 📌 날짜 (우측 상단) */
-/* 날짜는 위 고정 */
+.calendar-table thead th {
+    background: none;
+    border-bottom: 2px solid #FFB8FF;
+    font-weight: bold;
+}
+.calendar-table thead th:first-child { color: red; }
+.calendar-table thead th:last-child { color: blue; }
 .calendar-date {
-    position: absolute;
-    top: 4px;
-    right: 6px;
-    z-index: 2;
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-align: right;
+    color: #888;
+    height: 70px;
 }
-
-
-/* 약속 배지 */
 .calendar-promise {
-    display: block;
-    width: 100%;
-    max-width: 100%;
+    background-color: #c3f0ff;
+    color: #0d6efd;
     font-size: 0.75rem;
-    font-weight: 500;
+    padding: 2px 6px;
     border-radius: 8px;
-    background-color: #6c757d;
+    display: block;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding: 2px 6px;
-    box-sizing: border-box;
+    margin-top: 6px;
 }
 
-/* 📌 약속 없음 메시지도 동일한 줄 위치에 정렬 */
-.calendar-empty {
-    margin-top: 28px;
-    font-size: 0.75rem;
-    color: #aaa;
-} 
-/* 약속 영역은 아래에 여유 공간 */
-.calendar-promises-wrapper {
-    margin-top: 22px; /* 날짜 아래 공간 확보 */
+/* 커뮤니티 리스트 헤더 */
+.community-header {
+    background-color: #fff0fa;
+    border-top: 1.5px solid #FFB8FF;
+    border-bottom: 1.5px solid #FFB8FF;
+    border-radius: 0 0 10px 10px;
+    padding: 10px 20px;
+    margin-top: 40px;
+    font-family: "Arial Rounded MT Bold", sans-serif;
+}
+
+/* 커뮤니티 카드 스타일 */
+.community-card {
+    background-color: #fdfdfd;
+    border: 1.5px solid #ccc;
+    border-radius: 20px;
+    padding: 14px 20px;
+    margin-bottom: 12px;
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    justify-content: space-between;
+    align-items: center;
 }
- 
-.popover-form {
-    position: absolute;  /* 꼭 필요 */
-    z-index: 1000;
-    width: 400px;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    padding: 15px;
+.community-card .btn {
+    background-color: #FFB8FF;
+    color: black;
+    border: none;
+    border-radius: 12px;
+    padding: 5px 12px;
 }
-
-.popover-arrow {
-    position: absolute;
-    top: -10px;
-    left: 20px;
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-bottom: 10px solid white;
-}
-
-.badge-friend {
-    font-size: 0.65rem;
-    padding: 4px 6px;
-    border-radius: 999px;
-    min-width: 20px;
-    text-align: center;
-    line-height: 1;
+.community-card .btn:hover {
+    background-color: #fda9f7;
 }
 </style>
 
-<!-- ✅ 팝업 동작 및 검색 결과 출력 JS -->
-<script>
-const currentUsername = "{{ request.user.username }}";
-const csrftoken = '{{ csrf_token }}';
+<div class="container d-flex gap-5 mt-4">
+  <!-- 프로필 박스 -->
+  <div class="profile-box">
+    <div class="profile-image-wrapper position-relative d-inline-block">
+      {% if me.profile_image %}
+      <img src="{{ me.profile_image.url }}" alt="프로필 이미지">
+      {% else %}
+      <img src="{% static 'default_profile.png' %}" alt="기본 이미지">
+      {% endif %}
 
-const btn = document.getElementById("togglePopover");
-const popover = document.getElementById("popoverForm");
-const closeBtn = document.getElementById("closePopover");
-const resultsContainer = document.getElementById("searchResults");
-const searchForm = document.getElementById('searchForm');
-const popupOpenField = document.getElementById('popupOpenField');
+      <a href="{% url 'mypage:verify_password' me %}" class="edit-profile-button" title="프로필 편집">✎</a>
+    </div>
+    <p class="fw-bold">{{ me.username }}</p>
+    <p>함친: <strong id="showFriendList">{{ friend_count }}명</strong>
+      <a href="#" id="togglePopover" class="btn btn-secondary btn-sm position-relative">함친 추가</a>        
+    </p>
+  </div>
 
-// ✅ 검색할 때 현재 팝업 상태 기록
-searchForm.addEventListener('submit', () => {
-    const isPopupOpen = window.getComputedStyle(popover).display !== "none";
-    popupOpenField.value = isPopupOpen ? "true" : "false";
-});
+  <!-- 캘린더 카드 -->
+  <div class="calendar-card flex-fill">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4 class="fw-bold mb-0">{{ week_dates.0|date:"Y년 n월" }}</h4>
+      <div class="d-flex gap-2 align-items-center">
+        <a href="?base_date={{ prev_week }}" class="btn btn-outline-secondary btn-sm">&lt;</a>
+        <span class="fw-bold">{{ base_date|date:"Y년 n월 j일" }} 기준 주</span>
+        <a href="?base_date={{ next_week }}" class="btn btn-outline-secondary btn-sm">&gt;</a>
+        <a href="?base_date={{ today|date:'Y-m-d' }}" class="btn btn-outline-primary btn-sm ms-2">오늘</a>
+      </div>
+    </div>
+    <p class="mb-3">이번 주: {{ week_dates.0|date:"m/d" }} ~ {{ week_dates.6|date:"m/d" }}</p>
+    <table class="table calendar-table mb-0">
+      <thead>
+        <tr>
+          {% for label in weekday_labels %}
+          <th class="{% if label == '일' %}text-danger{% elif label == '토' %}text-primary{% endif %}">{{ label }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          {% for date in week_dates %}
+          <td class="calendar-cell">
+            <div class="calendar-date">{{ date|date:"j일" }}</div>
+            {% for result in weekly_promises|get_item:date %}
+            <a href="{% url 'community:promise:promise_result' community_id=result.promise.community.id promise_id=result.promise.id %}"
+               class="calendar-promise">{{ result.promise_name }}</a>
+            {% empty %}
+            <div class="small text-muted" style="margin-top: 6px;">약속 없음</div>
+            {% endfor %}
+          </td>
+          {% endfor %}
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
-// ✅ 서버에서 넘어온 값으로 검색 후 팝업 상태 복원
-const hasQuery = "{{ query|default:'' }}" !== "";
-const shouldOpenPopover = "{{ open_popover|yesno:'true,false' }}" === "true";
+<!-- 친구 리스트 팝업 등 기존 팝업 코드 유지 -->
+{{ block.super }}
 
-if (hasQuery && shouldOpenPopover) {
-    showPopover();  // 원래 팝업 띄우기
-    setTimeout(() => {
-        showPopover();  // 📌 팝업 위치 재조정
-    }, 10);  // 📌 DOM 렌더링 이후 실행되도록 딜레이
-} else {
-    hidePopover();
-}
+<!-- 커뮤니티 리스트 헤더 -->
+<div class="container community-header d-flex justify-content-between align-items-center">
+  <h5 class="mb-0">{{ me }}의 커뮤니티 리스트</h5>
+  <div>
+    {% if invite_requests %}
+    <a href="#" id="showInvitePopover" class="btn btn-outline-secondary btn-sm me-2">
+      가입 요청 {{ invite_requests|length }}건
+    </a>
+    {% endif %}
+    <a href="{% url 'mypage:create_community' me %}" class="btn btn-pink btn-sm">생성하기</a>
+  </div>
+</div>
 
-// ✅ "함친 추가" 버튼 클릭 시 팝업 열기 (서버 상태 무시)
-btn.addEventListener("click", (e) => {
-    e.preventDefault();
-    showPopover();
-});
+<!-- 커뮤니티 카드 리스트 -->
+<div class="container mt-3">
+  {% for community in communities %}
+  <div class="community-card">
+    <div>{{ community.community_name }}</div>
+    <a href="{% url 'community:community_detail' community.id %}" class="btn btn-sm">입장하기</a>
+  </div>
+  {% empty %}
+  <p class="text-muted">참여 중인 커뮤니티가 없습니다.</p>
+  {% endfor %}
+</div>
 
-function showPopover() {
-    const button = document.getElementById("togglePopover");
-    const popover = document.getElementById("popoverForm");
-
-    const buttonRect = button.getBoundingClientRect();
-    const popoverWidth = 70;
-    const scrollTop = window.scrollY || document.documentElement.scrollTop;
-    const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
-
-    // 브라우저 기준 정렬
-    const left = buttonRect.left + scrollLeft + (buttonRect.width / 2) - (popoverWidth / 2);
-    const top = buttonRect.bottom + scrollTop + 8;
-
-    popover.style.position = "absolute";
-    popover.style.top = `${top}px`;
-    popover.style.left = `${Math.max(10, left)}px`;  // 좌측 오버플로 방지
-    popover.style.display = "block";
-}
-
-// ✅ 팝업 닫기 함수
-function hidePopover() {
-    popover.style.display = "none";
-}
-
-// ✅ 닫기 버튼
-closeBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    clearSearchState();
-    hidePopover();
-
-    // ✅ 팝업 닫을 때 URL을 /mypage/<username>으로 강제 이동
-    window.location.href = `/mypage/${currentUsername}/`;
-});
-
-// ✅ 검색 상태 초기화
-function clearSearchState() {
-    const searchInput = document.querySelector('input[name="q"]');
-    if (searchInput) {
-        searchInput.value = "";
-    }
-    popupOpenField.value = "false";
-    resultsContainer.innerHTML = "";
-    const cleanUrl = window.location.origin + window.location.pathname;
-    window.history.replaceState({}, document.title, cleanUrl);
-}
-
-
-// ✅ 검색 결과 렌더링
-const jsonDataElement = document.getElementById('search-results-data');
-
-if (jsonDataElement) {
-    const mockUsers = JSON.parse(jsonDataElement.textContent);
-
-    if (mockUsers.length > 0) {
-        resultsContainer.innerHTML = "";
-        mockUsers.forEach(user => {
-            const li = document.createElement("li");
-            li.className = "list-group-item d-flex justify-content-between align-items-center";
-
-            const infoSpan = document.createElement("span");
-            infoSpan.innerHTML = `<strong>${user.username}</strong> (${user.email})`;
-
-            const addButton = document.createElement("button");
-            addButton.className = "btn btn-sm";
-
-            // ✅ 상태에 따라 버튼 표시 변경
-            if (user.request_status === 'pending') {
-                addButton.textContent = "요청 보냄";
-                addButton.classList.add('btn-secondary');
-                addButton.disabled = true;
-            } else {
-                addButton.textContent = "요청보내기";
-                addButton.classList.add('btn-primary');
-                addButton.onclick = (e) => {
-                    e.stopPropagation();
-                    sendFriendRequest(user.username, addButton);
-                };
-            }
-
-            li.appendChild(infoSpan);
-            li.appendChild(addButton);
-            resultsContainer.appendChild(li);
-        });
-    } else {
-        resultsContainer.innerHTML = "<li class='list-group-item text-muted'>검색 결과 없음</li>";
-    }
-}
-
-// ✅ 요청보내기 Ajax 함수 (이 부분 새로 추가됨!)
-function sendFriendRequest(nickname, button) {
-    fetch(`/mypage/${currentUsername}/friend/request/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken  // ✅ 여기!
-        },
-        body: JSON.stringify({ to_username: nickname })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            addFriend(nickname, button);
-        } else {
-            alert("에러: " + data.error);
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        alert("요청 중 오류가 발생했습니다.");
-    });
-}
-
-// ✅ 버튼 UI 업데이트 함수
-function addFriend(nickname, button) {
-    button.textContent = "요청 보냄";
-    button.className = "btn btn-sm btn-secondary";
-    button.disabled = true;
-    alert(`'${nickname}'님에게 요청을 보냈습니다.`);
-}
-
-
-function acceptRequest(fromUsername, button) {  // ✅ button 파라미터 추가
-    fetch(`/mypage/${currentUsername}/friend/accept/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken
-        },
-        body: JSON.stringify({ from_username: fromUsername })
-    })
-    .then(async res => {
-        if (!res.ok) {
-            const text = await res.text();
-            throw new Error(`서버 응답 오류 (${res.status}): ${text}`);
-        }
-        return res.json();
-    })
-    .then(data => {
-        if (data.success) {
-            acceptFriend(fromUsername, button);  // ✅ 여기서 button 제대로 전달
-        } else {
-            alert("에러: " + data.error);
-        }
-    })
-    .catch(err => {
-        console.error('에러 발생:', err);
-        alert("요청 중 오류가 발생했습니다.");
-    });
-}
-
-function acceptFriend(fromUsername, button) {
-    // ✅ 수락 버튼 비활성화
-    button.textContent = "수락 완료";
-    button.className = "btn btn-sm btn-secondary";
-    button.disabled = true;
-
-    // ✅ 같은 줄의 거절 버튼도 찾아서 비활성화
-    const parent = button.closest('.d-flex');
-    const rejectBtn = parent.querySelector('.reject-btn');
-    if (rejectBtn) {
-        rejectBtn.disabled = true;
-        rejectBtn.classList.add('btn-secondary');
-        rejectBtn.textContent = "처리됨";
-    }
-
-    alert(`${fromUsername}님과 맞팔로우되었습니다!`);
-}
-
-function rejectRequest(fromUsername, button) {
-    fetch(`/mypage/${currentUsername}/friend/reject/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken
-        },
-        body: JSON.stringify({ from_username: fromUsername })
-    })
-    .then(async res => {
-        if (!res.ok) {
-            const text = await res.text();
-            throw new Error(`서버 응답 오류 (${res.status}): ${text}`);
-        }
-        return res.json();
-    })
-    .then(data => {
-        if (data.success) {
-            removeFriendRequestItem(button);
-            alert(`${fromUsername}님의 요청을 거절했습니다.`);
-        } else {
-            alert("에러: " + data.error);
-        }
-    })
-    .catch(err => {
-        console.error('에러 발생:', err);
-        alert("요청 중 오류가 발생했습니다.");
-    });
-}
-
-function removeFriendRequestItem(button) {
-    button.closest('.d-flex').remove();
-}
-
-document.querySelectorAll('.accept-btn').forEach(button => {
-    button.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const fromUsername = button.dataset.username;
-        acceptRequest(fromUsername, button);
-    });
-});
-
-
-document.querySelectorAll('.reject-btn').forEach(button => {
-    button.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const fromUsername = button.dataset.username;
-        rejectRequest(fromUsername, button);
-    });
-});
-
-const inviteBtn = document.getElementById("showInvitePopover");
-const invitePopover = document.getElementById("invitePopover");
-
-if (inviteBtn && invitePopover) {
-    inviteBtn.addEventListener("click", function (e) {
-        e.preventDefault();
-        const rect = inviteBtn.getBoundingClientRect();
-        invitePopover.style.top = `${rect.bottom + window.scrollY + 5}px`;
-        invitePopover.style.left = `${rect.left + window.scrollX}px`;
-        invitePopover.style.display = "block";
-    });
-}
-
-// 커뮤니티 가입 요청 수락
-document.querySelectorAll('.accept-invite-btn').forEach(button => {
-    button.addEventListener('click', function () {
-        const inviteId = button.getAttribute('data-id');
-        
-        fetch(`/mypage/${currentUsername}/respond_invite/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-CSRFToken': csrftoken,
-            },
-            body: JSON.stringify({invite_id: inviteId, action: 'accept'})
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert("가입 요청을 수락했습니다.");
-                // 새로고침으로 커뮤니티 리스트 반영
-                window.location.reload();
-            }
-        });
-    });
-});
-
-// 커뮤니티 가입 요청 거절
-document.querySelectorAll('.reject-invite-btn').forEach(button => {
-    button.addEventListener('click', function () {
-        const inviteId = button.getAttribute('data-id');
-        
-        fetch(`/mypage/${currentUsername}/respond_invite/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken,
-            },
-            body: JSON.stringify({ invite_id: inviteId, action: 'reject'})
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert("가입 요청을 거절했습니다.");
-                window.location.reload();
-                // 해당 요청 항목 삭제
-                button.closest('.d-flex').remove();
-                
-                // 남은 요청이 없으면 팝업 닫기
-                const remaining = document.querySelectorAll('.reject-invite-btn');
-                if (remaining.length === 0) {
-                    const invitePopover = document.getElementById("invitePopover");
-                    if (invitePopover) invitePopover.style.display = "none";
-                }
-            } else {
-                alert("거절 처리에 실패했습니다.")
-            }
-        });
-    });
-});
-
-// 친구 리스트 팝업창
-const showFriendList = document.getElementById("showFriendList");
-const friendListPopover = document.getElementById("friendListPopover");
-
-if (showFriendList && friendListPopover) {
-    showFriendList.addEventListener("click", function (e) {
-        const rect = showFriendList.getBoundingClientRect();
-        friendListPopover.style.top = `${rect.bottom + window.scrollY - 50}px`;
-        friendListPopover.style.left = `${rect.left + window.scrollX - 100}px`;
-        friendListPopover.style.display = "block";
-    });
-
-    closeFriendListPopover.addEventListener("click", function () {
-        friendListPopover.style.display = "none";
-    });
-
-}
-
-// 외부 클릭 시 팝업창 닫기
-// -> 함친추가, 가입요청 두개의 팝업 다 닫는 통합 로직
-window.addEventListener("click", function (e) {
-    // 함친 추가 팝업 외부 클릭 처리
-    if (
-        popover.style.display === "block" &&
-        !popover.contains(e.target) &&
-        e.target !== btn
-    ) {
-        clearSearchState();  // ✅ 검색 input 초기화 + results 비우기
-        hidePopover();       // ✅ 팝업 숨기기
-        window.location.href = `/mypage/${currentUsername}/`;  // ✅ 새로고침 또는 URL 초기화
-    }
-
-    // 커뮤니티 가입 요청 팝업
-    if (
-        invitePopover.style.display === "block" &&
-        !invitePopover.contains(e.target) &&
-        e.target !== inviteBtn
-    ) {
-        invitePopover.style.display = "none";
-    }
-
-    // 친구 리스트 팝업
-    if (
-        friendListPopover.style.display === "block" &&
-        !friendListPopover.contains(e.target) &&
-        e.target !== showFriendList
-    ) {
-        friendListPopover.style.display = "none";
-    }
-});
-</script>
 {% endblock %}
