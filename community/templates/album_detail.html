@@ -13,13 +13,21 @@
             <input type="hidden" id="initialPhotoId" value="{% if selected_photo %}{{selected_photo.id}}{% endif %}">
 
             <!--대표사진 설정 버튼-->
-            <button
-                id="albumMainPhotoBtn" 
-                class="btn btn-sm btn-outline-secondary mt-2" 
-                style="position: relative; left: 700px; display: none;">
+            <div class="d-flex justify-content-end gap-2 mt-2">
+                <button
+                    id="albumMainPhotoBtn" 
+                    class="btn btn-sm btn-outline-secondary"
+                    style="display: none;">
+                    대표사진으로 설정
+                </button>
 
-                대표사진으로 설정
-            </button>
+                <button
+                    id="PhotoDelBtn" 
+                    class="btn btn-sm btn-outline-danger"
+                    style="display: none;">
+                    사진 삭제
+                </button>
+            </div>
 
             <div id="gallery" class="d-flex flex-wrap gap-3 mt-3" style="flex: 2;">
                 <!--filepond 업로드 input-->
@@ -149,7 +157,50 @@
 <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.js"></script>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener('DOMContentLoaded', function () {
+        const deleteBtn = document.getElementById('PhotoDelBtn');
+
+        deleteBtn.addEventListener('click', async function () {
+            if (!selectedPhotoId) {
+                alert('삭제할 사진이 없습니다.');
+                return;
+            }
+
+            if (!confirm('정말로 이 사진을 삭제하시겠습니까?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/community/{{ community_id }}/album/{{ album_name }}/${selectedPhotoId}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (response.ok) {
+                    // 대표사진 영역 제거
+                    document.getElementById('mainPhoto').style.display = 'none';
+                    deleteBtn.style.display = 'none';
+                    document.getElementById('albumMainPhotoBtn').style.display = 'none';
+                    document.getElementById('commentBox').style.display = 'none';
+
+                    // 썸네일도 삭제 (선택사항)
+                    const thumbnail = document.querySelector(`.album-image[data-photo-id="${selectedPhotoId}"]`);
+                    if (thumbnail) thumbnail.remove();
+
+                    selectedPhotoId = null;
+                } else {
+                    alert('삭제 중 오류가 발생했습니다.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('삭제 요청에 실패했습니다.');
+            }
+        });
+
+        
         // FilePond 등록 및 서버 연결
         FilePond.create(document.querySelector('.filepond'), {
             allowImagePreview: false, // 미리보기 끄기
@@ -214,16 +265,21 @@
         
         function loadPhotoData(photoId) {
             selectedPhotoId = photoId;
-            
+
             const targetImg = document.querySelector(`.album-image[data-photo-id="${selectedPhotoId}"]`);
             if (targetImg) {
                 mainPhoto.src = targetImg.src;
                 mainPhoto.style.display = "block";
+                mainPhoto.style.width = "100%";
+                mainPhoto.style.maxHeight = "400px";
+                mainPhoto.style.objectFit = "contain";
             }
+
             commentBox.style.display = "block";
             commentInput.value = '';
-            albumMainPhotoBtn.style.display = "inline-block";
 
+            albumMainPhotoBtn.style.display = "inline-block";
+            deleteBtn.style.display = "inline-block";  // ✅ 이 줄 추가하세요!
 
             fetch(`/community/{{community_id}}/album/{{album_name}}/${selectedPhotoId}/comment/`, {
                 method: "GET",
@@ -242,8 +298,8 @@
                     });
                 }
             });
-            
-            // URL도 함께 변경
+
+            // URL 변경
             history.pushState({}, '', `/community/{{community_id}}/album/{{album_name}}/${selectedPhotoId}/comment/`);
         }
 

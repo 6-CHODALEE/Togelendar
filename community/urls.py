@@ -19,4 +19,6 @@ urlpatterns = [
     path('<int:community_id>/album/<str:album_name>/upload/', views.upload_photo, name='upload_photo'),
     path('<int:community_id>/album/<str:album_name>/mood_vote/', views.mood_vote, name='mood_vote'),
 
+    path('<int:community_id>/album/<str:album_name>/<int:photo_id>/delete/', views.delete_photo, name='delete_photo'),
+
     ]

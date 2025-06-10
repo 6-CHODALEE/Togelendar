@@ -8,6 +8,10 @@ from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 import json
 import logging
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from .models import Photo
+from django.http import JsonResponse, Http404
 
 # Create your views here.
 @login_required
@@ -286,3 +290,17 @@ def delete_community(request, community_id):
             return redirect('mypage:mypage', username=request.user.username)  # 삭제 후 이동할 페이지
         else:
             return HttpResponseForbidden("삭제 권한이 없습니다.")
+
+
+
+
+@require_POST
+def delete_photo(request, community_id, album_name, photo_id):
+    photo = get_object_or_404(Photo, id=photo_id)
+
+    # 추가 검증 (옵션): 해당 photo가 요청한 community/album에 속하는지
+    if photo.promise.community.id != community_id or photo.promise.promise_name != album_name:
+        raise Http404("해당 앨범의 사진이 아닙니다.")
+
+    photo.delete()
+    return JsonResponse({'status': 'success'})
