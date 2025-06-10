@@ -171,14 +171,22 @@ def album_detail(request, community_id, album_name):
 def upload_photo(request, community_id, album_name):
     if request.method == 'POST' and request.FILES.get('file'):
         promise = Promise.objects.filter(community_id=community_id, promise_name=album_name).first()
+        if not promise:
+            return JsonResponse({'error': '해당 약속을 찾을 수 없습니다.'}, status=404)
+
         image = request.FILES['file']
-        photo = Photo.objects.create(image=image, promise=promise)
-        
+        photo = Photo.objects.create(
+            image=image,
+            promise=promise,
+            uploaded_by=request.user  # ✅ 업로드한 사용자 설정
+        )
+
         return JsonResponse({
             'id': photo.id,
             'filename': photo.image.url
         })
-    return JsonResponse({'error': 'invalid request'}, status=404)
+
+    return JsonResponse({'error': 'invalid request'}, status=400)
 
 @login_required
 def mood_vote(request, community_id, album_name):

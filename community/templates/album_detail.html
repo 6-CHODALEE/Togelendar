@@ -20,7 +20,7 @@
                     style="display: none;">
                     대표사진으로 설정
                 </button>
-
+                
                 <button
                     id="PhotoDelBtn" 
                     class="btn btn-sm btn-outline-danger"
@@ -37,10 +37,11 @@
                 
                 <!--좌측 : 업로드된 사진 썸네일 목록-->
                 {% for photo in photos %}
-                <img src="{{photo.image.url}}"
-                class="album-image rounded"
-                data-photo-id="{{photo.id}}"
-                style="width: 150px; height: 150px; object-fit: cover; cursor: pointer;">
+                    <img src="{{ photo.image.url }}"
+                        class="album-image rounded"
+                        data-photo-id="{{ photo.id }}"
+                        data-uploaded-by="{{ photo.uploaded_by }}"
+                        style="width: 150px; height: 150px; object-fit: cover; cursor: pointer;">
                 {% endfor %}
             </div>
         </div>
@@ -150,6 +151,9 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+    const currentUsername = "{{ request.user.username }}";
+</script>
 <!--FilePond 라이브러리-->
 <link href="https://unpkg.com/filepond/dist/filepond.min.css" rel="stylesheet" />
 <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.css" rel="stylesheet" />
@@ -273,13 +277,21 @@
                 mainPhoto.style.width = "100%";
                 mainPhoto.style.maxHeight = "400px";
                 mainPhoto.style.objectFit = "contain";
+
+                const uploaderUsername = targetImg.dataset.uploadedBy;
+
+                // ✅ 삭제 버튼은 업로더와 일치할 때만 보여줌
+                if (uploaderUsername === currentUsername) {
+                    deleteBtn.style.display = "inline-block";
+                } else {
+                    deleteBtn.style.display = "none";
+                }
+
+                albumMainPhotoBtn.style.display = "inline-block";  // 대표사진 버튼은 모두에게 보임
             }
 
             commentBox.style.display = "block";
             commentInput.value = '';
-
-            albumMainPhotoBtn.style.display = "inline-block";
-            deleteBtn.style.display = "inline-block";  // ✅ 이 줄 추가하세요!
 
             fetch(`/community/{{community_id}}/album/{{album_name}}/${selectedPhotoId}/comment/`, {
                 method: "GET",
@@ -299,8 +311,7 @@
                 }
             });
 
-            // URL 변경
-            history.pushState({}, '', `/community/{{community_id}}/album/{{album_name}}/${selectedPhotoId}/comment/`);
+            history.pushState({}, '', `/community/{{community_id}}/album/{{album_name}}/${photoId}/comment/`);
         }
 
         // 기분 선택 제출
