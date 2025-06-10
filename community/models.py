@@ -62,3 +62,18 @@ class PhotoComment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+import os
+
+@receiver(post_delete, sender=Photo)
+def delete_image_file(sender, instance, **kwargs):
+    try:
+        if instance.image and hasattr(instance.image, 'path'):
+            if os.path.isfile(instance.image.path):
+                os.remove(instance.image.path)
+    except Exception as e:
+        # 로그 출력 또는 무시할 수 있음
+        print(f"이미지 삭제 중 오류 발생: {e}")
