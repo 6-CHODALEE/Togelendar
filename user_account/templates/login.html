@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 
+{% load socialaccount %}
+
 {% block body %}
 <div class="login-wrapper">
     <div class="login-box">
@@ -21,7 +23,9 @@
 
         <hr class="divider">
         <div class="social-login">
-            <button class="kakao-btn">KAKAO로 로그인</button>
+            <a href="{% provider_login_url 'kakao' %}">
+                <button class="kakao-btn">KAKAO로 로그인</button>
+            </a>
             <button class="naver-btn">NAVER로 로그인</button>
             <button class="google-btn">GOOGLE로 로그인</button>
         </div>
