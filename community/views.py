@@ -222,6 +222,7 @@ def photo_comment(request, community_id, album_name, photo_id):
                 return JsonResponse({
                     'success': True, 
                     'comment': {
+                        'id': comment.id,  # ✅ 댓글 ID 포함
                         'user': request.user.username,
                         'content': comment.content,
                         'created_at': comment.created_at.strftime("%Y-%m-%d %H:%M"),
@@ -229,17 +230,19 @@ def photo_comment(request, community_id, album_name, photo_id):
                 })
             except Exception as e:
                 return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
         elif request.method == "GET":
-            comments = PhotoComment.objects.filter(photo=photo).order_by('created_at')
+            comments = PhotoComment.objects.filter(photo=photo).select_related('user').order_by('created_at')
             comment_list = [{
+                'id': comment.id,
                 'user': comment.user.username,
                 'content': comment.content,
                 'created_at': comment.created_at.strftime("%Y-%m-%d %H:%M")
-            } for comment in comments ]
+            } for comment in comments]
 
             return JsonResponse({'success': True, 'comments': comment_list})
 
-    # GET 요청이 아니라 - JSON이 아니라 HTML 전체 렌더링
+    # HTML 전체 렌더링용 context
     context = {
         'community_id': community_id,
         'album_name': album_name,
@@ -312,3 +315,52 @@ def delete_photo(request, community_id, album_name, photo_id):
 
     photo.delete()
     return JsonResponse({'status': 'success'})
+
+
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse, HttpResponseForbidden, Http404
+from .models import PhotoComment
+
+@require_POST
+@login_required
+def comment_delete(request, community_id, album_name, photo_id, comment_id):
+    try:
+        comment = PhotoComment.objects.get(id=comment_id, photo_id=photo_id)
+
+        # 작성자만 삭제 가능
+        if comment.user != request.user:
+            return HttpResponseForbidden("권한이 없습니다.")
+
+        comment.delete()
+        return JsonResponse({'success': True})
+
+    except PhotoComment.DoesNotExist:
+        raise Http404("댓글을 찾을 수 없습니다.")
+
+
+@require_POST
+@login_required
+def comment_edit(request, community_id, album_name, photo_id, comment_id):
+    try:
+        comment = PhotoComment.objects.get(id=comment_id, photo_id=photo_id)
+
+        # 작성자만 수정 가능
+        if comment.user != request.user:
+            return HttpResponseForbidden("권한이 없습니다.")
+
+        data = json.loads(request.body)
+        new_content = data.get('content', '').strip()
+
+        if new_content:
+            comment.content = new_content
+            comment.save()
+            return JsonResponse({
+                'success': True,
+                'updated_content': comment.content,
+                'updated_at': comment.created_at.strftime("%Y-%m-%d %H:%M")
+            })
+        else:
+            return JsonResponse({'success': False, 'message': '내용이 비어 있습니다.'}, status=400)
+
+    except PhotoComment.DoesNotExist:
+        raise Http404("댓글을 찾을 수 없습니다.")

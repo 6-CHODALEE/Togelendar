@@ -20,5 +20,7 @@ urlpatterns = [
     path('<int:community_id>/album/<str:album_name>/mood_vote/', views.mood_vote, name='mood_vote'),
 
     path('<int:community_id>/album/<str:album_name>/<int:photo_id>/delete/', views.delete_photo, name='delete_photo'),
+    path('<int:community_id>/album/<str:album_name>/<int:photo_id>/comment/<int:comment_id>/delete/', views.comment_delete, name='comment_delete'),
+    path('<int:community_id>/album/<str:album_name>/<int:photo_id>/comment/<int:comment_id>/edit/', views.comment_edit, name='comment_edit'),
 
     ]

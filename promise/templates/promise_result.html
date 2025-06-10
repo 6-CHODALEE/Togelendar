@@ -50,13 +50,23 @@
     </div>
     {% endif %}
 
-    <div style="max-width: 800px; margin: 10px auto 0 auto; display: flex; justify-content: flex-end; padding-right: 20px;">
-        <a href="{% url 'community:community_detail' community.id %}" class="btn btn-outline-secondary btn-sm">
-            커뮤니티로 이동하기
-        </a>
-        <a href="#" class="btn btn-outline-secondary btn-sm" id="location-button">
-            장소 정하기
-        </a>
+    <div style="max-width: 800px; margin: 10px auto 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
+        <!-- 왼쪽: 약속 취소 -->
+        <div>
+            <a href="#" class="btn btn-outline-danger btn-sm" id="promise_delete-button">
+                약속 취소하기
+            </a>
+        </div>
+
+        <!-- 오른쪽: 커뮤니티 / 장소 -->
+        <div style="display: flex; gap: 10px;">
+            <a href="{% url 'community:community_detail' community.id %}" class="btn btn-outline-secondary btn-sm">
+                커뮤니티로 이동하기
+            </a>
+            <a href="#" class="btn btn-outline-secondary btn-sm" id="location-button">
+                장소 정하기
+            </a>
+        </div>
     </div>
 </div>
 
@@ -208,6 +218,31 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(() => alert('서버 오류가 발생했습니다. 다시 시도해주세요.'));
         });
     }
+    document.getElementById("promise_delete-button").addEventListener("click", function (e) {
+        e.preventDefault();
+        if (!confirm("정말로 이 약속을 삭제하시겠습니까?")) return;
+
+        fetch(`/community/{{ community.id }}/promise/{{ promise.id }}/delete/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/json",
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("약속이 삭제되었습니다.");
+                window.location.href = "{% url 'community:community_detail' community.id %}";
+            } else {
+                alert("삭제에 실패했습니다.");
+            }
+        })
+        .catch(err => {
+            console.error("삭제 요청 오류", err);
+            alert("서버 오류 발생");
+        });
+    });
 });
 </script>
 
