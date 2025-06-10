@@ -1,27 +1,64 @@
-<nav class="navbar navbar-expand-lg bg-body-tertiary">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="{% url 'index:index' %}">Togelendar</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav">
+<nav class="custom-navbar">
+  <div class="navbar-container">
+    <a class="logo" href="{% url 'index:index' %}">Togelendar</a>
+    <div class="nav-links">
         {% if user.is_authenticated %}
-        <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="{% url 'account:logout' %}">Logout</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="{% url 'mypage:mypage' request.user.username %}">{{user}}</a>
-        </li>
-        {% else %}
-        <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="{% url 'account:signup' %}">Signup</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="{% url 'account:login' %}">Login</a>
-        </li>
+          <a href="{% url 'mypage:mypage' request.user.username %}" class="auth-link">{{user}}</a>
+          <a href="{% url 'account:logout' %}" class="auth-link">log out</a>
+          {% else %}
+          <a href="{% url 'account:login' %}" class="auth-button">log in</a>
+          <a href="{% url 'account:signup' %}" class="auth-link">sign up</a>
         {% endif %}
-      </ul>
     </div>
   </div>
 </nav>
+
+<style>
+  .custom-navbar {
+    width: 100%;
+    padding: 20px 40px;
+    background-color: rgba(255, 195, 255, 0.3);
+    position: relative;
+    z-index: 10;
+  }
+
+  .navbar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #111;
+    text-decoration: none;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  
+  .auth-link {
+    color: black;
+    text-decoration: none;
+    font-size: 1.1rem;
+  }
+
+  .auth-button {
+    padding: 4px 12px;
+    background-color: white;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    text-decoration: none;
+    color: black;
+    font-weight: 500;
+  }
+
+  .auth-button:hover,
+  .auth-link.hover {
+    opacity: 0.7;
+  }
+</style>
