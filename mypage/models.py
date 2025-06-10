@@ -1,7 +1,7 @@
 from django.db import models
 from django_resized import ResizedImageField
 from django.conf import settings
-from account.models import User
+from user_account.models import User
 # 커뮤니티 생성 정보 저장 모델
 class CreateCommunity(models.Model):
     id = models.AutoField(primary_key=True)

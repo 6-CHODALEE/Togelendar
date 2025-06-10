@@ -23,7 +23,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     path('', include('index.urls')),
-    path('account/', include('account.urls')),
+    path('account/', include('user_account.urls')),
+    path('accounts/', include('allauth.urls')),
     path('mypage/', include('mypage.urls')),
     # path('togelendar/', include('promise.urls')),
     path('community/', include('community.urls')),

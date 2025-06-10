@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from mypage.models import CreateCommunity
 from community.models import CommunityMember
-from account.models import User
+from user_account.models import User
 from promise.models import PromiseResult, Promise
 from django.http import HttpResponse
 import requests

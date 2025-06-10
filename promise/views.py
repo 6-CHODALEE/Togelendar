@@ -8,7 +8,7 @@ import json
 from django.urls import reverse
 from community.models import CreateCommunity, CommunityMember
 from collections import Counter
-from account.models import User  # ⭐ account.User import 추가
+from user_account.models import User
 from django.shortcuts import get_object_or_404
 from collections import defaultdict
 

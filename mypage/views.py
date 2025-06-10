@@ -15,7 +15,7 @@ from django.utils.dateparse import parse_date
 from community.models import CommunityMember
 from collections import defaultdict
 from promise.models import Promise, PromiseResult
-from account.forms import CustomUserCreationForm, CustomAuthenticationForm
+from user_account.forms import CustomUserCreationForm, CustomAuthenticationForm
 from .forms import ProfileUpdateForm
 from .elasticsearch_utils import update_user_index, delete_user_index  # 유틸 함수 임포트
 from django.contrib.auth import login, get_user_model
