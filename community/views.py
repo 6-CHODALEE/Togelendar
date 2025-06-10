@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from promise.models import Promise, PromiseVote
 from mypage.models import CreateCommunity, FriendRequest
@@ -8,6 +8,10 @@ from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 import json
 import logging
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from .models import Photo
+from django.http import JsonResponse, Http404
 
 # Create your views here.
 @login_required
@@ -70,6 +74,7 @@ def community_detail(request, community_id):
         'voted_ids': list(voted_ids),
         'friend_users': friend_users,
         'main_photos': main_photos,
+        'username': request.user.username,
     }
     return render(request, 'community_detail.html', context)
 
@@ -166,14 +171,22 @@ def album_detail(request, community_id, album_name):
 def upload_photo(request, community_id, album_name):
     if request.method == 'POST' and request.FILES.get('file'):
         promise = Promise.objects.filter(community_id=community_id, promise_name=album_name).first()
+        if not promise:
+            return JsonResponse({'error': '해당 약속을 찾을 수 없습니다.'}, status=404)
+
         image = request.FILES['file']
-        photo = Photo.objects.create(image=image, promise=promise)
-        
+        photo = Photo.objects.create(
+            image=image,
+            promise=promise,
+            uploaded_by=request.user  # ✅ 업로드한 사용자 설정
+        )
+
         return JsonResponse({
             'id': photo.id,
             'filename': photo.image.url
         })
-    return JsonResponse({'error': 'invalid request'}, status=404)
+
+    return JsonResponse({'error': 'invalid request'}, status=400)
 
 @login_required
 def mood_vote(request, community_id, album_name):
@@ -209,6 +222,7 @@ def photo_comment(request, community_id, album_name, photo_id):
                 return JsonResponse({
                     'success': True, 
                     'comment': {
+                        'id': comment.id,  # ✅ 댓글 ID 포함
                         'user': request.user.username,
                         'content': comment.content,
                         'created_at': comment.created_at.strftime("%Y-%m-%d %H:%M"),
@@ -216,17 +230,19 @@ def photo_comment(request, community_id, album_name, photo_id):
                 })
             except Exception as e:
                 return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
         elif request.method == "GET":
-            comments = PhotoComment.objects.filter(photo=photo).order_by('created_at')
+            comments = PhotoComment.objects.filter(photo=photo).select_related('user').order_by('created_at')
             comment_list = [{
+                'id': comment.id,
                 'user': comment.user.username,
                 'content': comment.content,
                 'created_at': comment.created_at.strftime("%Y-%m-%d %H:%M")
-            } for comment in comments ]
+            } for comment in comments]
 
             return JsonResponse({'success': True, 'comments': comment_list})
 
-    # GET 요청이 아니라 - JSON이 아니라 HTML 전체 렌더링
+    # HTML 전체 렌더링용 context
     context = {
         'community_id': community_id,
         'album_name': album_name,
@@ -274,3 +290,77 @@ def album_main_photo(request, community_id, album_name, photo_id):
 
     except Exception as e:
         return JsonResponse({'sueccess': False, 'message': str(e)}, status=500)
+
+@login_required
+def delete_community(request, community_id):
+    community = get_object_or_404(CreateCommunity, id=community_id)
+
+    if request.method == 'POST':
+        if request.user.username == community.create_user:  # 보안 check
+            community.delete()  # 관련된 모든 데이터 CASCADE 삭제
+            return redirect('mypage:mypage', username=request.user.username)  # 삭제 후 이동할 페이지
+        else:
+            return HttpResponseForbidden("삭제 권한이 없습니다.")
+
+
+
+
+@require_POST
+def delete_photo(request, community_id, album_name, photo_id):
+    photo = get_object_or_404(Photo, id=photo_id)
+
+    # 추가 검증 (옵션): 해당 photo가 요청한 community/album에 속하는지
+    if photo.promise.community.id != community_id or photo.promise.promise_name != album_name:
+        raise Http404("해당 앨범의 사진이 아닙니다.")
+
+    photo.delete()
+    return JsonResponse({'status': 'success'})
+
+
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse, HttpResponseForbidden, Http404
+from .models import PhotoComment
+
+@require_POST
+@login_required
+def comment_delete(request, community_id, album_name, photo_id, comment_id):
+    try:
+        comment = PhotoComment.objects.get(id=comment_id, photo_id=photo_id)
+
+        # 작성자만 삭제 가능
+        if comment.user != request.user:
+            return HttpResponseForbidden("권한이 없습니다.")
+
+        comment.delete()
+        return JsonResponse({'success': True})
+
+    except PhotoComment.DoesNotExist:
+        raise Http404("댓글을 찾을 수 없습니다.")
+
+
+@require_POST
+@login_required
+def comment_edit(request, community_id, album_name, photo_id, comment_id):
+    try:
+        comment = PhotoComment.objects.get(id=comment_id, photo_id=photo_id)
+
+        # 작성자만 수정 가능
+        if comment.user != request.user:
+            return HttpResponseForbidden("권한이 없습니다.")
+
+        data = json.loads(request.body)
+        new_content = data.get('content', '').strip()
+
+        if new_content:
+            comment.content = new_content
+            comment.save()
+            return JsonResponse({
+                'success': True,
+                'updated_content': comment.content,
+                'updated_at': comment.created_at.strftime("%Y-%m-%d %H:%M")
+            })
+        else:
+            return JsonResponse({'success': False, 'message': '내용이 비어 있습니다.'}, status=400)
+
+    except PhotoComment.DoesNotExist:
+        raise Http404("댓글을 찾을 수 없습니다.")

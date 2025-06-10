@@ -257,3 +257,20 @@ def no_place_promise(request, community_id):
         'community_id': community_id,
     }
     return render(request, 'no_place_promise.html', context)
+
+
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse, HttpResponseForbidden
+from django.shortcuts import get_object_or_404
+from .models import Promise
+
+@require_POST
+def delete_promise(request, community_id, promise_id):
+    promise = get_object_or_404(Promise, id=promise_id, community_id=community_id)
+
+    # 선택적으로 작성자만 삭제하도록 제한하려면 아래 코드도 사용 가능
+    if promise.promise_creator != request.user.username:
+        return HttpResponseForbidden("삭제 권한이 없습니다.")
+
+    promise.delete()
+    return JsonResponse({'success': True})
