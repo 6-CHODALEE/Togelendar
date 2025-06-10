@@ -3,13 +3,127 @@
 {% block body %}
 <div class="login-wrapper">
     <div class="login-box">
-        <h2>Log in</h2>
+        <h2>로그인</h2>
         <form action="" method="POST" enctype="multipart/form-data">
             {% csrf_token %}
-            {{ form }}
-            <p class="singup-text">sing up</p>
-            <input type="submit" value="로그인">
+            <div class="form-row">
+                <label for="{{form.username.id_for_label }}">아이디</label>
+                {{ form.username }}
+            </div>
+            <div class="form-row">
+                <label for="{{ form.password.id_for_label }}">비밀번호</label>
+                {{form.password}}
+            </div>
+
+            <p class="singup-text">회원가입</p>
+            <input type="submit" value="로그인" class="submit-btn">
         </form>
+
+        <hr class="divider">
+        <div class="social-login">
+            <button class="kakao-btn">KAKAO로 로그인</button>
+            <button class="naver-btn">NAVER로 로그인</button>
+            <button class="google-btn">GOOGLE로 로그인</button>
+        </div>
     </div>
 </div>
+
+<style>
+    .login-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 90vh;
+    }
+
+    .login-box {
+        border: 2px solid #FF98FF;
+        border-radius: 30px;
+        padding: 30px 32px;
+        width: 480px;
+        text-align: center;
+    }
+
+    .login-box h2 {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 24px;
+    }
+
+    .form-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+
+    .form-row label {
+        width: 90px;
+        text-align: left;
+    }
+
+    .form-row input {
+        flex: 1;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid black;
+    }
+
+    .singup-text {
+        font-size: 0.85rem;
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .login-box input[type="submit"] {
+        width: 100%;
+        padding: 10px;
+        background-color: #FF98FF;
+        color: black;
+        font-weight: 600;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+    }
+
+    .divider {
+        border: none;
+        border-top: 2px solid black;
+        margin: 20px 0;
+    }
+
+    .social-login {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 10px;
+    }
+
+    .social-login button {
+        padding: 10px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+    }
+
+    .kakao-btn {
+        background-color: #FFFB12;
+        color: black;
+        border: none;
+    }
+
+    .naver-btn {
+        background-color: #5BFF5B;
+        color: black;
+        border: none;
+    }
+
+    .google-btn {
+        background-color: white;
+        color: black;
+        border: 2px solid #3d7fff;
+        border-radius: 12px;
+    }
+</style>
 {% endblock %}

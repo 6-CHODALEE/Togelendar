@@ -32,6 +32,12 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
+    <style>
+        body {
+            {% block background_color %}background-color: white;{% endblock %}
+        }
+    </style>
+
     {% block scripts %}{% endblock %}
 </body>
 </html>
