@@ -63,6 +63,14 @@ def community_detail(request, community_id):
         community_name = community.community_name,
         create_user = community.create_user,
     )
+
+    member_users = []
+    for m in members:
+        user = m.member
+        member_users.append({
+            'username': user.username,
+            'profile_image': user.profile_image.url if user.profile_image else None
+        })
     
     # 현재 유저가 투표한 약속 id들
     voted_ids = PromiseVote.objects.filter(username=request.user).values_list('promise_id', flat=True)
@@ -70,6 +78,7 @@ def community_detail(request, community_id):
     context = {
         'community': community,
         'members': members,
+        'member_users': member_users,
         'promises': promises,
         'voted_ids': list(voted_ids),
         'friend_users': friend_users,

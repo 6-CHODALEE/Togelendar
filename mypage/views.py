@@ -37,7 +37,7 @@ User = get_user_model()
 def mypage(request, username):
     me = request.user
 
-    # 📌 base_date GET 파라미터 처리
+    # base_date GET 파라미터 처리
     # 안전하게 파싱
     base_date_str = request.GET.get('base_date')
     if base_date_str:
@@ -53,7 +53,7 @@ def mypage(request, username):
     week_dates = [start_of_week + timedelta(days=i) for i in range(7)]
     weekday_labels = ['일', '월', '화', '수', '목', '금', '토']
 
-    # 📌 이전/다음 주 계산용
+    # 이전/다음 주 계산용
     prev_week = base_date - timedelta(days=7)
     next_week = base_date + timedelta(days=7)
 
@@ -121,11 +121,11 @@ def create_community(request, username):
             community.create_user = request.user.username
             community.save()
 
-            # ✅ 생성자 본인을 멤버로 자동 추가
+            # 생성자 본인을 멤버로 자동 추가
             CommunityMember.objects.create(
                 community_name=community.community_name,
                 create_user=community.create_user,
-                member=request.user.username
+                member=request.user
             )
 
             return redirect('mypage:mypage', username=username)
@@ -142,7 +142,7 @@ def search_friends(request, username):
     results = []
     popup_open = request.GET.get('popup_open', 'false') == 'true'
 
-    # ✅ Elasticsearch 검색 결과
+    # Elasticsearch 검색 결과
     if query:
         response = settings.ES_CLIENT.search(
             index="user-index",
@@ -189,7 +189,7 @@ def search_friends(request, username):
             except User.DoesNotExist:
                 continue
 
-    # ✅ 기존 mypage context 구성 추가
+    # 기존 mypage context 구성 추가
     me = request.user
 
     base_date_str = request.GET.get('base_date')
@@ -407,7 +407,7 @@ def myprofile(request, username):
             user.save()
             update_user_index(user)
 
-            # ✅ backend 설정 후 로그인
+            # backend 설정 후 로그인
             backend = get_backends()[0]
             user.backend = f"{backend.__module__}.{backend.__class__.__name__}"
             login(request, user)

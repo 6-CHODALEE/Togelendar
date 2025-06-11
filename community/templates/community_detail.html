@@ -118,10 +118,13 @@
                 <!--커뮤니티 멤버 목록 표시-->
                 <div style="min-height: 100px;">
                     <h6 class="fw-bold">참여 중인 멤버</h6>
-                    {% if members %}
+                    {% if member_users %}
                         <ul id="memberList" class="list-unstyled mb-0">
-                            {% for member in members %}
-                                <li>👤 {{member.member}}</li>
+                            {% for member in member_users %}
+                            <p>
+                                <img src="{{member.profile_image}}" alt="프로필" class="member-profile-img me-2">
+                                {{member.username}}
+                            </p>
                             {% endfor %}
                         </ul>
                     {% else %}
@@ -217,6 +220,15 @@
         border-radius: 30px;
         background: white;
     }
+
+    .member-profile-img {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid #ccc;
+    }
+
 
     .promise-box {
         min-height: 100px; 
