@@ -29,9 +29,13 @@ from django.contrib.auth import authenticate
 from .forms import PasswordCheckForm
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth import get_backends
+from django.http import JsonResponse
+
 
 User = get_user_model()
 # Create your views here.
+
+
 
 @login_required
 def mypage(request, username):
@@ -363,20 +367,18 @@ def respond_invite(request, username):
         invite = CommunityInvite.objects.get(id=invite_id)
 
         if action == "accept":
-            # 멤버로 추가
             CommunityMember.objects.create(
                 community_name=invite.community.community_name,
-                create_user = invite.community.create_user,
-                member = invite.to_user.username
+                create_user=invite.community.create_user,
+                member=invite.to_user  
             )
             invite.status = 'accepted'
-        
+
         elif action == 'reject':
             invite.status = 'rejected'
-        
+
         invite.save()
         return JsonResponse({'success': True})
-
 
     except CommunityInvite.DoesNotExist:
         return JsonResponse({'success': False, 'error': '초대 기록을 찾을 수 없습니다.'})

@@ -15,7 +15,7 @@
             <div class="row mb-3 align-items-center">
                 <label class="col-2 col-form-label text-end fw-bold">시작일 :</label>
             <div class="col-10 d-flex align-items-center gap-2">
-                <select name="start-year" class="form-select w-auto">
+                <select id="start-year" name="start-year" class="form-select w-auto">
                     <option disabled selected>선택</option>
                         {% for year in years %}
                             <option value="{{ year }}">{{ year }}</option>
@@ -23,7 +23,7 @@
                 </select>
                 <span>년</span>
 
-                <select name="start-month" class="form-select w-auto">
+                <select id="start-month" name="start-month" class="form-select w-auto">
                     <option disabled selected>선택</option>
                         {% for month in months %}
                             <option value="{{ month }}">{{ month }}</option>
@@ -31,7 +31,7 @@
                 </select>
                 <span>월</span>
 
-                <select name="start-day" class="form-select w-auto">
+                <select id="start-day" name="start-day" class="form-select w-auto">
                     <option disabled selected>선택</option>
                         {% for day in days %}
                             <option value="{{ day }}">{{ day }}</option>
@@ -44,7 +44,7 @@
             <div class="row mb-3 align-items-center">
                 <label class="col-2 col-form-label text-end fw-bold">종료일 :</label>
             <div class="col-10 d-flex align-items-center gap-2">
-                    <select name="end-year" class="form-select w-auto">
+                    <select id="end-year" name="end-year" class="form-select w-auto">
                     <option disabled selected>선택</option>
                         {% for year in years %}
                             <option value="{{ year }}">{{ year }}</option>
@@ -52,7 +52,7 @@
                     </select>
                 <span>년</span>
 
-                <select name="end-month" class="form-select w-auto">
+                <select id="end-month" name="end-month" class="form-select w-auto">
                     <option disabled selected>선택</option>
                         {% for month in months %}
                             <option value="{{ month }}">{{ month }}</option>
@@ -60,7 +60,7 @@
                 </select>
                 <span>월</span>
 
-                <select name="end-day" class="form-select w-auto">
+                <select id="end-day" name="end-day" class="form-select w-auto">
                     <option disabled selected>선택</option>
                         {% for day in days %}
                             <option value="{{ day }}">{{ day }}</option>
@@ -613,4 +613,5 @@
             })
         });
     </script>
+
 {% endblock%}

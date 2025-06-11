@@ -41,7 +41,7 @@ def create_promise(request, community_id):
         post_data = request.POST.copy()
         post_data['start_date'] = start_date
         post_data['end_date'] = end_date
-        post_data['pormise_name'] = request.POST.get('promise_name', '')
+        post_data['promise_name'] = request.POST.get('promise_name', '')
 
         form = PromiseForm(post_data)
 
