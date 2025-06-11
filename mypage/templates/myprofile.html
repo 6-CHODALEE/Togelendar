@@ -1,68 +1,56 @@
 {% extends 'base.html' %}
 
 {% block body %}
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    <h3 class="mb-4">기본 프로필 수정</h3>
+<form method="post" enctype="multipart/form-data" class="profile-edit-form">
+  {% csrf_token %}
+  <h3 class="form-title">프로필 수정</h3>
+  <hr>
 
-    <!-- 프로필 이미지 -->
-    <div class="mb-3">
-        <img src="{{ me.profile_image.url }}" class="rounded-circle mb-2"
-             style="width: 170px; height: 170px; object-fit: cover;" alt="프로필 이미지">
-        <div>
-            <label for="id_profile_image" class="btn btn-outline-secondary mt-2">프로필 이미지 변경하기</label>
-            <input type="file" name="profile_image" id="id_profile_image" style="display:none;">
-        </div>
+  <div class="form-content d-flex align-items-start">
+    <!-- 왼쪽: 이미지 -->
+    <div class="image-section text-center">
+        <img src="{{ me.profile_image.url }}" alt="프로필 이미지" class="profile-image">
+        <label for="id_profile_image" class="btn-image-change">이미지 변경하기</label>
+        <input type="file" name="profile_image" id="id_profile_image" style="display: none;">
     </div>
 
-    <!-- 사용자 이름 -->
-    <div class="mb-3">
-        <label for="{{ form.username.id_for_label }}">사용자 이름</label>
-        {{ form.username }}
+    <!-- 오른쪽: 정보 입력 -->
+    <div class="info-section ms-5">
+      <div class="form-group d-flex align-items-center mb-3">
+          <label for="{{ form.username.id_for_label }}">아이디</label>
+          {{ form.username }}
+      </div>
+      <div class="form-group d-flex align-items-center mb-3">
+          <label for="{{ form.email.id_for_label }}">이메일</label>
+          {{ form.email }}
+      </div>
+      <div class="form-group d-flex align-items-center mb-3 postcode-group">
+          <label for="{{ form.postcode.id_for_label }}">우편번호</label>
+          {{ form.postcode }}
+          <button type="button" class="btn-zipcode" onclick="execDaumPostcode()">우편번호 찾기</button>
+      </div>
+      <div class="form-group d-flex align-items-center mb-3">
+          <label for="{{ form.address.id_for_label }}">주소</label>
+          {{ form.address }}
+      </div>
+      <div class="form-group d-flex align-items-center mb-3">
+          <label for="{{ form.password1.id_for_label }}">새 비밀번호</label>
+          {{ form.password1 }}
+      </div>
+      <div class="form-group d-flex align-items-center mb-3">
+          <label for="{{ form.password2.id_for_label }}">비밀번호 확인</label>
+          {{ form.password2 }}
+      </div>
     </div>
+  </div>
 
-    <!-- 이메일 -->
-    <div class="mb-3">
-        <label for="{{ form.email.id_for_label }}">이메일</label>
-        {{ form.email }}
-    </div>
-
-    <!-- 우편번호/주소: 사용자용 보이는 필드 + Django 필드 -->
-    <div class="mb-3 row">
-        <div class="col">
-            <label for="visible_postcode" class="form-label">우편번호</label>
-            <input type="text" id="visible_postcode" class="form-control" readonly>
-        </div>
-        <div class="col-auto align-self-end">
-            <button type="button" onclick="execDaumPostcode()" class="btn btn-outline-secondary">
-                우편번호 찾기
-            </button>
-        </div>
-    </div>
-
-    <div class="mb-3">
-        <label for="visible_address" class="form-label">주소</label>
-        <input type="text" id="visible_address" class="form-control" readonly>
-    </div>
-
-    <!-- 실제 Django form 필드 (숨김 처리 X, 값만 자동 입력됨) -->
-    {{ form.postcode }}
-    {{ form.address }}
-
-    <!-- 비밀번호 변경 -->
-    <div class="mb-3">
-        <label for="{{ form.password1.id_for_label }}">새 비밀번호</label>
-        {{ form.password1 }}
-    </div>
-    <div class="mb-3">
-        <label for="{{ form.password2.id_for_label }}">비밀번호 확인</label>
-        {{ form.password2 }}
-    </div>
-
-    <button type="submit" class="btn btn-primary">수정 완료</button>
+  <!-- ✅ 중앙 정렬 버튼 -->
+  <div class="btn-submit-wrapper">
+      <button type="submit" class="btn-submit">변경하기</button>
+  </div>
 </form>
 
-<!-- 📌 Daum 주소 API 스크립트 -->
+<!-- Daum 주소 API -->
 <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script>
 function execDaumPostcode() {
@@ -70,16 +58,150 @@ function execDaumPostcode() {
         oncomplete: function(data) {
             const zonecode = data.zonecode;
             const address = data.roadAddress ? data.roadAddress : data.jibunAddress;
-
-            // 사용자에게 보이는 input
-            document.getElementById('visible_postcode').value = zonecode;
-            document.getElementById('visible_address').value = address;
-
-            // Django 폼 필드
             document.getElementById('id_postcode').value = zonecode;
             document.getElementById('id_address').value = address;
         }
     }).open();
 }
+</script>
+
+<style>
+.profile-edit-form {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 30px;
+  background-color: white;
+  font-family: "Arial Rounded MT Bold", sans-serif;
+}
+
+.form-title {
+  text-align: left;
+  font-weight: bold;
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+}
+
+.form-content {
+  display: flex;
+  justify-content: center;
+  gap: 0px;
+}
+
+.image-section {
+  flex: 0 0 200px;
+  margin-left: 50px;
+  text-align: center;
+}
+
+.profile-image {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+.btn-image-change {
+  display: inline-block;
+  padding: 6px 18px;
+  font-size: 0.9rem;
+  border: 2px solid #FFB8FF;
+  border-radius: 15px;
+  background-color: white;
+  color: #888;
+}
+
+.btn-image-change:hover {
+  background-color: #fff0fa;
+  color: black;
+}
+
+.info-section {
+  flex: 1;
+  min-width: 300px;
+}
+
+.form-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 15px;
+}
+
+.form-group label {
+  width: 120px;
+  font-weight: bold;
+  text-align: right;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  flex: 1;
+  padding: 6px 12px;
+  border: 1px solid #aaa;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  min-width: 300px;
+}
+
+.btn-submit-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.btn-submit {
+  background-color: #FFB8FF;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 14px;
+  font-weight: bold;
+  color: black;
+}
+
+.btn-submit:hover {
+  background-color: #fda9f7;
+}
+
+.btn-zipcode {
+  padding: 4px 5px;
+  font-size: 0.8rem;
+  line-height: 1;
+  white-space: nowrap;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: white;
+  color: black;
+  transition: background-color 0.2s ease-in-out;
+  margin-left: 6px; /* 버튼과 입력칸 간격 줄이기 */
+}
+
+.btn-zipcode:hover {
+  background-color: #ffe4fb;
+  color: black;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const fileInput = document.getElementById("id_profile_image");
+    const previewImage = document.querySelector(".profile-image");
+
+    fileInput.addEventListener("change", function () {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                previewImage.src = e.target.result;
+            };
+
+            reader.readAsDataURL(file);
+        }
+    });
+});
 </script>
 {% endblock %}

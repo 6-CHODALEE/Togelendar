@@ -28,7 +28,7 @@ from .forms import ProfileUpdateForm
 from django.contrib.auth import authenticate
 from .forms import PasswordCheckForm
 from django.contrib.auth import get_user_model, login
-
+from django.contrib.auth import get_backends
 
 User = get_user_model()
 # Create your views here.
@@ -392,7 +392,6 @@ def myprofile(request, username):
     User = get_user_model()
     user = get_object_or_404(User, username=username)
 
-    # 🔒 로그인한 유저만 접근 가능
     if request.user != user:
         return redirect('mypage:mypage', username=request.user.username)
 
@@ -407,10 +406,15 @@ def myprofile(request, username):
 
             user.save()
             update_user_index(user)
-            login(request, user)
-            request.session.pop('password_verified', None)  # ✅ 인증 초기화
 
-            return redirect('mypage:myprofile', username=user.username)
+            # ✅ backend 설정 후 로그인
+            backend = get_backends()[0]
+            user.backend = f"{backend.__module__}.{backend.__class__.__name__}"
+            login(request, user)
+
+            request.session.pop('password_verified', None)
+
+            return redirect('mypage:mypage', username=user.username)
     else:
         form = ProfileUpdateForm(instance=user)
 
