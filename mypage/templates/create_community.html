@@ -1,12 +1,95 @@
 {% extends 'base.html' %}
 
 {% block body %}
-  <p>커뮤니티 생성</p>
+<div class="create-wrapper">
+  <div class="create-box">
+    <h2>커뮤니티 생성</h2>
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="form-row">
+        <label for="{{form.community_name.id_for_label}}">이름</label>
+        {{ form.community_name }}
+      </div>
+      <div class="form-row intro-row">
+        <label for="{{form.community_intro.id_for_label}}">소개</label>
+        {{ form.community_intro }}
+      </div>
+      <div class="form-row">
+        <label for="{{form.community_image.id_for_label}}">대표 사진</label>
+        {{ form.community_image}}
+      </div>
+    
+      <input type="submit" class="submit-btn" value="생성하기">
+    </form>
+  </div>
+</div>
 
-  <form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
+<style>
+  .create-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
-    <button type="submit" class="btn btn-warning btn-sm">생성하기</button> 
-  </form>
+  .create-box {
+    border: 2px solid #FF98FF;
+    border-radius: 30px;
+    padding: 30px;
+    width: 480px;
+    text-align: center;
+  }
+
+  .create-box h2 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 24px;
+  }
+
+  .form-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .form-row.intro-row {
+    align-items: flex-start;
+  }
+
+  .form-row label {
+    width: 100px;
+    text-align: left;
+    font-weight: bold;
+  }
+
+  .form-row input,
+  .form-row textarea {
+    flex: 1;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid black;
+    max-width: 300px;
+}
+
+.form-row input[type="file"] {
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  }
+
+  .submit-btn {
+    margin-top: 20px;
+    background-color: #FF98FF;
+    color: black;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    cursor: pointer;
+  }
+
+  .submit-btn:hover {
+    background-color: #FF98FF;
+  }
+</style>
+
 {% endblock %}

@@ -4,9 +4,9 @@
     <div class="nav-links">
         {% if user.is_authenticated %}
           <a href="{% url 'mypage:mypage' request.user.username %}" class="auth-link">{{user}}</a>
-          <a href="{% url 'account:logout' %}" class="auth-link">로그아웃</a>
+          <a href="{% url 'account:logout' %}" class="auth-logout">로그아웃</a>
           {% else %}
-          <a href="{% url 'account:login' %}" class="auth-button">로그인</a>
+          <a href="{% url 'account:login' %}" class="auth-login">로그인</a>
           <a href="{% url 'account:signup' %}" class="auth-link">회원가입</a>
         {% endif %}
     </div>
@@ -47,7 +47,17 @@
     font-size: 1.1rem;
   }
 
-  .auth-button {
+  .auth-login {
+    padding: 4px 12px;
+    background-color: white;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    text-decoration: none;
+    color: black;
+    font-weight: 500;
+  }
+
+  .auth-logout {
     padding: 4px 12px;
     background-color: white;
     border-radius: 12px;

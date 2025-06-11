@@ -257,7 +257,6 @@ def photo_comment(request, community_id, album_name, photo_id):
 
 def get_user_mood(user, album_name):
     try:
-        promise = Promise.objects.get(promise_name=album_name)
         vote = MoodVote.objects.get(user=user, promise=promise)
         return vote.mood
     except (Promise.DoesNotExist, MoodVote.DoesNotExist):
@@ -265,7 +264,6 @@ def get_user_mood(user, album_name):
 
 def get_mood_votes(album_name):
     try:
-        promise = Promise.objects.get(promise_name=album_name)
         votes = MoodVote.objects.filter(promise=promise).select_related('user')
         return [{'username': vote.user.username, 'mood': vote.mood} for vote in votes]
     except Promise.DoesNotExist:

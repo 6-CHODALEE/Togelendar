@@ -42,6 +42,7 @@
 
     .form-group input[type="file"] {
         border: none;
+        border-radius: 0;
         padding: 0;
     }
 
@@ -125,14 +126,14 @@
             {% endif %}
         {% endfor %}
 
-        <!-- ✅ 우편번호 -->
+        <!-- 우편번호 -->
         <div class="zipcode-group">
             <label for="visible_postcode">우편번호</label>
             <input type="text" id="visible_postcode" readonly>
             <button type="button" onclick="execDaumPostcode()">우편번호 찾기</button>
         </div>
 
-        <!-- ✅ 주소 (라벨 위, 입력창 아래로 정렬) -->
+        <!-- 주소 (라벨 위, 입력창 아래로 정렬) -->
         <div class="address-group" style="flex-direction: column; align-items: flex-start;">
             <label for="visible_address" style="font-weight: bold; margin-bottom: 5px;">주소</label>
             <input type="text" id="visible_address" readonly style="

@@ -1,0 +1,371 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<div class="container py-4">
+
+  <!-- 🖼 커뮤니티 헤더 -->
+  <div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+      <h2 class="fw-bold d-flex align-items-center">
+        {{ community.community_name }}
+        {% if username == community.create_user %}
+        <a id="editInfoBtn" href="#" class="edit-icon ms-2" title="모임 정보 수정">✎</a>
+        {% endif %}
+      </h2>
+      <p class="text-muted">{{ community.community_intro }}</p>
+    </div>
+    <div class="col-md-4 text-end position-relative">
+      <img src="{{ community.community_image.url }}" class="img-fluid rounded shadow-sm object-fit-cover" style="height: 160px; width: 100%; object-position: center;">
+      <a id="editImageBtn" href="#" class="edit-icon position-absolute bottom-0 end-0 me-2 mb-2 btn btn-sm btn-outline-secondary">✎</a>
+
+      <!-- 대표 이미지 수정 -->
+      <div class="editImageOverlay modal-overlay" style="display: none;">
+        <div id="editImageModal" class="modal-box">
+          <h5 class="fw-bold">대표 사진 바꾸기</h5>
+          <form id="imageUploadForm" enctype="multipart/form-data">
+            <input type="file" name="image" accept="image/*"><br>
+            <button type="submit" class="btn btn-sm btn-primary mt-2">수정</button>
+            <button type="button" class="btn btn-sm btn-secondary mt-2" id="closeEditImage">취소</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📦 본문 (2단 레이아웃) -->
+  <div class="row">
+    <!-- 🎴 앨범/약속 리스트 -->
+    <div class="col-md-8">
+      <div class="row">
+        {% for promise in promises %}
+        <div class="col-6 col-md-4 mb-4">
+          <a href="{% url 'community:album_detail' community.id promise.promise_name %}" class="text-decoration-none">
+            <div class="card promise-card text-center p-2 h-100">
+              <img src="{% if promise.main_photo %}{{ promise.main_photo.image.url }}{% else %}https://cdn-icons-png.flaticon.com/512/716/716784.png{% endif %}" class="card-img-top object-fit-cover" style="height: 120px;">
+              <div class="fw-bold mt-2">{{ promise.promise_name }}</div>
+            </div>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- 👥 멤버 + 약속 사이드 -->
+    <div class="col-md-4">
+      <div class="card p-3 mb-3">
+        <h5 class="fw-bold d-flex justify-content-between">
+          커뮤니티 멤버
+          <button id="showMemberPopover" class="btn btn-sm btn-outline-secondary">멤버 추가</button>
+        </h5>
+        <ul id="memberList" class="list-unstyled">
+          {% for member in members %}
+          <li>👤 {{ member.member }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="card p-3">
+        <h5 class="fw-bold">약속 리스트</h5>
+        <div class="d-flex gap-2 mb-3">
+          <a href="{% url 'community:promise:no_place_promise' community.id %}" class="btn btn-sm btn-outline-primary">장소 정하기</a>
+          <a href="{% url 'community:promise:create_promise' community.id %}" class="btn btn-sm btn-outline-primary">날짜 정하기</a>
+        </div>
+        <ul class="list-unstyled">
+          {% for promise in promises %}
+          <li>
+            {% if promise.id in voted_ids %}
+            <a href="{% url 'community:promise:promise_result' community.id promise.id %}">📅 {{ promise.promise_name }}</a>
+            {% else %}
+            <a href="{% url 'community:promise:promise_vote' community.id promise.id %}">📅 {{ promise.promise_name }}</a>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ✏️ 모임 정보 수정 -->
+<div class="editInfoOverlay modal-overlay" style="display: none;">
+  <div id="editInfoModal" class="modal-box" style="width: 400px;">
+    <h5 class="fw-bold">모임 정보 수정</h5>
+    <form id="editInfoForm">
+      <div class="mb-2">
+        <label for="communityName" class="form-label">모임 이름</label>
+        <input type="text" class="form-control" id="communityName" name="community_name" value="{{ community.community_name }}">
+      </div>
+      <div class="mb-2">
+        <label for="communityIntro" class="form-label">모임 소개</label>
+        <textarea class="form-control" name="community_intro" id="communityIntro" rows="3">{{ community.community_intro }}</textarea>
+      </div>
+      <div class="text-end">
+        <button type="submit" class="btn btn-primary btn-sm">저장</button>
+        <button type="button" class="btn btn-secondary btn-sm" id="closeEditInfo">취소</button>
+        <button type="button" class="btn btn-danger btn-sm" id="deleteCommunityBtn">모임 폐쇄하기</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ✅ CSS -->
+<style>
+  .edit-icon {
+    font-size: 1.2rem;
+    cursor: pointer;
+    text-decoration: none;
+    color: #555;
+  }
+
+  .edit-icon:hover {
+    color: #000;
+  }
+
+  .promise-card {
+    border: 2px solid #ffc8f8;
+    border-radius: 12px;
+    background-color: #fff7fb;
+    transition: 0.3s ease;
+  }
+
+  .promise-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  .object-fit-cover {
+    object-fit: cover;
+  }
+
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .modal-box {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #ccc;
+  }
+</style>
+
+<script>
+    const csrfToken = '{{ csrf_token }}';
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleBtn = document.getElementById("showMemberPopover");
+        const popover = document.getElementById("memberPopover");
+        const closeBtn = document.getElementById("closeMemberPopover");
+        const deleteBtn = document.getElementById('deleteCommunityBtn');
+
+        toggleBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            popover.style.display = "block";
+        });
+        
+        closeBtn.addEventListener("click", function () {
+            popover.style.display = "none";
+        });
+
+        document.addEventListener("click", function (e) {
+            if (popover.style.display === "block" &&
+            !popover.contains(e.target) &&
+            !toggleBtn.contains(e.target)) {
+                popover.style.display = "none";
+            }
+        });
+        
+
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function () {
+                if (confirm("정말로 이 모임을 폐쇄하시겠습니까? 관련 데이터가 모두 삭제됩니다.")) {
+                    fetch("{% url 'community:delete_community' community.id %}", {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                        }
+                    }).then(response => {
+                        if (response.redirected) {
+                            window.location.href = response.url;
+                        } else {
+                            alert("모임 삭제에 실패했습니다.");
+                        }
+                    });
+                }
+            });
+        }
+        
+        document.querySelectorAll('.invite-member-btn').forEach(button => {
+            button.addEventListener("click", () => {
+                const username = button.dataset.username;
+                
+                fetch("{% url 'community:invite_member_ajax' community.id %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken
+                    },
+                    body: JSON.stringify({
+                        community_id: "{{community.id}}",
+                        username: username
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // 버튼 상태 변경
+                        button.textContent = "초대 보냄";
+                        button.className = "btn btn-sm btn-success";
+                        button.disabled = true;
+
+                        // 멤버 리스트에 추가
+                        const memberList = document.getElementById("memberList");
+                        
+                        // 리스트가 없으면 ul태그 생성
+                        if (!memberList) {
+                            const newList = document.createElement("ul");
+                            newList.id = "memberList";
+                            newList.className = "list-unstyled mb-0";
+                            document.querySelector(".bg-light.p-3.mb-3").appendChild(newList);
+                        }
+                        
+                        const li = document.createElement("li");
+                        li.textContent = "👤 " + username;
+                        memberList.appendChild(li);
+                    } else {
+                        alert("초대 실패: " + (data.message || data.error || "알 수 없는 오류"));
+                    }
+                })
+                .catch(err => {
+                    console.error("요청 실패: ", err);
+                    alert("서버 오류 발생");
+                });
+            });
+        });
+
+        // 배경 클릭 시 모달 닫기 함수
+        function bindModalCloseOnOverlayClick(overlay, modal) {
+            overlay.addEventListener("click", function (e) {
+                if (e.target === overlay) {
+                    modal.style.display = "none";
+                    overlay.style.display = "none";
+                }
+            });
+        }
+
+        const editImageBtn = document.querySelector(".round-edit-button");
+        const editImageModal = document.getElementById("editImageModal");
+        const closeEditImage = document.getElementById('closeEditImage');
+        const imageUploadForm = document.getElementById('imageUploadForm');
+        const editImageOverlay = document.querySelector(".editImageOverlay");
+
+        // 모임 대표 사진 수정 모달 열기
+        editImageBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            editImageOverlay.style.display = "flex";
+            editImageModal.style.display = "block";
+        });
+
+        // 모임 대표 사진 수정 모달 닫기(버튼)
+        closeEditImage.addEventListener("click", function (){
+            editImageModal.style.display = "none";
+            editImageOverlay.style.display = "none";
+        });
+
+        // 배경 클릭 시 모달 닫기
+        bindModalCloseOnOverlayClick(editImageOverlay, editImageModal);
+
+        // 이미지 업로드 AJAZ 처리
+        imageUploadForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(imageUploadForm);
+
+            fetch("{% url 'community:update_image' community.id %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken
+                },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert("업로드 실패: " + data.message);
+                }
+            })
+            .catch(err => {
+                console.error("업로드 오류: ", err);
+                alert("서버 오류");
+            });
+        });
+
+        const editInfoBtn = document.getElementById("editInfoBtn");
+        const editInfoModal = document.getElementById("editInfoModal");
+        const closeEditInfo = document.getElementById("closeEditInfo");
+        const editInfoForm = document.getElementById("editInfoForm");
+        const editInfoOverlay = document.querySelector(".editInfoOverlay");
+
+        // 모임 정보 수정 모달 열기
+        editInfoBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            editInfoOverlay.style.display = "flex";
+            editInfoModal.style.display = "block";
+            // 위치 정렬(버튼 아래로)
+            const rect = editInfoBtn.getBoundingClientRect();
+            editInfoModal.style.top = `${rect.bottom + window.scrollY + 5}px`;
+            editInfoModal.style.left = `${rect.left + window.scrollX}px`;
+        });
+
+        // 모임 정보 수정 모달 닫기(버튼)
+        closeEditInfo.addEventListener("click", function () {
+            editInfoModal.style.display = "none";
+            editInfoOverlay.style.display = "none";
+        });
+
+        // 배경 클릭 시 모달 닫기
+        bindModalCloseOnOverlayClick(editInfoOverlay, editInfoModal);
+
+        // 저장 버튼 AJAX 처리
+        editInfoForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const formData = {
+                community_name: document.getElementById("communityName").value,
+                community_intro: document.getElementById("communityIntro").value
+            };
+
+            fetch("{% url 'community:update_community_info' community.id %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfToken
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert("수정 실패: " + (data.message || "오류"));
+                }
+            })
+            .catch(err => {
+                console.error("수정 오류: ", err);
+                alert("서버 오류 발생");
+            });
+        });
+    });
+</script>
+{% endblock %}

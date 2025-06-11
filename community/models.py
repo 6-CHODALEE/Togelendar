@@ -3,6 +3,9 @@ from django.conf import settings
 from user_account.models import User
 from mypage.models import CreateCommunity
 from promise.models import Promise
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+import os
 
 # Create your models here.
 class CommunityMember(models.Model):
@@ -64,9 +67,6 @@ class PhotoComment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
-from django.db.models.signals import post_delete
-from django.dispatch import receiver
-import os
 
 @receiver(post_delete, sender=Photo)
 def delete_image_file(sender, instance, **kwargs):
