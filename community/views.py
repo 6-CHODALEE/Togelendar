@@ -12,6 +12,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from .models import Photo
 from django.http import JsonResponse, Http404
+from django.utils import timezone
 
 # Create your views here.
 @login_required
@@ -150,6 +151,17 @@ def album_detail(request, community_id, album_name):
     promise = Promise.objects.get(community_id=community_id, promise_name=album_name)
     photos = Photo.objects.filter(promise=promise)
     main_photo = photos.filter(is_main=True).first()
+    members = CommunityMember.objects.filter(
+        community_name = community.community_name,
+        create_user = community.create_user,
+    )
+    member_users = []
+    for m in members:
+        user = m.member
+        member_users.append({
+            'username': user.username,
+            'profile_image': user.profile_image.url if user.profile_image else None
+        })
 
     # 내 기분
     user_mood = None
@@ -164,6 +176,8 @@ def album_detail(request, community_id, album_name):
         votes = MoodVote.objects.filter(promise=promise).select_related('user')
         mood_votes = [{'username': vote.user.username, 'mood': vote.mood} for vote in votes]
 
+    other_votes = [vote for vote in mood_votes if vote['username'] != request.user.username]
+
     context = {
         'community': community,
         'community_id': community_id,
@@ -173,6 +187,9 @@ def album_detail(request, community_id, album_name):
         'user_mood': user_mood,
         'mood_votes': mood_votes,
         'main_photo': main_photo,
+        'other_votes': other_votes,
+        'members': members,
+        'member_users': member_users,
     }
     return render(request, 'album_detail.html', context)
 
@@ -266,6 +283,7 @@ def photo_comment(request, community_id, album_name, photo_id):
 
 def get_user_mood(user, album_name):
     try:
+        promise = Promise.objects.get(promise_name=album_name)
         vote = MoodVote.objects.get(user=user, promise=promise)
         return vote.mood
     except (Promise.DoesNotExist, MoodVote.DoesNotExist):
@@ -273,6 +291,7 @@ def get_user_mood(user, album_name):
 
 def get_mood_votes(album_name):
     try:
+        promise = Promise.objects.get(promise_name=album_name)
         votes = MoodVote.objects.filter(promise=promise).select_related('user')
         return [{'username': vote.user.username, 'mood': vote.mood} for vote in votes]
     except Promise.DoesNotExist:
@@ -360,6 +379,7 @@ def comment_edit(request, community_id, album_name, photo_id, comment_id):
 
         if new_content:
             comment.content = new_content
+            comment.created_at = timezone.now()
             comment.save()
             return JsonResponse({
                 'success': True,

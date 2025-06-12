@@ -2,7 +2,9 @@
 
 {% block body %}
 <div class="container mt-4">
-    <h3 class="fw-bold mb-4">{{album_name}}</h3>
+    <div style="border-bottom: 2px solid black;">
+        <h3 class="fw-bold mb-4">{{album_name}}</h3>
+    </div>
     <!--사진 + 댓글 영역-->
     <div class="d-flex mt-4">
         <div style="flex: 2;">
@@ -16,14 +18,14 @@
             <div class="d-flex justify-content-end gap-2 mt-2">
                 <button
                     id="albumMainPhotoBtn" 
-                    class="btn btn-sm btn-outline-secondary"
+                    class="main-photo-btn btn btn-sm btn-outline-secondary"
                     style="display: none;">
                     대표사진으로 설정
                 </button>
                 
                 <button
                     id="PhotoDelBtn" 
-                    class="btn btn-sm btn-outline-danger"
+                    class="photo-delete-btn btn btn-sm btn-outline-danger"
                     style="display: none;">
                     사진 삭제
                 </button>
@@ -48,11 +50,13 @@
         
         <!--우측 : 댓글창(사진 클릭 시 열림)-->
         <div style="flex: 1; margin-left: 30px;">
-            <div class="card mb-3">
+            <div class="mood-box card mb-3">
                 <div class="card-body">
-                    <h5 class="card-title">오늘 어땠어?</h5>
+                    <div class="mb-2">
+                        <h6 class="card-title fw-bold">오늘 어땠어?</h6>
+                    </div>
                     
-                    <form id="moodForm">
+                    <form id="moodForm" style="border-bottom: 1px solid black;">
                         <!--약속이 어땠는지-->
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="mood" value="😊 좋았어" id="mood1"
@@ -69,7 +73,9 @@
                                 {% if user_mood == "😞 별로였어" %}checked{% endif %}>
                             <label class="form-check-label" for="mood3">😞 별로였어</label>
                         </div>
-                        <button type="submit" class="btn btn-outline-primary btn-sm">선택</button>
+                        <div class="text-end mb-2">
+                            <button type="submit" class="btn btn-outline-primary btn-sm">선택</button>
+                        </div>
                     </form>
                         
                     <!--약속이 어땠는지 결과-->
@@ -78,10 +84,10 @@
                             <p><strong>내 기분</strong> - {{user_mood}}</p>
                         {% endif %}
 
-                        {% if mood_votes %}
-                            <p class="mt-2"><strong>멤버들이 선택한 기분</strong></p>
+                        <p class="mt-2"><strong>멤버들이 선택한 기분</strong></p>
+                        {% if other_votes %}
                             <ul class="mb-0">
-                                {% for vote in mood_votes %}
+                                {% for vote in other_votes %}
                                     {% if vote.username != request.user.username %}
                                         <li><strong>{{vote.username}}</strong> - {{vote.mood}}</li>
                                     {% endif %}
@@ -95,29 +101,38 @@
             </div>
             
             <!--댓글창(사진 클릭 시 나타남)-->
-            <div id="commentBox" class="card" {% if not selected_photo %}style="display: none;"{% endif %}>
+            <div id="commentBox" class="comment-box card" {% if not selected_photo %}style="display: none;"{% endif %}>
                 <div class="card-body">
-                    <h5 class="card-title">댓글 남기기</h5>
+                    <div class="mb-2">
+                        <h6 class="card-title fw-bold">댓글 남기기</h6>
+                    </div>
                         <form id="commentForm">
                             <textarea id="commentInput" class="form-control mb-2" placeholder="댓글을 입력하세요" rows="2"></textarea>
-                            <button type="submit" class="btn btn-outline-primary btn-sm">댓글</button>
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-outline-primary btn-sm">댓글</button>
+                            </div>
                         </form>
                     <div id="commentList" class="mt-3">
                         {% if selected_photo %}
                             {% for comment in comments %}
-                            <div class="photo-comment mb-2"
+                            <div class="photo-comment mb-2 position-relative"
                                 data-comment-id="{{ comment.id }}"
                                 data-username="{{ comment.user.username }}">
                                 
-                                <strong>{{ comment.user.username }}</strong>: {{ comment.content }}
-                                <br><small>{{ comment.created_at|date:"Y-m-d H:i" }}</small>
-
-                                {% if comment.user.username == request.user.username %}
-                                    <div class="mt-1">
-                                        <button class="btn btn-sm btn-link text-danger delete-comment-btn">삭제</button>
-                                        <button class="btn btn-sm btn-link text-primary edit-comment-btn">수정</button>
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="comment-text pe-5" style="word-break: break-word;">
+                                        <strong>{{ comment.user.username }}</strong>: <span>{{ comment.content }}</span>
                                     </div>
-                                {% endif %}
+                                    
+                                    {% if comment.user.username == request.user.username %}
+                                    <div class="comment-buttons">
+                                        <button class="btn btn-sm btn-link edit-comment-btn">수정</button>
+                                        <button class="btn btn-sm btn-link delete-comment-btn">삭제</button>
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <small class="text-muted">{{ comment.created_at|date:"Y-m-d H:i" }}</small>
                             </div>
                             {% empty %}
                                 <p>아직 댓글이 없습니다.</p>
@@ -153,6 +168,38 @@
     height: 100% !important;
     width: 100% !important;
     padding: 0 !important;
+}
+
+.main-photo-btn,
+.photo-delete-btn,
+.card-body button,
+.edit-comment-btn,
+.delete-comment-btn {        
+    background-color: white;
+    border: 2px solid #ff98ff;
+    border-radius: 30px;
+    text-align: center;
+    color: black;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.mood-box,
+.comment-box {
+    min-height: 100px;
+    position: relative;
+    border: 1px solid black;
+    border-radius: 30px;
+    background: white;
+}
+
+.comment-buttons {
+    display: flex;
+    gap: 0.3rem;
+    position: absolute;
+    top: 0;
+    right: 0;
+    white-space: nowrap;
 }
 
 
@@ -309,20 +356,39 @@
                     commentList.innerHTML = '';
                     data.comments.forEach(comment => {
                         const item = document.createElement("div");
-                        item.classList.add("photo-comment", "mb-2");  // ✅ 이거 추가
-
+                        item.classList.add("photo-comment", "mb-2", "position-relative");
                         item.dataset.commentId = comment.id;
                         item.dataset.username = comment.user;
 
-                        item.innerHTML = `<strong>${comment.user}</strong>: ${comment.content} <br><small>${comment.created_at}</small>`;
+                        const commentText = document.createElement("div");
+                        commentText.className = "comment-text pe-5";
+                        commentText.innerHTML = `<strong>${comment.user}</strong>: ${comment.content}`;
+
+                        const small = document.createElement("small");
+                        small.className = "text-muted";
+                        small.textContent = comment.created_at;
+
                         if (comment.user === currentUsername) {
-                            item.innerHTML += `
-                                <div class="mt-1">
-                                    <button class="btn btn-sm btn-link text-danger delete-comment-btn">삭제</button>
-                                    <button class="btn btn-sm btn-link text-primary edit-comment-btn">수정</button>
-                                </div>
-                            `;
+                            const btnGroup = document.createElement("div");
+                            btnGroup.className = "comment-buttons position-absolute";
+                            btnGroup.style.top = "0";
+                            btnGroup.style.right = "0";
+
+                            const editBtn = document.createElement("button");
+                            editBtn.className = "btn btn-sm btn-link edit-comment-btn";
+                            editBtn.textContent = "수정";
+
+                            const deleteBtn = document.createElement("button");
+                            deleteBtn.className = "btn btn-sm btn-link delete-comment-btn";
+                            deleteBtn.textContent = "삭제";
+
+                            btnGroup.appendChild(editBtn);
+                            btnGroup.appendChild(deleteBtn);
+                            item.appendChild(btnGroup);
                         }
+
+                        item.appendChild(commentText);
+                        item.appendChild(small);
                         commentList.appendChild(item);
                     });
                 }
@@ -427,11 +493,11 @@
 
                             const deleteBtn = document.createElement("button");
                             deleteBtn.textContent = "삭제";
-                            deleteBtn.className = "btn btn-sm btn-link text-danger delete-comment-btn";
+                            deleteBtn.className = "btn btn-sm btn-link delete-comment-btn";
 
                             const editBtn = document.createElement("button");
                             editBtn.textContent = "수정";
-                            editBtn.className = "btn btn-sm btn-link text-primary edit-comment-btn";
+                            editBtn.className = "btn btn-sm btn-link edit-comment-btn";
 
                             btnGroup.appendChild(deleteBtn);
                             btnGroup.appendChild(editBtn);
@@ -439,7 +505,6 @@
                         }
 
                         commentList.appendChild(item);
-                        addDeleteCommentEventListeners();
                         commentInput.value = '';
                     } else {
                         alert("댓글 저장 실패: " + data.message);
@@ -517,19 +582,32 @@
             }
         });
         commentList.addEventListener("click", function (e) {
-            // ✅ 댓글 수정 버튼 클릭
+            // 댓글 수정 버튼 클릭
             if (e.target.classList.contains("edit-comment-btn")) {
                 const commentDiv = e.target.closest(".photo-comment");
-                const contentSpan = commentDiv.querySelector("strong + text"); // 내용 영역
-                const oldContent = commentDiv.childNodes[1].textContent.trim().replace(/^:\s*/, "");
+                const username = commentDiv.dataset.username;
+                const commentId = commentDiv.dataset.commentId;
+
+                const contentElement = commentDiv.querySelector(".comment-text");
+                const oldContent = contentElement ? contentElement.innerText.replace(`${username}:`, '').trim() : '';
 
                 // 기존 댓글 삭제
                 commentDiv.innerHTML = '';
+                commentDiv.dataset.commentId = commentId;
+                commentDiv.dataset.username = username;
+
+                //사용자 이름 표시
+                const contentWrap = document.createElement("div");
+                contentWrap.innerHTML = `<strong>${username}</strong>:`; // username은 그대로 유지
 
                 // 수정 폼 입력창 생성
                 const textarea = document.createElement("textarea");
                 textarea.className = "form-control form-control-sm mb-1";
                 textarea.value = oldContent;
+
+                // 저장/취소버튼 그룹
+                const btnWrap = document.createElement("div");
+                btnWrap.className = "text-end mt-2"
 
                 const saveBtn = document.createElement("button");
                 saveBtn.className = "btn btn-sm btn-outline-primary me-1";
@@ -539,14 +617,17 @@
                 cancelBtn.className = "btn btn-sm btn-outline-secondary";
                 cancelBtn.textContent = "취소";
 
+                btnWrap.appendChild(saveBtn);
+                btnWrap.appendChild(cancelBtn);
+
+                commentDiv.appendChild(contentWrap);
                 commentDiv.appendChild(textarea);
-                commentDiv.appendChild(saveBtn);
-                commentDiv.appendChild(cancelBtn);
+                commentDiv.appendChild(btnWrap);
 
                 // 저장 버튼 클릭
                 saveBtn.addEventListener("click", () => {
                     const newContent = textarea.value.trim();
-                    const commentId = commentDiv.dataset.commentId;
+                    // const commentId = commentDiv.dataset.commentId;
 
                     if (!newContent) {
                         alert("내용이 비어있습니다.");
@@ -564,14 +645,42 @@
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {
-                            commentDiv.innerHTML = `
-                                <strong>${currentUsername}</strong>: ${data.updated_content}
-                                <br><small>${data.updated_at}</small>
-                                <div class="mt-1">
-                                    <button class="btn btn-sm btn-link text-danger delete-comment-btn">삭제</button>
-                                    <button class="btn btn-sm btn-link text-primary edit-comment-btn">수정</button>
-                                </div>
-                            `;
+                            commentDiv.innerHTML = '';
+
+                            // const username = commentDiv.dataset.username;
+
+                            const textDiv = document.createElement("div");
+                            textDiv.className = "d-flex justify-content-between align-items-start";
+                            // textDiv.innerHTML = `<strong>${username}</strong>: ${data.updated_content}`;
+
+                            const commentText = document.createElement("div");
+                            commentText.className = "comment-text pe-5";
+                            commentText.innerHTML = `<strong>${username}</strong>: <span class="comment-content">${data.updated_content}</span>`;
+                        
+                            const btnGroup = document.createElement("div");
+                            btnGroup.className = "comment-buttons position-absolute top-0 end-0";
+                            
+                            const deleteBtn = document.createElement("button");
+                            deleteBtn.className = "btn btn-sm btn-link delete-comment-btn me-1";
+                            deleteBtn.textContent = "삭제";
+
+                            const editBtn = document.createElement("button");
+                            editBtn.className = "btn btn-sm btn-link edit-comment-btn";
+                            editBtn.textContent = "수정";
+
+                            btnGroup.appendChild(editBtn);
+                            btnGroup.appendChild(deleteBtn);
+
+                            textDiv.appendChild(commentText);
+                            textDiv.appendChild(btnGroup);
+
+                            const time = document.createElement("small");
+                            time.className = "text-muted";
+                            time.textContent = data.updated_at;
+
+                            commentDiv.appendChild(textDiv);
+                            commentDiv.appendChild(time);
+
                         } else {
                             alert(data.message || "수정 실패");
                         }
@@ -581,12 +690,16 @@
                 // 취소 버튼 클릭
                 cancelBtn.addEventListener("click", () => {
                     commentDiv.innerHTML = `
-                        <strong>${currentUsername}</strong>: ${oldContent}
-                        <br><small>방금 전</small>
-                        <div class="mt-1">
-                            <button class="btn btn-sm btn-link text-danger delete-comment-btn">삭제</button>
-                            <button class="btn btn-sm btn-link text-primary edit-comment-btn">수정</button>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="comment-text pe-5">
+                                <strong>${username}</strong>: <span class="comment-content">${oldContent}</span>
+                            </div>
+                            <div class="comment-buttons position-absolute top-0 end-0">
+                                <button class="btn btn-sm btn-link edit-comment-btn">수정</button>
+                                <button class="btn btn-sm btn-link delete-comment-btn">삭제</button>
+                            </div>
                         </div>
+                        <small class="text-muted">방금 전</small>
                     `;
                 });
             }

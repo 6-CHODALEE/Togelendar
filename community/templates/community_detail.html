@@ -142,11 +142,11 @@
                         <a href="{% url 'community:promise:create_promise' community.id %}" class="promise-date-btn btn btn-outline-secondary btn-sm same-width">날짜 정하기</a>
                     </div>
                 </h6>
-                <div>
+                <div class="promise-list">
                     {% if promises %}
-                        <ul class="list-unstyled mb-0">
+                        <ul class="list-unstyled">
                             {% for promise in promises %}
-                                <li>
+                                <li class="mt-2">
                                     {% if promise.id in voted_ids %}
                                         <!--투표 완료한 경우-->
                                         <a href="{% url 'community:promise:promise_result' community.id promise.id %}">
@@ -229,7 +229,6 @@
         border: 1px solid #ccc;
     }
 
-
     .promise-box {
         min-height: 100px; 
         border: 1px solid black;
@@ -280,7 +279,11 @@
         text-align: center;
         color: black;
         font-weight: bold;
+    }
 
+    .promise-list a {
+        color: black;
+        text-decoration: none;
     }
 
     .popover-form {
