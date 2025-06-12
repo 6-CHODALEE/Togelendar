@@ -244,6 +244,8 @@ def photo_comment(request, community_id, album_name, photo_id):
                 comment_content = data.get('content')
 
                 comment = PhotoComment.objects.create(photo=photo, user=request.user, content=comment_content)
+                
+                profile_image_url = request.user.profile_image.url
 
                 return JsonResponse({
                     'success': True, 
@@ -252,6 +254,7 @@ def photo_comment(request, community_id, album_name, photo_id):
                         'user': request.user.username,
                         'content': comment.content,
                         'created_at': comment.created_at.strftime("%Y-%m-%d %H:%M"),
+                        'profile_image': profile_image_url,
                     }
                 })
             except Exception as e:
