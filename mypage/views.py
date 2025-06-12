@@ -30,7 +30,7 @@ from .forms import PasswordCheckForm
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth import get_backends
 from django.http import JsonResponse
-
+from django.contrib import messages
 
 User = get_user_model()
 # Create your views here.
@@ -123,14 +123,19 @@ def create_community(request, username):
         if form.is_valid():
             community = form.save(commit=False)
             community.create_user = request.user.username
-            community.save()
+            if CreateCommunity.objects.filter(community_name = community.community_name, create_user = community.create_user).exists():
+                messages.error(request, '이미 같은 이름의 커뮤니티에 가입되어 있어요.')
+                return redirect('mypage:create_community', username=username)
+            else:
 
-            # 생성자 본인을 멤버로 자동 추가
-            CommunityMember.objects.create(
-                community_name=community.community_name,
-                create_user=community.create_user,
-                member=request.user
-            )
+                community.save()
+
+                # 생성자 본인을 멤버로 자동 추가
+                CommunityMember.objects.create(
+                    community_name=community.community_name,
+                    create_user=community.create_user,
+                    member=request.user
+                )
 
             return redirect('mypage:mypage', username=username)
     else:
