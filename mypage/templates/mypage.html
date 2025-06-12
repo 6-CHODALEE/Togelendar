@@ -130,7 +130,7 @@
             </div>
         
 
-            <!-- ✅ 팝업 폼 -->
+            <!-- 팝업 폼 -->
             <div id="popoverForm" class="popover-form">
                 <div class="popover-arrow"></div>
 
@@ -220,10 +220,10 @@
     </div>
 </div>
 
-<!-- ✅ Django에서 넘긴 검색 결과 JSON 저장 -->
+<!-- Django에서 넘긴 검색 결과 JSON 저장 -->
 {{ results|json_script:"search-results-data" }}
 
-<!-- ✅ 팝업 스타일 -->
+<!-- 팝업 스타일 -->
 <style>
 /* 상단 헤더 구분선 */
 .community-header-bar {
@@ -255,7 +255,7 @@
 .btn-enter {
   background-color: #FFB8FF;
   border: none;
-  border-radius: 16px;
+  border-radius: 20px !important;
   color: black;
   padding: 6px 14px;
   font-weight: bold;
@@ -283,7 +283,7 @@
   background-color: transparent !important;
   border: 1px solid #000000;  /* 점선 테두리, 색상은 연한 분홍 */
   color: black;
-  border-radius: 12px;
+  border-radius: 20px;
   padding: 5px 10px;
   transition: all 0.2s ease-in-out;
 }
@@ -326,7 +326,7 @@ body {
   background-color: #fff9fc;
 }
 
-/* ✅ 프로필 섹션 */
+/* 프로필 섹션 */
 .profile-box {
   width: 220px;
   text-align: center;
@@ -343,7 +343,7 @@ body {
 .profile-box .btn {
   font-size: 0.8rem;
   padding: 5px 10px;
-  border-radius: 10px;
+  border-radius: 20px !important;
   background-color: #FFB8FF;
   color: black;
   border: none;
@@ -352,10 +352,10 @@ body {
   background-color: #fda9f7;
 }
 
-/* ✅ 달력 상단 스타일 */
+/* 달력 상단 스타일 */
 .calendar-card {
   border: 2px solid #FFB8FF;
-  border-radius: 30px;
+  border-radius: 20px;
   padding: 20px;
   background: white;
   box-shadow: 0 4px 10px rgba(0,0,0,0.05);
@@ -394,7 +394,7 @@ body {
   border-left: 12px solid #FFB8FF;
 }
 
-/* ✅ 캘린더 테이블 */
+/* 캘린더 테이블 */
 .calendar-table {
   width: 100%;
   table-layout: fixed;
@@ -439,17 +439,17 @@ body {
   color: #000;
   font-size: 0.75rem;
   padding: 2px 6px;
-  border-radius: 8px;
+  border-radius: 20px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* ✅ 커뮤니티 리스트 */
+/* 커뮤니티 리스트 */
 .community-card {
   background: white;
   border: 2px solid #FFB8FF;
-  border-radius: 16px;
+  border-radius: 20px;
   padding: 16px;
   margin-bottom: 10px;
   display: flex;
@@ -460,7 +460,7 @@ body {
   background-color: #FFB8FF;
   color: black;
   border: none;
-  border-radius: 10px;
+  border-radius: 20px;
   padding: 5px 10px;
   font-weight: bold;
 }
@@ -468,11 +468,11 @@ body {
   background-color: #fda9f7;
 }
 
-/* ✅ 팝업 스타일 */
+/* 팝업 스타일 */
 .popover-form {
   background: white;
   border: 1px solid #ddd;
-  border-radius: 10px;
+  border-radius: 20px;
   padding: 16px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   position: absolute;
@@ -481,7 +481,7 @@ body {
 }
 </style>
 
-<!-- ✅ 팝업 동작 및 검색 결과 출력 JS -->
+<!-- 팝업 동작 및 검색 결과 출력 JS -->
 <script>
 const currentUsername = "{{ request.user.username }}";
 const csrftoken = '{{ csrf_token }}';
@@ -493,26 +493,26 @@ const resultsContainer = document.getElementById("searchResults");
 const searchForm = document.getElementById('searchForm');
 const popupOpenField = document.getElementById('popupOpenField');
 
-// ✅ 검색할 때 현재 팝업 상태 기록
+// 검색할 때 현재 팝업 상태 기록
 searchForm.addEventListener('submit', () => {
     const isPopupOpen = window.getComputedStyle(popover).display !== "none";
     popupOpenField.value = isPopupOpen ? "true" : "false";
 });
 
-// ✅ 서버에서 넘어온 값으로 검색 후 팝업 상태 복원
+// 서버에서 넘어온 값으로 검색 후 팝업 상태 복원
 const hasQuery = "{{ query|default:'' }}" !== "";
 const shouldOpenPopover = "{{ open_popover|yesno:'true,false' }}" === "true";
 
 if (hasQuery && shouldOpenPopover) {
     showPopover();  // 원래 팝업 띄우기
     setTimeout(() => {
-        showPopover();  // 📌 팝업 위치 재조정
-    }, 10);  // 📌 DOM 렌더링 이후 실행되도록 딜레이
+        showPopover();  // 팝업 위치 재조정
+    }, 10);  // DOM 렌더링 이후 실행되도록 딜레이
 } else {
     hidePopover();
 }
 
-// ✅ "함친 추가" 버튼 클릭 시 팝업 열기 (서버 상태 무시)
+// "함친 추가" 버튼 클릭 시 팝업 열기 (서버 상태 무시)
 btn.addEventListener("click", (e) => {
     e.preventDefault();
     showPopover();
@@ -537,22 +537,22 @@ function showPopover() {
     popover.style.display = "block";
 }
 
-// ✅ 팝업 닫기 함수
+// 팝업 닫기 함수
 function hidePopover() {
     popover.style.display = "none";
 }
 
-// ✅ 닫기 버튼
+// 닫기 버튼
 closeBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     clearSearchState();
     hidePopover();
 
-    // ✅ 팝업 닫을 때 URL을 /mypage/<username>으로 강제 이동
+    // 팝업 닫을 때 URL을 /mypage/<username>으로 강제 이동
     window.location.href = `/mypage/${currentUsername}/`;
 });
 
-// ✅ 검색 상태 초기화
+// 검색 상태 초기화
 function clearSearchState() {
     const searchInput = document.querySelector('input[name="q"]');
     if (searchInput) {
@@ -565,7 +565,7 @@ function clearSearchState() {
 }
 
 
-// ✅ 검색 결과 렌더링
+// 검색 결과 렌더링
 const jsonDataElement = document.getElementById('search-results-data');
 
 if (jsonDataElement) {
@@ -583,7 +583,7 @@ if (jsonDataElement) {
             const addButton = document.createElement("button");
             addButton.className = "btn btn-sm";
 
-            // ✅ 상태에 따라 버튼 표시 변경
+            // 상태에 따라 버튼 표시 변경
             if (user.request_status === 'pending') {
                 addButton.textContent = "요청 보냄";
                 addButton.classList.add('btn-secondary');
@@ -606,13 +606,13 @@ if (jsonDataElement) {
     }
 }
 
-// ✅ 요청보내기 Ajax 함수 (이 부분 새로 추가됨!)
+// 요청보내기 Ajax 함수 (이 부분 새로 추가됨!)
 function sendFriendRequest(nickname, button) {
     fetch(`/mypage/${currentUsername}/friend/request/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken  // ✅ 여기!
+            'X-CSRFToken': csrftoken
         },
         body: JSON.stringify({ to_username: nickname })
     })
@@ -630,7 +630,7 @@ function sendFriendRequest(nickname, button) {
     });
 }
 
-// ✅ 버튼 UI 업데이트 함수
+// 버튼 UI 업데이트 함수
 function addFriend(nickname, button) {
     button.textContent = "요청 보냄";
     button.className = "btn btn-sm btn-secondary";
@@ -639,7 +639,7 @@ function addFriend(nickname, button) {
 }
 
 
-function acceptRequest(fromUsername, button) {  // ✅ button 파라미터 추가
+function acceptRequest(fromUsername, button) {  // button 파라미터 추가
     fetch(`/mypage/${currentUsername}/friend/accept/`, {
         method: 'POST',
         headers: {
@@ -657,7 +657,7 @@ function acceptRequest(fromUsername, button) {  // ✅ button 파라미터 추�
     })
     .then(data => {
         if (data.success) {
-            acceptFriend(fromUsername, button);  // ✅ 여기서 button 제대로 전달
+            acceptFriend(fromUsername, button);  // 여기서 button 제대로 전달
         } else {
             alert("에러: " + data.error);
         }
@@ -669,12 +669,12 @@ function acceptRequest(fromUsername, button) {  // ✅ button 파라미터 추�
 }
 
 function acceptFriend(fromUsername, button) {
-    // ✅ 수락 버튼 비활성화
+    // 수락 버튼 비활성화
     button.textContent = "수락 완료";
     button.className = "btn btn-sm btn-secondary";
     button.disabled = true;
 
-    // ✅ 같은 줄의 거절 버튼도 찾아서 비활성화
+    // 같은 줄의 거절 버튼도 찾아서 비활성화
     const parent = button.closest('.d-flex');
     const rejectBtn = parent.querySelector('.reject-btn');
     if (rejectBtn) {
@@ -844,9 +844,9 @@ window.addEventListener("click", function (e) {
         !popover.contains(e.target) &&
         e.target !== btn
     ) {
-        clearSearchState();  // ✅ 검색 input 초기화 + results 비우기
-        hidePopover();       // ✅ 팝업 숨기기
-        window.location.href = `/mypage/${currentUsername}/`;  // ✅ 새로고침 또는 URL 초기화
+        clearSearchState();  // 검색 input 초기화 + results 비우기
+        hidePopover();       // 팝업 숨기기
+        window.location.href = `/mypage/${currentUsername}/`;  // 새로고침 또는 URL 초기화
     }
 
     // 커뮤니티 가입 요청 팝업

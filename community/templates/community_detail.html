@@ -84,7 +84,7 @@
             <div class="member-box p-3 mb-3">
                 <h6 class="fw-bold d-flex justify-content-between">
                     커뮤니티 멤버
-                    <a href="#" id="showMemberPopover" class="btn btn-outline-secondary btn-sm">
+                    <a href="#" id="showMemberPopover" class="member-invite-btn btn btn-outline-secondary btn-sm">
                         멤버 추가
                     </a>
                     <!--멤버 추가 팝업-->
@@ -117,14 +117,13 @@
             </h6>
                 <!--커뮤니티 멤버 목록 표시-->
                 <div style="min-height: 100px;">
-                    <h6 class="fw-bold">참여 중인 멤버</h6>
                     {% if member_users %}
                         <ul id="memberList" class="list-unstyled mb-0">
                             {% for member in member_users %}
-                            <p>
-                                <img src="{{member.profile_image}}" alt="프로필" class="member-profile-img me-2">
+                            <li class="mt-2">
+                                <img src="{{member.profile_image}}" alt="{{member.username}}의 프로필 이미지" class="member-profile-img me-2">
                                 {{member.username}}
-                            </p>
+                            </li>
                             {% endfor %}
                         </ul>
                     {% else %}
@@ -139,8 +138,8 @@
                 <h6 class="fw-bold d-flex justify-content-between align-items-center">
                     약속
                     <div class="d-flex gap-2">
-                        <a href="{% url 'community:promise:no_place_promise' community.id %}" class="btn btn-outline-secondary btn-sm same-width">장소 정하기</a>
-                        <a href="{% url 'community:promise:create_promise' community.id %}" class="btn btn-outline-secondary btn-sm same-width">날짜 정하기</a>
+                        <a href="{% url 'community:promise:no_place_promise' community.id %}" class="promise-location-btn btn btn-outline-secondary btn-sm same-width">장소 정하기</a>
+                        <a href="{% url 'community:promise:create_promise' community.id %}" class="promise-date-btn btn btn-outline-secondary btn-sm same-width">날짜 정하기</a>
                     </div>
                 </h6>
                 <div>
@@ -173,7 +172,8 @@
 
 <style>
     .promise-card {
-        width: 180px;
+        width: 100%;
+        max-width: 200px;
         border: 1px solid black;
         border-radius: 0%;
         background: white;
@@ -208,7 +208,7 @@
         display: block;
         margin-top: 20px;
         font-weight: bold;
-        font-size: 1.3rem;
+        /* font-size: 1.3rem; */
         text-align: center;
         color: black;
     }
@@ -269,6 +269,18 @@
         justify-content: center;
         align-items: center;
         z-index: 1000;
+    }
+
+    .member-invite-btn,
+    .promise-location-btn,
+    .promise-date-btn {
+        background-color: #FF98FF;
+        border: none;
+        border-radius: 30px;
+        text-align: center;
+        color: black;
+        font-weight: bold;
+
     }
 
     .popover-form {
@@ -344,8 +356,8 @@
         }
         
         document.querySelectorAll('.invite-member-btn').forEach(button => {
-            button.addEventListener("click", () => {
-                const username = button.dataset.username;
+            button.addEventListener("click", function() {
+                const username = this.dataset.username;
                 
                 fetch("{% url 'community:invite_member_ajax' community.id %}", {
                     method: "POST",
@@ -366,20 +378,6 @@
                         button.className = "btn btn-sm btn-success";
                         button.disabled = true;
 
-                        // 멤버 리스트에 추가
-                        const memberList = document.getElementById("memberList");
-                        
-                        // 리스트가 없으면 ul태그 생성
-                        if (!memberList) {
-                            const newList = document.createElement("ul");
-                            newList.id = "memberList";
-                            newList.className = "list-unstyled mb-0";
-                            document.querySelector(".bg-light.p-3.mb-3").appendChild(newList);
-                        }
-                        
-                        const li = document.createElement("li");
-                        li.textContent = "👤 " + username;
-                        memberList.appendChild(li);
                     } else {
                         alert("초대 실패: " + (data.message || data.error || "알 수 없는 오류"));
                     }
