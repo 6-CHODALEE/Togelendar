@@ -204,7 +204,7 @@ def upload_photo(request, community_id, album_name):
         photo = Photo.objects.create(
             image=image,
             promise=promise,
-            uploaded_by=request.user  # ✅ 업로드한 사용자 설정
+            uploaded_by=request.user  # 업로드한 사용자 설정
         )
 
         return JsonResponse({
@@ -248,7 +248,7 @@ def photo_comment(request, community_id, album_name, photo_id):
                 return JsonResponse({
                     'success': True, 
                     'comment': {
-                        'id': comment.id,  # ✅ 댓글 ID 포함
+                        'id': comment.id,  # 댓글 ID 포함
                         'user': request.user.username,
                         'content': comment.content,
                         'created_at': comment.created_at.strftime("%Y-%m-%d %H:%M"),
@@ -262,6 +262,7 @@ def photo_comment(request, community_id, album_name, photo_id):
             comment_list = [{
                 'id': comment.id,
                 'user': comment.user.username,
+                'profile_image': comment.user.profile_image.url if hasattr(comment.user, 'profile_image') and comment.user.profile_image else '/static/default-profile.png',
                 'content': comment.content,
                 'created_at': comment.created_at.strftime("%Y-%m-%d %H:%M")
             } for comment in comments]

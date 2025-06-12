@@ -355,18 +355,24 @@
                 if (data.success) {
                     commentList.innerHTML = '';
                     data.comments.forEach(comment => {
-                        const item = document.createElement("div");
-                        item.classList.add("photo-comment", "mb-2", "position-relative");
-                        item.dataset.commentId = comment.id;
-                        item.dataset.username = comment.user;
+                        const commentDiv = document.createElement("div");
+                        commentDiv.classList.add("photo-comment", "mb-2", "position-relative");
+                        commentDiv.dataset.commentId = comment.id;
+                        commentDiv.dataset.username = comment.user;
+                        commentDiv.dataset.profileImage = comment.profile_image || "/static/default-profile.png";
 
                         const commentText = document.createElement("div");
-                        commentText.className = "comment-text pe-5";
-                        commentText.innerHTML = `<strong>${comment.user}</strong>: ${comment.content}`;
+                        commentText.className = "d-flex align-items-start pe-5";
 
-                        const small = document.createElement("small");
-                        small.className = "text-muted";
-                        small.textContent = comment.created_at;
+                        commentText.innerHTML = `
+                            <img src="${comment.profile_image || '/static/default-profile.png'}"
+                                class="rounded-circle me-2"
+                                style="width: 32px; height: 32px; object-fit: cover;">
+                            <div>
+                                <strong>${comment.user}</strong>: ${comment.content}
+                                <br><small class="text-muted">${comment.created_at}</small>
+                            </div>
+                        `;
 
                         if (comment.user === currentUsername) {
                             const btnGroup = document.createElement("div");
@@ -384,12 +390,11 @@
 
                             btnGroup.appendChild(editBtn);
                             btnGroup.appendChild(deleteBtn);
-                            item.appendChild(btnGroup);
+                            commentDiv.appendChild(btnGroup);
                         }
 
-                        item.appendChild(commentText);
-                        item.appendChild(small);
-                        commentList.appendChild(item);
+                        commentDiv.appendChild(commentText);
+                        commentList.appendChild(commentDiv);
                     });
                 }
             });
@@ -467,6 +472,7 @@
                         item.classList.add("photo-comment", "mb-2");
                         item.dataset.commentId = comment.id;
                         item.dataset.username = comment.user;
+                        item.dataset.profileImage = comment.profile_image || "/static/default-profile.png";
 
                         // 작성자
                         const strong = document.createElement("strong");
@@ -587,23 +593,26 @@
                 const commentDiv = e.target.closest(".photo-comment");
                 const username = commentDiv.dataset.username;
                 const commentId = commentDiv.dataset.commentId;
+                const profileImage = commentDiv.dataset.profileImage || "/static/default-profile.png";
 
-                const contentElement = commentDiv.querySelector(".comment-text");
-                const oldContent = contentElement ? contentElement.innerText.replace(`${username}:`, '').trim() : '';
+                const contentElement = commentDiv.querySelector(".comment-content");
+                const oldContent = contentElement ? contentElement.textContent.trim() : '';
 
-                // 기존 댓글 삭제
-                commentDiv.innerHTML = '';
-                commentDiv.dataset.commentId = commentId;
-                commentDiv.dataset.username = username;
+                // 기존 댓글 영역 제거
+                const oldTextDiv = commentDiv.querySelector(".comment-text");
+                if (oldTextDiv) oldTextDiv.remove();
 
-                //사용자 이름 표시
-                const contentWrap = document.createElement("div");
-                contentWrap.innerHTML = `<strong>${username}</strong>:`; // username은 그대로 유지
+                // form 구성
+                const editWrapper = document.createElement("div");
+                editWrapper.className = "d-flex align-items-start";
 
-                // 수정 폼 입력창 생성
-                const textarea = document.createElement("textarea");
-                textarea.className = "form-control form-control-sm mb-1";
-                textarea.value = oldContent;
+                editWrapper.innerHTML = `
+                    <img src="${profileImage}" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                    <div style="flex: 1;">
+                        <strong>${username}</strong>:
+                        <textarea class="form-control form-control-sm mt-1">${oldContent}</textarea>
+                    </div>
+                `
 
                 // 저장/취소버튼 그룹
                 const btnWrap = document.createElement("div");
@@ -620,14 +629,12 @@
                 btnWrap.appendChild(saveBtn);
                 btnWrap.appendChild(cancelBtn);
 
-                commentDiv.appendChild(contentWrap);
-                commentDiv.appendChild(textarea);
+                commentDiv.appendChild(editWrapper);
                 commentDiv.appendChild(btnWrap);
 
                 // 저장 버튼 클릭
                 saveBtn.addEventListener("click", () => {
-                    const newContent = textarea.value.trim();
-                    // const commentId = commentDiv.dataset.commentId;
+                    const newContent = editWrapper.querySelector("textarea").value.trim();
 
                     if (!newContent) {
                         alert("내용이 비어있습니다.");
@@ -647,15 +654,23 @@
                         if (data.success) {
                             commentDiv.innerHTML = '';
 
-                            // const username = commentDiv.dataset.username;
+                            commentDiv.dataset.username = username;
+                            commentDiv.dataset.profileImage = profileImage;
 
                             const textDiv = document.createElement("div");
                             textDiv.className = "d-flex justify-content-between align-items-start";
-                            // textDiv.innerHTML = `<strong>${username}</strong>: ${data.updated_content}`;
 
                             const commentText = document.createElement("div");
                             commentText.className = "comment-text pe-5";
-                            commentText.innerHTML = `<strong>${username}</strong>: <span class="comment-content">${data.updated_content}</span>`;
+                            commentText.innerHTML = `
+                                <img src="${profileImage}" 
+                                    class="rounded-circle me-2" 
+                                    style="width: 32px; height: 32px; object-fit: cover;">
+                                <div>
+                                    <strong>${username}</strong>: <span class="comment-content">${data.updated_content}</span><br>
+                                    <small class="text-muted">${data.updated_at}</small>
+                                </div> 
+                            `;
                         
                             const btnGroup = document.createElement("div");
                             btnGroup.className = "comment-buttons position-absolute top-0 end-0";
@@ -671,15 +686,14 @@
                             btnGroup.appendChild(editBtn);
                             btnGroup.appendChild(deleteBtn);
 
-                            textDiv.appendChild(commentText);
                             textDiv.appendChild(btnGroup);
-
-                            const time = document.createElement("small");
-                            time.className = "text-muted";
-                            time.textContent = data.updated_at;
-
                             commentDiv.appendChild(textDiv);
-                            commentDiv.appendChild(time);
+
+                            // const time = document.createElement("small");
+                            // time.className = "text-muted";
+                            // time.textContent = data.updated_at;
+
+                            // commentDiv.appendChild(textDiv);
 
                         } else {
                             alert(data.message || "수정 실패");
