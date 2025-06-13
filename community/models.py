@@ -18,9 +18,6 @@ class CommunityMember(models.Model):
         related_name='community_members'
     )
 
-    class Meta:
-        unique_together = ('community_name', 'member')
-
     def __str__(self):
         return f"{self.member} in {self.community_name} (created by {self.create_user})"
 
