@@ -3,7 +3,7 @@
 {% block body %}
 <div class="create-wrapper">
   <div class="create-box">
-    <h2>커뮤니티 생성</h2>
+    <h2>하뮤니티 생성</h2>
 
     <form method="POST" enctype="multipart/form-data">
       {% csrf_token %}
@@ -31,10 +31,9 @@
     justify-content: center;
     align-items: center;
   }
-
+  
   .create-box {
-    border: 2px solid #FF98FF;
-    border-radius: 30px;
+    background-color: white;
     padding: 30px;
     width: 480px;
     text-align: center;
@@ -66,30 +65,29 @@
   .form-row textarea {
     flex: 1;
     padding: 8px 10px;
-    border-radius: 8px;
     border: 1px solid black;
     max-width: 300px;
 }
 
 .form-row input[type="file"] {
   border: none;
-  border-radius: 0;
+  border-radius: 0 !important;
   padding: 0;
   }
 
   .submit-btn {
     margin-top: 20px;
-    background-color: #FF98FF;
+    background-color: #A39F95;
     color: black;
     font-weight: bold;
     border: none;
-    border-radius: 10px;
+    border-radius: 0;
     padding: 10px 20px;
     cursor: pointer;
   }
 
   .submit-btn:hover {
-    background-color: #FF98FF;
+    background-color: #A39F95;
   }
 </style>
 

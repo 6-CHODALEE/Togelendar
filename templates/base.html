@@ -13,6 +13,8 @@
 
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    
+    {% load static %}
 
     {% block head %}{% endblock %}
 </head>
@@ -34,7 +36,18 @@
 
     <style>
         body {
-            {% block background_color %}background-color: white;{% endblock %}
+            {% block background_style %}
+                {% if request.resolver_match.url_name == 'index' %}
+                    background-image: url("{% static 'index/images/index_background.png' %}");
+                {% else %}
+                    background-image: url("{% static 'index/images/background.png' %}");
+                {% endif %}
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-attachment: fixed;
+            background-color: #e9e7e2;
+            {% endblock %}
         }
     </style>
 

@@ -17,7 +17,7 @@
                 {{form.password}}
             </div>
 
-            <input type="submit" value="로그인" class="submit-btn mt-3">
+            <input type="submit" value="로그인" class="submit-btn mt-4">
         </form>
 
         <hr class="divider">
@@ -34,21 +34,21 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 90vh;
+        height: 70vh;
     }
 
     .login-box {
-        border: 2px solid #FF98FF;
-        border-radius: 20px;
-        padding: 30px 32px;
-        width: 480px;
+        padding: 20px 32px;
+        background-color: white;
+        width: 100%;
+        max-width: 500px;
         text-align: center;
     }
 
     .login-box h2 {
         font-size: 24px;
         font-weight: bold;
-        margin-bottom: 24px;
+        margin-bottom: 50px;
     }
 
     .form-row {
@@ -61,23 +61,22 @@
     .form-row label {
         width: 90px;
         text-align: left;
+        font-weight: bold;
     }
 
     .form-row input {
         flex: 1;
         padding: 10px 12px;
-        border-radius: 12px;
         border: 1px solid black;
     }
 
     .login-box input[type="submit"] {
         width: 100%;
         padding: 10px;
-        background-color: #FF98FF;
+        background-color: #A39F95;
         color: black;
         font-weight: bold;
         border: none;
-        border-radius: 20px;
         cursor: pointer;
     }
 
@@ -96,7 +95,6 @@
 
     .social-login a {
         padding: 10px;
-        border-radius: 20px;
         font-weight: bold;
         font-size: 0.95rem;
         cursor: pointer;
@@ -106,22 +104,21 @@
         background-color: #FFFB12;
         color: black;
         border: none;
-        width: 600;
-        border-radius: 20px;
+        border-radius: 0;
     }
 
     .naver-btn {
         background-color: #5BFF5B;
         color: black;
         border: none;
-        border-radius: 20px;
+        border-radius: 0;
     }
 
     .google-btn {
         background-color: white;
         color: black;
         border: 2px solid #3d7fff;
-        border-radius: 20px;
+        border-radius: 0;
     }
 </style>
 {% endblock %}

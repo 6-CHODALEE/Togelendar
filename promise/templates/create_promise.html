@@ -4,7 +4,11 @@
 <form method="POST" action="">
     {% csrf_token %}
     
-    <div class="container mt-4" style="max-width: 800px; margin: 0 auto;">
+    <div class="container mt-4" style="max-width: 800px; margin: 0 auto; background-color: white; padding: 30px;">
+        <div class="text-center mb-5">
+            <h2><strong>언제 만날래?</strong></h2>
+        </div>
+        
         <div class="row mb-3 align-items-center">
             <label class="col-2 col-form-label text-end fw-bold">약속명 :</label>
                 <div class="col-10">
@@ -15,7 +19,7 @@
             <div class="row mb-3 align-items-center">
                 <label class="col-2 col-form-label text-end fw-bold">시작일 :</label>
             <div class="col-10 d-flex align-items-center gap-2">
-                <select id="start-year" name="start-year" class="form-select w-auto">
+                <select id="start-year" name="start-year" class="form-select w-auto" >
                     <option disabled selected>선택</option>
                         {% for year in years %}
                             <option value="{{ year }}">{{ year }}</option>
@@ -81,10 +85,16 @@
 </form>
     
 <style>
+    .form-control,
+    .form-select {
+        border-radius: 0;
+    }
+
+
     /* FullCalendar 버튼 공통 스타일 초기화 */
     .fc .fc-button {
         background-color: white;
-        border: 2px solid #FFB8FF;
+        border: 2px solid #A39F95;
         color: black;
         font-weight: bold;
         font-size: 16px;
@@ -102,16 +112,15 @@
     /* 오늘 버튼 */
     .fc .fc-today-button {
         background-color: white !important;      
-        color: black !important;                
-        border: 2px solid #FFB8FF !important;   
-        border-radius: 50px !important;
-        padding: 6px 20px !important;
-        font-weight: bold !important;
-        font-size: 15px !important;
+        color: black !important;
+        border: 1px solid #A39F95 !important;   
+        border-radius: 0;
+        font-weight: bold;
+        font-size: 15px;
     }
 
     .fc .fc-today-button:hover {
-        background-color: #fff0fa !important;    
+        background-color: #A39F95 !important;    
         color: black !important;
     }
 
@@ -120,8 +129,7 @@
     .fc .fc-prev-button,
     .fc .fc-next-button {
         background-color: white !important;   
-        border: none !important;              
-        border-radius: 12px;                 
+        border: none;
         width: 40px;
         height: 40px;
         padding: 0;
@@ -144,7 +152,7 @@
         height: 0;
         border-top: 8px solid transparent;
         border-bottom: 8px solid transparent;
-        border-right: 12px solid #FFB8FF;
+        border-right: 12px solid #A39F95;
     }
 
     .fc .fc-next-button::before {
@@ -153,7 +161,7 @@
         height: 0;
         border-top: 8px solid transparent;
         border-bottom: 8px solid transparent;
-        border-left: 12px solid #FFB8FF;
+        border-left: 12px solid #A39F95;
     }
 
     /* hover 시 배경 유지 + 화살표 색상만 변경 */
@@ -163,11 +171,11 @@
     }
 
     .fc .fc-prev-button:hover::before {
-        border-right-color: #fda9f7;
+        border-right-color: #A39F95;
     }
 
     .fc .fc-next-button:hover::before {
-        border-left-color: #fda9f7;
+        border-left-color: #A39F95;
     }
 
     /* 아이콘 사이즈 */
@@ -204,17 +212,14 @@
     .fc .fc-scrollgrid > tbody,
     .fc .fc-scrollgrid > tbody > tr,
     .fc .fc-scrollgrid > tbody > tr > td {
-        
         overflow: hidden;
     }
     
     .fc .fc-view-harness {
-        border-radius: 16px;             /* 둥근 모서리 */
-        border: 1px solid #000000;       /* 검정 테두리 */
+        border: 1px solid black;       /* 검정 테두리 */
         overflow: hidden;                /* 내부 넘침 방지 */
         box-sizing: border-box;          /* 테두리 포함 레이아웃 */
-        padding: 16px;               /* 테두리와 내용 사이 여백 */
-        background-color: white; 
+        padding: 30px;               /* 테두리와 내용 사이 여백 */
     }
 
     /* 가장 안쪽 테이블의 테두리 없애기 (테두리 잘림 방지) */
@@ -223,6 +228,7 @@
         border: none;
         border-collapse: collapse;
         border-spacing: 0;
+        margin-bottom: 3px !important;
     }
     
     /* 요일 헤더 스타일 */
@@ -355,18 +361,18 @@
     }
 
     .fc-event.selected-day-start {
-        background-color: rgba(255, 184, 255, 0.5) !important;
+        background-color: rgba(163, 159, 149, 0.5) !important;
         border-radius: 50px 0 0 50px !important;
         height: 28px;
-        width: calc(100% + 25px); /* ✅ 셀보다 살짝 길게 */
+        width: calc(100% + 25px); /* 셀보다 살짝 길게 */
         position: absolute;
         top: 10px;
-        left: -27px;                /* ✅ 반 셀 크기만큼 왼쪽으로 이동 */
+        left: -27px;                /* 반 셀 크기만큼 왼쪽으로 이동 */
         z-index: 1;
     }
 
     .fc-event.selected-day-middle {
-        background-color: rgba(255, 184, 255, 0.5) !important;
+        background-color: rgba(163, 159, 149, 0.5) !important;
         border-radius: 0 !important;
         height: 28px;
         width: calc(100% + 25px);
@@ -377,7 +383,7 @@
     }
 
     .fc-event.selected-day-end {
-        background-color: rgba(255, 184, 255, 0.5) !important;
+        background-color: rgba(163, 159, 149, 0.5) !important;
         border-radius: 0 50px 50px 0 !important;
         height: 28px;
         width: calc(100% + 25px);
@@ -388,7 +394,7 @@
     }
     
     .fc-event.selected-day-single {
-        background-color: rgba(255, 184, 255, 0.5) !important;
+        background-color: rgba(163, 159, 149, 0.5) !important;
         border-radius: 50% !important;
         width: 28px;
         height: 28px;
@@ -419,9 +425,10 @@
         background: none !important;
     }
     .btn-outline-dark.px-4.py-2 {
-        background-color: #FFB8FF;
-        border: none;
-        border-radius: 16px;
+        background-color: white;
+        border: 1px solid #A39F95;
+        border-radius: 0;
+        color: black;
         font-size: 16px;
         transition: all 0.2s ease;
     }

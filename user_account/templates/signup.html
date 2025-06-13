@@ -3,17 +3,23 @@
 
 {% block body %}
 <style>
-    .signup-container {
-        max-width: 500px;
-        margin: 50px auto;
-        padding: 40px;
-        border: 2px solid #FF41FF;
-        border-radius: 30px;
+    .signup-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 85vh;
+    }
+
+    .signup-box {
+        padding: 20px 32px;
         background-color: white;
-        font-family: 'Arial Rounded MT Bold', sans-serif;
+        width: 100%;
+        max-width: 500px;
+        text-align: center;
     }
 
     .signup-title {
+        padding: 20px 32px;
         text-align: center;
         font-size: 24px;
         margin-bottom: 30px;
@@ -24,22 +30,27 @@
         align-items: center;
         margin-bottom: 15px;
     }
-
+    
     .form-group label {
         width: 120px;
         text-align: left;
         font-weight: bold;
     }
-
-    .form-group input,
-    .form-group select {
+    
+    .form-group input {
+        border: 1px solid #A39F95;
         flex: 1;
         padding: 8px 10px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
         max-width: 300px;
     }
 
+    .form-group select {
+        flex: 1;
+        padding: 8px 10px;
+        border: 1px solid #ccc;
+        max-width: 300px;
+    }
+    
     .form-group input[type="file"] {
         border: none;
         border-radius: 0;
@@ -48,6 +59,7 @@
 
     .zipcode-group {
         display: flex;
+        text-align: start;
         align-items: center;
         margin-bottom: 15px;
     }
@@ -60,93 +72,94 @@
     .zipcode-group input {
         width: 150px;
         padding: 8px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
+        border: 1px solid #A39F95;
         margin-right: 10px;
     }
 
     .zipcode-group button {
-        border: 1px solid #000;
+        border: 1px solid black;
         background: white;
-        border-radius: 6px;
         padding: 6px 12px;
         white-space: nowrap;
     }
 
     .address-group {
         display: flex;
-        align-items: center;
+        flex-direction: column;
+        align-items: flex-start;
         margin-bottom: 15px;
+        border-radius: 0;
+        width: 100%;
     }
 
     .address-group label {
         width: 120px;
         font-weight: bold;
+        text-align: start;
     }
 
     .address-group input {
         flex: 1;
         padding: 8px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-        max-width: 300px;
+        border: 1px solid #A39F95;
+        width: 100%;
+    }
+
+    #visible_address {
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .custom-btn {
-        background-color: #FFB8FF;
+        background-color: #A39F95;
         color: black;
         border: none;
-        border-radius: 10px;
         padding: 10px;
         display: block;
         width: 100%;
-        margin-top: 20px;
+        margin-top: 30px;
         font-weight: 600;
     }
 </style>
 
-<div class="signup-container">
-    <div class="signup-title"><B>회원가입</B></div>
-    <form action="" method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-
-        {% for field in form %}
+<div class="signup-wrapper">
+    <div class="signup-box">
+        <div class="signup-title"><B>회원가입</B></div>
+        <form action="" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            {% for field in form %}
             {% if field.name == 'postcode' or field.name == 'address' %}
-                {{ field.as_hidden }}
+            {{ field.as_hidden }}
             {% elif field.name == 'profile_image' %}
-                <div class="form-group">
-                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    <div>{{ field }}</div>
-                </div>
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                <div>{{ field }}</div>
+            </div>
             {% else %}
-                <div class="form-group">
-                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    {{ field }}
-                </div>
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+            </div>
             {% endif %}
-        {% endfor %}
-
-        <!-- 우편번호 -->
-        <div class="zipcode-group">
-            <label for="visible_postcode">우편번호</label>
-            <input type="text" id="visible_postcode" readonly>
-            <button type="button" onclick="execDaumPostcode()">우편번호 찾기</button>
-        </div>
-
-        <!-- 주소 (라벨 위, 입력창 아래로 정렬) -->
-        <div class="address-group" style="flex-direction: column; align-items: flex-start;">
-            <label for="visible_address" style="font-weight: bold; margin-bottom: 5px;">주소</label>
-            <input type="text" id="visible_address" readonly style="
-                width: 100%;
-                max-width: 420px;
-                padding: 8px;
-                border-radius: 8px;
-                border: 1px solid #ccc;
-            ">
-        </div>
-
-        <button type="submit" class="custom-btn">회원가입</button>
-    </form>
+            {% endfor %}
+            
+            <!-- 우편번호 -->
+            <div class="zipcode-group">
+                <label for="visible_postcode">우편번호</label>
+                <input type="text" id="visible_postcode" readonly>
+                <button type="button" onclick="execDaumPostcode()">우편번호 찾기</button>
+            </div>
+            
+            <!-- 주소 (라벨 위, 입력창 아래로 정렬) -->
+            <div class="address-group">
+                <label for="visible_address" style="font-weight: bold; margin-bottom: 7px;">주소</label>
+                <input type="text" id="visible_address" readonly>
+            </div>
+            
+            <button type="submit" class="custom-btn">회원가입</button>
+        </form>
+    </div>
 </div>
 
 <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
