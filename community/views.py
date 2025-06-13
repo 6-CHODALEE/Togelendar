@@ -18,6 +18,7 @@ from django.utils import timezone
 @login_required
 def community_detail(request, community_id):
     community = CreateCommunity.objects.get(id=community_id)
+    print(community.community_name)
     promises = Promise.objects.filter(community=community)
 
     # 앨범 대표사진
@@ -64,12 +65,14 @@ def community_detail(request, community_id):
         community_name = community.community_name,
         create_user = community.create_user,
     )
+    print(members)
 
     member_users = []
     for m in members:
         user = m.member
+        CreateCommunity.objects.get(community_name = community.community_name)
         member_users.append({
-            'username': user.username,
+            'username': user,
             'profile_image': user.profile_image.url if user.profile_image else None
         })
     

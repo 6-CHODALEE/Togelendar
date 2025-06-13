@@ -69,13 +69,16 @@ def mypage(request, username):
     my_memberships = CommunityMember.objects.filter(member=me.username)
     my_communities = [
         CreateCommunity.objects.filter(
-            community_name=m.community_name,
-            create_user=m.create_user
+            community_name=m.community_name
         ).first()
         for m in my_memberships
     ]
     my_communities = [c for c in my_communities if c is not None]
     community_names = [c.community_name for c in my_communities]
+    for cm in CommunityMember.objects.all():
+        print("🎯 실제 값:", repr(cm.member), repr(cm.community_name), repr(cm.create_user))
+    print(my_memberships)
+    print(my_communities)
 
     promises = Promise.objects.filter(community__community_name__in=community_names)
     results = PromiseResult.objects.filter(promise__in=promises)
@@ -121,21 +124,29 @@ def create_community(request, username):
     if request.method == 'POST':
         form = CreateCommunityFrom(request.POST, request.FILES)
         if form.is_valid():
-            community = form.save(commit=False)
-            community.create_user = request.user.username
-            if CreateCommunity.objects.filter(community_name = community.community_name, create_user = community.create_user).exists():
-                messages.error(request, '이미 같은 이름의 커뮤니티에 가입되어 있어요.')
+            # 폼에서 추출만 (아직 저장은 안 함)
+            temp_community_name = form.cleaned_data['community_name']
+            temp_create_user = request.user.username
+
+            # 이미 존재하는 멤버인지 확인 (ForeignKey는 저장 전이라 문자열 비교)
+            if CommunityMember.objects.filter(
+                community_name=temp_community_name,
+                member=request.user.username
+            ).exists():
                 return redirect('mypage:create_community', username=username)
-            else:
 
-                community.save()
+            # 통과한 경우에만 저장
+            community = form.save(commit=False)
+            community.create_user = temp_create_user
+            community.save()
 
-                # 생성자 본인을 멤버로 자동 추가
-                CommunityMember.objects.create(
-                    community_name=community.community_name,
-                    create_user=community.create_user,
-                    member=request.user
-                )
+        
+
+            CommunityMember.objects.create(
+                community_name=community.community_name,
+                create_user=community.create_user,
+                member=request.user
+            )
 
             return redirect('mypage:mypage', username=username)
     else:
