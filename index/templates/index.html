@@ -10,12 +10,6 @@
             <p><strong>Togelendar</strong>에서 약속을 쉽게 만들고,</p>
             <p>소중히 간직하세요.</p>
         </div>
-
-        <div class="home-cards">
-            <img src="{% static 'index/images/mypage.png' %}" class="home-card card1" alt="sample1">
-            <img src="{% static 'index/images/community.png' %}" class="home-card card2" alt="sample2">
-            <img src="{% static 'index/images/album.png' %}" class="home-card card3" alt="smaple3">
-        </div>
     </div>
 </div>
 
@@ -26,16 +20,20 @@
         align-items: center;
         min-height: calc(100vh - 80px);
         padding: 40px;
+        position: relative;
     }
 
     .home-content {
         display: flex;
         flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
+        justify-content: center;
+        align-items: flex-start;
+        text-align: center;
         gap: 30px;
         max-width: 1000px;
         width: 100%;
+        position: relative;
+        top: -150px;
     }
     
     .home-text {
@@ -43,36 +41,12 @@
         font-size: 1.4rem;
         line-height: 2.2rem;
         color: #333;
-        margin-top: 200px;
     }
 
     .home-text strong {
-        color: #FF41FF;
+        color: black;
     }
 
-    .home-cards {
-        position: relative;
-        width: 580px;
-        height: 480px;
-    }
-
-    .home-card {
-        position: absolute;
-        width: auto;
-        height: auto;
-        max-width: 450px;
-        max-height: 300px;
-        border: 2px solid #FF41FF;
-        border-radius: 24px;
-        object-fit: cover;
-    }
-
-    .card1 { top: 0; left: 50px; }
-    .card2 { top: 240px; left: 300px; }
-    .card3 { top: 480px; left: -30px;}
+    
 </style>
-{% endblock %}
-
-{% block background_color %}
-    background-color: rgba(255, 195, 255, 0.3);
 {% endblock %}

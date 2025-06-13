@@ -12,12 +12,12 @@
                 <div class="profile-image-wrapper position-relative">
                   {% if me.profile_image %}
                       <img src="{{ me.profile_image.url }}"
-                          class="rounded-circle"
+                          class="rounded-circle mb-3"
                           style="width: 170px; height: 170px; object-fit: cover;"
                           alt="프로필 이미지">
                   {% else %}
                       <img src="{% static 'default_profile.png' %}"
-                          class="rounded-circle"
+                          class="rounded-circle mb-3"
                           style="width: 170px; height: 170px; object-fit: cover;"
                           alt="기본 이미지">
                   {% endif %}
@@ -27,7 +27,7 @@
 
                 </div>
                 <!-- 이름 -->
-                <p class="fw-bold mb-1">{{ me.username }}</p>
+                <p class="fw-bold mb-2">{{ me.username }}</p>
 
                 <!-- 버튼 2개 수평 정렬 -->
                 <div class="d-flex justify-content-center gap-2">
@@ -174,11 +174,11 @@
         <h5 class="mb-0">{{ me }}의 커뮤니티 리스트</h5>
         <div class="d-flex gap-2">
         {% if invite_requests %}
-            <a href="#" id="showInvitePopover" class="btn btn-outline-request btn-sm">
+            <a href="#" id="showInvitePopover" class="btn btn-outline-request btn-sm" style="border-radius: 0;">
             가입요청 {{ invite_requests|length }}건
             </a>
         {% endif %}
-        <a href="{% url 'mypage:create_community' me %}" class="btn btn-create btn-sm">
+        <a href="{% url 'mypage:create_community' me %}" class="btn btn-create btn-sm" style="border-radius: 0;">
             생성하기
         </a>
         </div>
@@ -225,6 +225,13 @@
 
 <!-- 팝업 스타일 -->
 <style>
+/* 본문 내용은 위로 띄우기 */
+.main-content {
+  position: relative;
+  z-index: 1;
+}
+
+
 /* 상단 헤더 구분선 */
 .community-header-bar {
   border-bottom: 2px solid black;
@@ -233,8 +240,7 @@
 
 /* 가입 요청 버튼 */
 .btn-outline-request {
-  border: 2px solid #FFB8FF;
-  border-radius: 20px;
+  border: 2px solid #A39F95;
   background-color: white;
   color: black;
   padding: 6px 14px;
@@ -243,9 +249,8 @@
 
 /* 생성하기 버튼 */
 .btn-create {
-  background-color: #FFB8FF;
-  border: none;
-  border-radius: 20px;
+  background-color: #A39F95;
+  border: 1px solid black;
   color: black;
   padding: 6px 14px;
   font-weight: bold;
@@ -253,9 +258,8 @@
 
 /* 입장하기 버튼 */
 .btn-enter {
-  background-color: #FFB8FF;
-  border: none;
-  border-radius: 20px !important;
+  background-color: white;
+  border: 1px solid #A39F95;
   color: black;
   padding: 6px 14px;
   font-weight: bold;
@@ -274,35 +278,34 @@
 .community-card {
   background-color: white;
   border: 1.5px solid #333;
-  border-radius: 25px;
   padding: 16px 24px;
   margin-bottom: 16px;
 }
 
 .custom-dotted-btn {
   background-color: transparent !important;
-  border: 1px solid #000000;  /* 점선 테두리, 색상은 연한 분홍 */
+  border: 1px solid #000000;
+  border-radius: 0;
   color: black;
-  border-radius: 20px;
   padding: 5px 10px;
   transition: all 0.2s ease-in-out;
 }
 
 .custom-dotted-btn:hover {
-  background-color: #fff0fa;
+  background-color: white;
   color: black;
 }
 
 .circle-button {
     width: 32px;
     height: 32px;
-    border-radius: 50%;
     padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 16px;
     line-height: 1;
+    text-decoration: none;
 }
 
 .edit-profile-button {
@@ -323,7 +326,7 @@
 /* 전체 배경 및 기본 폰트 설정 */
 body {
   font-family: "Arial Rounded MT Bold", sans-serif;
-  background-color: #fff9fc;
+  background-color: white;
 }
 
 /* 프로필 섹션 */
@@ -344,37 +347,37 @@ body {
   font-size: 0.8rem;
   padding: 5px 10px;
   border-radius: 20px !important;
-  background-color: #FFB8FF;
+  background-color: #A39F95;
   color: black;
   border: none;
 }
 .profile-box .btn:hover {
-  background-color: #fda9f7;
+  background-color: #A39F95;
 }
 
 /* 달력 상단 스타일 */
 .calendar-card {
-  border: 2px solid #FFB8FF;
-  border-radius: 20px;
+  border: 2px solid black;
   padding: 20px;
   background: white;
   box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
 .go-today-btn {
   padding: 4px 12px;
-  border: 2px solid #FFB8FF;
-  border-radius: 20px;
+  border: 2px solid #A39F95;
+  border-radius: 0;
   background: white;
   color: black;
   font-weight: bold;
   text-decoration: none;
 }
 .go-today-btn:hover {
-  background: #ffe4fb;
+  background: white;
 }
 .arrow-btn {
   background: none;
   border: none;
+  border-radius: 0;
   cursor: pointer;
   padding: 6px;
 }
@@ -386,12 +389,12 @@ body {
 .arrow-left {
   border-top: 10px solid transparent;
   border-bottom: 10px solid transparent;
-  border-right: 12px solid #FFB8FF;
+  border-right: 12px solid #A39F95;
 }
 .arrow-right {
   border-top: 10px solid transparent;
   border-bottom: 10px solid transparent;
-  border-left: 12px solid #FFB8FF;
+  border-left: 12px solid #A39F95;
 }
 
 /* 캘린더 테이블 */
@@ -400,8 +403,7 @@ body {
   table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
-  border: 1px solid #eee;
-  border-radius: 20px; 
+  border: 1px solid white;
   overflow: hidden;  
 }
 .calendar-table thead th {
@@ -409,7 +411,7 @@ body {
   font-weight: bold;
   color: black;
   padding: 8px;
-  border-bottom: 2px solid #f6f4f6;
+  border-bottom: 2px solid white;
 }
 .calendar-table thead th:first-child { color: red; }
 .calendar-table thead th:last-child { color: blue; }
@@ -417,7 +419,6 @@ body {
   vertical-align: top;
   height: 120px;
   padding: 8px;
-  border: 1px solid #eee;
   position: relative;
 }
 .calendar-date {
@@ -439,7 +440,6 @@ body {
   color: #000;
   font-size: 0.75rem;
   padding: 2px 6px;
-  border-radius: 20px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -448,8 +448,7 @@ body {
 /* 커뮤니티 리스트 */
 .community-card {
   background: white;
-  border: 2px solid #FFB8FF;
-  border-radius: 20px;
+  border: 2px solid #A39F95;
   padding: 16px;
   margin-bottom: 10px;
   display: flex;
@@ -457,22 +456,21 @@ body {
   align-items: center;
 }
 .community-card .btn {
-  background-color: #FFB8FF;
+  background-color: #A39F95;
   color: black;
   border: none;
-  border-radius: 20px;
+  border-radius: 0;
   padding: 5px 10px;
   font-weight: bold;
 }
 .community-card .btn:hover {
-  background-color: #fda9f7;
+  background-color: #A39F95;
 }
 
 /* 팝업 스타일 */
 .popover-form {
   background: white;
   border: 1px solid #ddd;
-  border-radius: 20px;
   padding: 16px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   position: absolute;

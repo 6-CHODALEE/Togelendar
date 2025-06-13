@@ -144,7 +144,7 @@
         </div>
     </div>
     <div class="text-center mt-4">
-        <a href="{% url 'community:community_detail' community_id %}" class="btn btn-outline-dark" style="position: absolute; right: 130px;">
+        <a href="{% url 'community:community_detail' community_id %}" class="btn btn-outline-dark" style="position: absolute; right: 130px; background-color: white; border: 1px solid #A39F95; border-radius: 0; color: black;">
             커뮤니티로 이동하기
         </a>
     </div>
@@ -155,7 +155,6 @@
     width: 150px;
     height: 150px;
     border: 2px dashed #ccc;
-    border-radius: 8px;
     position: relative;
     overflow: hidden;
 }
@@ -164,10 +163,11 @@
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    color: #aaa !important;
+    /* color: #aaa !important; */
     height: 100% !important;
     width: 100% !important;
     padding: 0 !important;
+    border-radius: 10px;
 }
 
 .main-photo-btn,
@@ -176,21 +176,20 @@
 .edit-comment-btn,
 .delete-comment-btn {        
     background-color: white;
-    border: 2px solid #ff98ff;
-    border-radius: 30px;
     text-align: center;
     color: black;
     font-weight: bold;
     text-decoration: none;
+    border: 1px solid #A39F95;
+    border-radius: 0;
 }
 
 .mood-box,
 .comment-box {
     min-height: 100px;
     position: relative;
-    border: 1px solid black;
-    border-radius: 30px;
     background: white;
+    border-radius: 0;
 }
 
 .comment-buttons {
@@ -200,6 +199,7 @@
     top: 0;
     right: 0;
     white-space: nowrap;
+    border-radius: 0;
 }
 
 

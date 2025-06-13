@@ -3,14 +3,14 @@
 {% block body %}
 <div class="container mt-2">
     <div class=" text-center py-3 mb-3">
-        <div style="width: 100%; height: 300px; overflow: hidden; border-radius: 8px; position: relative;">
+        <div style="width: 100%; height: 300px; overflow: hidden; position: relative;">
             <img src="{{community.community_image.url}}" 
             alt="{{community.community_name}} 대표사진"
             class="w-100 rounded" style="height: 300px; object-fit: cover;">
 
             <a id="editImageBtn" href="#" class="circle-button round-edit-button btn btn-outline-secondary btn-sm" title="모임 대표 이미지 수정">✎</a>
             <div class="editImageOverlay modal-overlay" style="display: none;">
-                <div id="editImageModal" style="display: none; position: absolute; top: 200px; right: 100px; background: white; padding: 20px; border-radius: 10px; border: 1px solid #ccc;">
+                <div id="editImageModal" style="display: none; position: absolute; top: 200px; right: 100px; background: white; padding: 20px; border-radius: 0;">
                     <h5 class="fw-bold">대표 사진 바꾸기</h5>
                     <form id="imageUploadForm" enctype="multipart/form-data">
                         <input type="file" name="image" accept="image/*"><br>
@@ -31,7 +31,7 @@
                 <a id="editInfoBtn" href="#" class="circle-button btn btn-outline-secondary btn-sm ms-2" title="모임 정보 수정">✎</a>
                 
                     <div class="editInfoOverlay modal-overlay" style="display: none;">
-                        <div id="editInfoModal" style="display: none; position: absolute; z-index: 1000; background: white; padding: 20px; border-radius: 10px; border: 1px solid #ccc; width: 400px;">
+                        <div id="editInfoModal" style="display: none; position: absolute; z-index: 1000; background: white; padding: 20px; border: 1px solid #ccc; width: 400px;">
                             <h5 class="fw-bold">모임 정보 수정</h5>
                             <form id="editInfoForm">
                                 <div class="mb-2">
@@ -174,8 +174,7 @@
     .promise-card {
         width: 100%;
         max-width: 200px;
-        border: 1px solid black;
-        border-radius: 0%;
+        border-radius: 0;
         background: white;
         box-shadow: 2px 4px 8px rgba(0,0,0,0.1);
         aspect-ratio: 3/4; /* 폴라로이드 비율 느낌 */
@@ -193,8 +192,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        border: 1px solid black;
-        border-radius: 0%;
+        border-radius: 0;
     }
     
     .promise-card-img {
@@ -208,7 +206,6 @@
         display: block;
         margin-top: 20px;
         font-weight: bold;
-        /* font-size: 1.3rem; */
         text-align: center;
         color: black;
     }
@@ -216,8 +213,6 @@
     .member-box {
         min-height: 100px;
         position: relative;
-        border: 1px solid black;
-        border-radius: 30px;
         background: white;
     }
 
@@ -226,13 +221,11 @@
         height: 24px;
         border-radius: 50%;
         object-fit: cover;
-        border: 1px solid #ccc;
+        border: 1px solid black;
     }
 
     .promise-box {
         min-height: 100px; 
-        border: 1px solid black;
-        border-radius: 30px;
         background-color: white;
     }
 
@@ -259,7 +252,7 @@
     }
 
     .modal-overlay {
-        position: fixed;
+        position: absolute;
         top: 0; left: 0;
         width: 100vw;
         height: 100vh;
@@ -273,9 +266,9 @@
     .member-invite-btn,
     .promise-location-btn,
     .promise-date-btn {
-        background-color: #FF98FF;
+        background-color: #A39F95;
         border: none;
-        border-radius: 30px;
+        border-radius: 0;
         text-align: center;
         color: black;
         font-weight: bold;
@@ -292,9 +285,8 @@
         right: 0;
         width: 400px;
         background: white;
-        border: 1px solid #ccc;
+        border-radius: 0;
         padding: 15px;
-        border-radius: 12px;
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         z-index: 1000;
     }
