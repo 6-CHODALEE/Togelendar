@@ -5,6 +5,14 @@
   <div class="create-box">
     <h2>하뮤니티 생성</h2>
 
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-danger" role="alert">
+          {{ message|linebreaksbr }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
     <form method="POST" enctype="multipart/form-data">
       {% csrf_token %}
       <div class="form-row">
