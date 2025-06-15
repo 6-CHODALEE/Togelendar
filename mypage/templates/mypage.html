@@ -70,7 +70,7 @@
 
                     <!-- 캘린더 테이블 -->
                     <table class="table calendar-table table-bordered text-center align-middle mb-0">
-                        <thead>
+                        <thead style="border-bottom: 1px solid #000000 !important;">
                             <tr>
                                 {% for label in weekday_labels %}
                                     <th class="fw-bold {% if label == '일' %}text-danger{% elif label == '토' %}text-primary{% endif %}">
