@@ -47,17 +47,31 @@ def create_promise(request, community_id):
 
         # 모든 값이 입력되었는지 확인 후 날짜 조합
         if form.is_valid():
-            promise = form.save(commit=False)
-            promise.community = community
-            promise.promise_creator = request.user.username
-            promise.save()
+            temp_promise_name = form.cleaned_data['promise_name']
+            if Promise.objects.filter(promise_name = temp_promise_name, community_id = community_id).exists():
+                message = '같은 이름의 약속이 존재 합니다. 다른 이름을 지어주세요!'
+                context = {
+                    'message': message,
+                    'form': form,
+                    'years': years,
+                    'months': months,
+                    'days': days
+                }
+                return render(request, 'create_promise.html', context)
+            
+            else:
+                print('if문 통과')
+                promise = form.save(commit=False)
+                promise.community = community
+                promise.promise_creator = request.user.username
+                promise.save()
 
-            # 저장 후 이동할 페이지
-            return redirect('community:promise:promise_vote', community_id=community.id, promise_id=promise.id)
+                # 저장 후 이동할 페이지
+                return redirect('community:promise:promise_vote', community_id=community.id, promise_id=promise.id)
 
     else:
         form = PromiseForm()
-        # print("form 오류")
+
 
     # GET 요청일 경우 템플릿 렌더링
     context = {

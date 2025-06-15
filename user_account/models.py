@@ -9,7 +9,7 @@ from django_resized import ResizedImageField
 
 # Create your models here.
 class User(AbstractUser):
-    username = models.CharField(max_length=150, unique=True, primary_key=True)
+    username = models.CharField(max_length=150, unique=True)
     postcode = models.CharField(max_length=10, blank=True)
     address = models.CharField(max_length=255, blank=True)
     latitude = models.FloatField(null=True, blank=True)

@@ -336,6 +336,14 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     calendar.render();
 
+    // 스크롤바 제거
+    setTimeout(() => {
+        const scrollers = document.querySelectorAll('.fc-scroller');
+        scrollers.forEach(el => {
+            el.style.overflow = 'hidden';
+        });
+    }, 100);
+
     {% if is_location_decided %}
     const map = L.map('map').setView([
         parseFloat("{{ center_latitude|default:'37.5665' }}"),

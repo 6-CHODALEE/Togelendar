@@ -10,6 +10,12 @@ class CreateCommunityFrom(ModelForm):
         model = CreateCommunity
         fields = ['community_name', 'community_intro', 'community_image']
 
+    def clean_community_name(self):
+        name = self.cleaned_data['community_name']
+        if CreateCommunity.objects.filter(community_name=name).exists():
+            raise forms.ValidationError("같은 이름의 커뮤니티가 존재합니다. \n다른 이름을 작성해주세요.")
+        return name
+
 
 User = get_user_model()
 

@@ -13,11 +13,13 @@ from django.views.decorators.http import require_POST
 from .models import Photo
 from django.http import JsonResponse, Http404
 from django.utils import timezone
+from user_account.models import User
 
 # Create your views here.
 @login_required
 def community_detail(request, community_id):
     community = CreateCommunity.objects.get(id=community_id)
+
     promises = Promise.objects.filter(community=community)
 
     # 앨범 대표사진
@@ -65,12 +67,15 @@ def community_detail(request, community_id):
         create_user = community.create_user,
     )
 
+
     member_users = []
     for m in members:
+        com = CreateCommunity.objects.get(community_name = m.community_name)
         user = m.member
+        CreateCommunity.objects.filter(community_name = community.community_name)
         member_users.append({
-            'username': user.username,
-            'profile_image': user.profile_image.url if user.profile_image else None
+            'username': user,
+            'profile_image': com.community_image.url
         })
     
     # 현재 유저가 투표한 약속 id들
@@ -156,11 +161,15 @@ def album_detail(request, community_id, album_name):
         create_user = community.create_user,
     )
     member_users = []
+
+
     for m in members:
         user = m.member
+        temp_user = User.objects.get(username = user)
+        print(temp_user)
         member_users.append({
-            'username': user.username,
-            'profile_image': user.profile_image.url if user.profile_image else None
+            'username': user,
+            'profile_image': temp_user.profile_image.url if temp_user.profile_image else None
         })
 
     # 내 기분

@@ -5,7 +5,7 @@ from user_account.models import User
 # 커뮤니티 생성 정보 저장 모델
 class CreateCommunity(models.Model):
     id = models.AutoField(primary_key=True)
-    community_name = models.CharField(max_length=100)
+    community_name = models.CharField(max_length=100, unique=True)
     create_user = models.CharField(max_length=100)
     community_intro = models.TextField()
     community_image = ResizedImageField(

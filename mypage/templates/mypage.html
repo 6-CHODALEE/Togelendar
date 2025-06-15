@@ -40,7 +40,7 @@
                     <a href="#" id="togglePopover" class="custom-dotted-btn btn btn-sm position-relative">
                         함친 추가
                         {% if received_requests %}
-                            <span class="badge-friend bg-danger text-white position-absolute top-0 start-100 translate-middle">
+                            <span class="badge-friend bg-danger text-white position-absolute top-0 start-100 translate-middle" id="friend_request_badge">
                                 {{ received_requests|length }}
                             </span>
                         {% endif %}
@@ -410,8 +410,8 @@ body {
   text-align: center;
   font-weight: bold;
   color: black;
-  padding: 8px;
-  border-bottom: 2px solid white;
+  padding: 10px;
+  border-bottom: 1px solid black;
 }
 .calendar-table thead th:first-child { color: red; }
 .calendar-table thead th:last-child { color: blue; }
@@ -476,6 +476,16 @@ body {
   position: absolute;
   z-index: 1000;
   width: 400px;
+}
+/* 친구 요청 배찌 */
+#friend_request_badge{
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    border-radius: 50%;
 }
 </style>
 

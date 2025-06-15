@@ -32,6 +32,7 @@ from django.contrib.auth import get_backends
 from django.http import JsonResponse
 from django.contrib import messages
 
+
 User = get_user_model()
 # Create your views here.
 
@@ -69,8 +70,7 @@ def mypage(request, username):
     my_memberships = CommunityMember.objects.filter(member=me.username)
     my_communities = [
         CreateCommunity.objects.filter(
-            community_name=m.community_name,
-            create_user=m.create_user
+            community_name=m.community_name
         ).first()
         for m in my_memberships
     ]
@@ -121,23 +121,28 @@ def create_community(request, username):
     if request.method == 'POST':
         form = CreateCommunityFrom(request.POST, request.FILES)
         if form.is_valid():
+            # 폼에서 추출만 (아직 저장은 안 함)
+            temp_community_name = form.cleaned_data['community_name']
+            temp_create_user = request.user.username
+
             community = form.save(commit=False)
-            community.create_user = request.user.username
-            if CreateCommunity.objects.filter(community_name = community.community_name, create_user = community.create_user).exists():
-                messages.error(request, '이미 같은 이름의 커뮤니티에 가입되어 있어요.')
-                return redirect('mypage:create_community', username=username)
-            else:
+            community.create_user = temp_create_user
+            community.save()
 
-                community.save()
+        
 
-                # 생성자 본인을 멤버로 자동 추가
-                CommunityMember.objects.create(
-                    community_name=community.community_name,
-                    create_user=community.create_user,
-                    member=request.user
-                )
+            CommunityMember.objects.create(
+                community_name=community.community_name,
+                create_user=community.create_user,
+                member=request.user
+            )
 
             return redirect('mypage:mypage', username=username)
+        else: 
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{error}")
+            return render(request, 'create_community.html', {'form': form})
     else:
         form = CreateCommunityFrom()
     
