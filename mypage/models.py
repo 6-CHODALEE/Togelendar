@@ -10,7 +10,7 @@ class CreateCommunity(models.Model):
     community_intro = models.TextField()
     community_image = ResizedImageField(
         size=[500, 500],
-        crop=['middle', 'center'],
+        crop=None,
         upload_to='mypage/mypage_image/',
         quality=90,
         force_format='JPEG'
