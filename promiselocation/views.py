@@ -18,9 +18,11 @@ load_dotenv()
 
 def get_nearby_places_all_types(lat, lng, api_key, radius=500):
     """
-    지정된 다섯 가지 타입(cafe, convenience_store 등)의 장소를 가져온다.
-    결과가 없어도 함수는 빈 리스트를 반환한다.
+    지정된 네 가지 타입의 장소를 가져오고,
+    rating 기준으로 내림차순 정렬하여 반환한다.
     """
+    import requests
+
     place_types = ['cafe', 'convenience_store', 'subway_station', 'restaurant']
     all_places = []
 
@@ -42,7 +44,7 @@ def get_nearby_places_all_types(lat, lng, api_key, radius=500):
                     all_places.append({
                         'name': place['name'],
                         'address': place.get('vicinity'),
-                        'rating': place.get('rating'),
+                        'rating': place.get('rating', 0),  # None 방지용 기본값
                         'type': place_type,
                         'location': place['geometry']['location']
                     })
@@ -54,11 +56,13 @@ def get_nearby_places_all_types(lat, lng, api_key, radius=500):
         except Exception as e:
             print(f"[{place_type}] 요청 중 오류 발생:", e)
 
+    # ⭐ rating 기준 내림차순 정렬
+    all_places.sort(key=lambda x: x.get('rating', 0), reverse=True)
+
     print("총 검색된 장소 수:", len(all_places))
     return all_places
 
-
-def find_optimal_midpoint(points, api_key, standard_time_gap=15, sleep_seconds=10):
+def find_optimal_midpoint(points, api_key, standard_time_gap=20, sleep_seconds=10):
     """
     사용자 좌표(points)와 ODsay API를 사용해 
     최적의 중간지점을 찾아 반환하는 함수.

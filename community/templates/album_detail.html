@@ -251,6 +251,10 @@
                     if (thumbnail) thumbnail.remove();
 
                     selectedPhotoId = null;
+
+                    // ✅ 삭제 후 앨범 URL로 이동
+                    const encodedAlbumName = encodeURIComponent("{{ album_name }}");
+                    window.location.href = `/community/{{ community_id }}/album/${encodedAlbumName}/`;
                 } else {
                     alert('삭제 중 오류가 발생했습니다.');
                 }

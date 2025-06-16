@@ -153,10 +153,10 @@ from .models import FriendRequest
 
 def search_friends(request, username):
     query = request.GET.get('q', '').strip()
+    popup_open = request.GET.get('popup_open', 'false') == 'true' 
+    is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
     results = []
-    popup_open = request.GET.get('popup_open', 'false') == 'true'
 
-    # Elasticsearch 검색 결과
     if query:
         response = settings.ES_CLIENT.search(
             index="user-index",
@@ -179,6 +179,8 @@ def search_friends(request, username):
 
             try:
                 to_user = User.objects.get(username=target_username)
+
+                # 친구인지 확인
                 is_friend = FriendRequest.objects.filter(
                     (
                         Q(from_user=request.user, to_user=to_user) |
@@ -202,6 +204,10 @@ def search_friends(request, username):
 
             except User.DoesNotExist:
                 continue
+
+    # ✅ Ajax 요청이면 JSON 응답
+    if is_ajax:
+        return JsonResponse(results, safe=False)
 
     # 기존 mypage context 구성 추가
     me = request.user

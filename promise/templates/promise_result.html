@@ -16,28 +16,38 @@
     <div id="map" style="height: 400px; max-width: 800px; margin: 20px auto 0 auto;"></div>
 
     <div class="mt-4" style="max-width: 800px; margin: 0 auto;">
-        <h4 class="mb-3">중간지점 주변 장소 추천 (반경 500m)</h4>
+        <h4 class="mb-4 fw-bold text-center">중간지점 주변 장소 추천 (반경 500m)</h4>
 
         <!-- 카테고리 버튼들 -->
         <div class="mb-3 text-center" id="category-buttons">
-            <button data-type="all" class="btn btn-sm me-2 btn-dark">전체</button>
-            <button data-type="cafe" class="btn btn-sm me-2 btn-outline-primary">카페</button>
-            <button data-type="restaurant" class="btn btn-sm me-2 btn-outline-danger">음식점</button>
-            <button data-type="convenience_store" class="btn btn-sm me-2 btn-outline-success">편의점</button>
-            <button data-type="subway_station" class="btn btn-sm me-2 btn-outline-info">지하철</button>
+            <button data-type="all" class="btn btn-sm me-2 btn-dark" style="border-radius: 0;">전체</button>
+            <button data-type="cafe" class="btn btn-sm me-2 btn-outline-primary" style="border-radius: 0;">카페</button>
+            <button data-type="restaurant" class="btn btn-sm me-2 btn-outline-danger" style="border-radius: 0;">음식점</button>
+            <button data-type="convenience_store" class="btn btn-sm me-2 btn-outline-success" style="border-radius: 0;">편의점</button>
+            <button data-type="subway_station" class="btn btn-sm me-2 btn-outline-info" style="border-radius: 0;">지하철</button>
         </div>
 
         {% if places and places|length > 0 %}
-        <ul class="list-group" id="place-list">
+        <div id="place-list" class="row gy-3">
             {% for place in places %}
-            <li class="list-group-item place-item" data-type="{{ place.type }}" data-name="{{ place.name }}">
-                <strong>{{ place.name }}</strong>
-                <span class="badge bg-secondary">{{ place.type }}</span><br>
-                {{ place.address }}<br>
-                {% if place.rating %} 평점: {{ place.rating }} {% endif %}
-            </li>
+            <div class="col-12 place-item" data-type="{{ place.type }}" data-name="{{ place.name }}">
+                <div class="card shadow-sm border-0 rounded-3">
+                    <div class="card-body">
+                        <h5 class="card-title mb-1 fw-semibold">{{ place.name }} <span class="badge bg-secondary text-uppercase ms-2">{{ place.type }}</span></h5>
+                        <p class="mb-1 text-muted small">{{ place.address }}</p>
+                        {% if place.rating %}<p class="mb-0 small">⭐ 평점: {{ place.rating }}</p>{% endif %}
+                    </div>
+                </div>
+            </div>
             {% endfor %}
-        </ul>
+        </div>
+
+        <!-- ✅ 페이지네이션 컨트롤 추가 -->
+        <div class="pagination-controls mt-4 text-center">
+            <button id="prev-page" class="btn btn-outline-dark btn-sm me-2" style="border-radius: 0;">이전</button>
+            <span id="page-info" class="mx-2">1 / 13</span>
+            <button id="next-page" class="btn btn-outline-dark btn-sm" style="border-radius: 0;">다음</button>
+        </div>
         {% else %}
         <div class="text-center text-muted mt-2">
             <p>선택한 카테고리에 해당하는 장소가 없습니다.</p>
@@ -45,9 +55,9 @@
         {% endif %}
     </div>
     {% else %}
-    <div style="text-align: center; margin: 20px auto; color: gray;">
-        <p>아직 장소가 정해지지 않았습니다.</p>
-    </div>
+        <div style="text-align: center; margin: 20px auto; color: gray;">
+            <p>아직 장소가 정해지지 않았습니다.</p>
+        </div>
     {% endif %}
 
     <div style="max-width: 800px; margin: 10px auto 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
@@ -464,6 +474,80 @@ document.addEventListener('DOMContentLoaded', function () {
             alert("서버 오류 발생");
         });
     });
+});
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const itemsPerPage = 5;
+    let currentPage = 1;
+    let currentFilter = "all";  // 필터 상태 저장
+
+    const allItems = Array.from(document.querySelectorAll("#place-list .place-item"));
+    const pageInfo = document.getElementById("page-info");
+    const prevBtn = document.getElementById("prev-page");
+    const nextBtn = document.getElementById("next-page");
+    const filterButtons = document.querySelectorAll("#category-buttons button");
+
+    // 필터된 항목만 반환
+    function getFilteredItems() {
+        return allItems.filter(item => {
+            return currentFilter === "all" || item.dataset.type === currentFilter;
+        });
+    }
+
+    function updatePagination() {
+        const filteredItems = getFilteredItems();
+        const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+
+        // 모든 항목 숨김
+        allItems.forEach(item => item.style.display = "none");
+
+        // 현재 페이지에 해당하는 항목만 표시
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = currentPage * itemsPerPage;
+        filteredItems.slice(start, end).forEach(item => item.style.display = "block");
+
+        // 페이지 정보 갱신
+        pageInfo.textContent = `${currentPage} / ${Math.max(totalPages, 1)}`;
+
+        // 버튼 활성/비활성
+        prevBtn.disabled = currentPage <= 1;
+        nextBtn.disabled = currentPage >= totalPages;
+    }
+
+    // 필터 버튼 클릭 이벤트
+    filterButtons.forEach(button => {
+        button.addEventListener("click", () => {
+            currentFilter = button.dataset.type;
+            currentPage = 1;
+            updatePagination();
+
+            // 버튼 스타일 갱신 (선택된 버튼 강조)
+            filterButtons.forEach(btn => btn.classList.remove("btn-dark"));
+            button.classList.add("btn-dark");
+        });
+    });
+
+    // 이전 버튼
+    prevBtn.addEventListener("click", () => {
+        if (currentPage > 1) {
+            currentPage--;
+            updatePagination();
+        }
+    });
+
+    // 다음 버튼
+    nextBtn.addEventListener("click", () => {
+        const filteredItems = getFilteredItems();
+        const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            updatePagination();
+        }
+    });
+
+    // 초기 로딩 시
+    updatePagination();
 });
 </script>
 

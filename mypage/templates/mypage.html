@@ -69,8 +69,8 @@
                     </div>
 
                     <!-- 캘린더 테이블 -->
-                    <table class="table calendar-table table-bordered text-center align-middle mb-0">
-                        <thead style="border-bottom: 1px solid #000000 !important;">
+                    <table class="table calendar-table table-bordered text-center align-middle mb-0" >
+                        <thead style="border-bottom: 1px solid #000000 !important;" >
                             <tr>
                                 {% for label in weekday_labels %}
                                     <th class="fw-bold {% if label == '일' %}text-danger{% elif label == '토' %}text-primary{% endif %}">
@@ -359,7 +359,7 @@ body {
 .calendar-card {
   border: 2px solid black;
   padding: 20px;
-  background: white;
+  background: rgb(0, 0, 0);
   box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
 .go-today-btn {
@@ -403,7 +403,7 @@ body {
   table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
-  border: 1px solid white;
+  border: 1px solid black;
   overflow: hidden;  
 }
 .calendar-table thead th {
@@ -412,6 +412,7 @@ body {
   color: black;
   padding: 10px;
   border-bottom: 1px solid black;
+  background-color: #fcf4f4;
 }
 .calendar-table thead th:first-child { color: red; }
 .calendar-table thead th:last-child { color: blue; }
@@ -420,6 +421,7 @@ body {
   height: 120px;
   padding: 8px;
   position: relative;
+  background-color: #fcf4f4;
 }
 .calendar-date {
   position: absolute;
@@ -500,6 +502,45 @@ const closeBtn = document.getElementById("closePopover");
 const resultsContainer = document.getElementById("searchResults");
 const searchForm = document.getElementById('searchForm');
 const popupOpenField = document.getElementById('popupOpenField');
+
+
+
+function renderSearchResults(users) {
+    resultsContainer.innerHTML = "";  // 이전 결과 초기화
+
+    if (users.length === 0) {
+        resultsContainer.innerHTML = "<li class='list-group-item text-muted'>검색 결과 없음</li>";
+        return;
+    }
+
+    users.forEach(user => {
+        const li = document.createElement("li");
+        li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+        const infoSpan = document.createElement("span");
+        infoSpan.innerHTML = `<strong>${user.username}</strong> (${user.email})`;
+
+        const addButton = document.createElement("button");
+        addButton.className = "btn btn-sm";
+
+        if (user.request_status === 'pending') {
+            addButton.textContent = "요청 보냄";
+            addButton.classList.add('btn-secondary');
+            addButton.disabled = true;
+        } else {
+            addButton.textContent = "요청보내기";
+            addButton.classList.add('btn-primary');
+            addButton.onclick = (e) => {
+                e.stopPropagation();
+                sendFriendRequest(user.username, addButton);
+            };
+        }
+
+        li.appendChild(infoSpan);
+        li.appendChild(addButton);
+        resultsContainer.appendChild(li);
+    });
+}
 
 // 검색할 때 현재 팝업 상태 기록
 searchForm.addEventListener('submit', () => {
@@ -874,6 +915,31 @@ window.addEventListener("click", function (e) {
     ) {
         friendListPopover.style.display = "none";
     }
+});
+
+// 실시간 검색 Ajax
+const searchInput = document.querySelector('input[name="q"]');
+searchInput.addEventListener('input', function () {
+    const keyword = this.value.trim();
+
+    if (popover.style.display !== "block") return; // 팝업이 열릴 때만 검색
+    if (keyword.length === 0) {
+        resultsContainer.innerHTML = "";
+        return;
+    }
+
+    fetch(`/mypage/${currentUsername}/search_friends/?q=${encodeURIComponent(keyword)}`, {
+        headers: {
+            'x-requested-with': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        renderSearchResults(data);
+    })
+    .catch(error => {
+        console.error("검색 실패:", error);
+    });
 });
 </script>
 {% endblock %}

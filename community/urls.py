@@ -15,7 +15,7 @@ urlpatterns = [
 
     path('<int:community_id>/album/<str:album_name>/<int:photo_id>/comment/', views.photo_comment, name='photo_comment'),
     path('<int:community_id>/album/<str:album_name>/<int:photo_id>/album_main/', views.album_main_photo, name='album_main_photo'),
-    path('<int:community_id>/album/<str:album_name>', views.album_detail, name='album_detail'),
+    path('<int:community_id>/album/<str:album_name>/', views.album_detail, name='album_detail'),
     path('<int:community_id>/album/<str:album_name>/upload/', views.upload_photo, name='upload_photo'),
     path('<int:community_id>/album/<str:album_name>/mood_vote/', views.mood_vote, name='mood_vote'),
 
