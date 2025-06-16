@@ -64,7 +64,7 @@
             {% for promise in promises %}
                 {% if forloop.counter0|divisibleby:3 %}
                     <div class="album-line-wrapper row g-3">
-                        <img src="{% static 'index/images/rope.png' %}" alt="줄" class="album-line">
+                        <img src="{% static 'index/images/brown_rope.png' %}" alt="줄" class="album-line">
                         <div class="d-flex flex-wrap justify-content-start">
                 {% endif %}
                             <div class="album-gallery col-6 col-md-4 mb-3">
@@ -74,7 +74,7 @@
                                             {% if promise.main_photo %}
                                             <img src="{{promise.main_photo.image.url}}" class="album-box">
                                             {% else %}
-                                            <img src="https://cdn-icons-png.flaticon.com/512/716/716784.png" class="album-box-img">
+                                            <img src="{% static 'index/images/camera_character.png' %}" class="album-box-img">
                                             {% endif %}
                                         </div>
                                         <div class="album-box-title">{{promise.promise_name}}</div>

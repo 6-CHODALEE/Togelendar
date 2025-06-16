@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 
+{% load static %}
+
 {% block body %}
 <div class="container mt-4">
     <div style="border-bottom: 2px solid black;">
@@ -31,7 +33,7 @@
                 </button>
             </div>
 
-            <div id="gallery" class="d-flex flex-wrap gap-3 mt-3" style="flex: 2;">
+            <div id="gallery" class="d-flex flex-wrap mt-5" style="flex: 2; gap: 1.2rem;">
                 <!--filepond 업로드 input-->
                 <div style="width: 150px; height: 150px;">
                     <input type="file" class="filepond" name="file" multiple data-max-files="10">
@@ -39,11 +41,15 @@
                 
                 <!--좌측 : 업로드된 사진 썸네일 목록-->
                 {% for photo in photos %}
+                <div class="thumbnail-wrapper">
+                    <img src="{% static 'index/images/masking_tape_check.png' %}" alt="체크무늬 마스킹 테이프" class="masking-tape-check">
+
                     <img src="{{ photo.image.url }}"
-                        class="album-image rounded"
-                        data-photo-id="{{ photo.id }}"
-                        data-uploaded-by="{{ photo.uploaded_by }}"
-                        style="width: 150px; height: 150px; object-fit: cover; cursor: pointer;">
+                    class="album-image rounded"
+                    data-photo-id="{{ photo.id }}"
+                    data-uploaded-by="{{ photo.uploaded_by }}"
+                    style="width: 150px; height: 150px; object-fit: cover; cursor: pointer;">
+                </div>
                 {% endfor %}
             </div>
         </div>
@@ -170,6 +176,23 @@
     border-radius: 10px;
 }
 
+.thumbnail-wrapper {
+    position: relative;
+    width: 150px;
+    height: 150px;
+}
+
+.masking-tape-check {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%) rotate(10deg);
+    width: 50px;
+    height: auto;
+    pointer-events: none;
+    z-index: 2;
+}
+
 .main-photo-btn,
 .photo-delete-btn,
 .card-body button,
@@ -285,6 +308,18 @@
                             const res = JSON.parse(request.responseText);
                             load(res.id);
                             
+                            // 썸네일 wrapper 생성
+                            const wrapper = document.createElement('div');
+                            wrapper.className = 'thumbnail-wrapper';
+                            wrapper.style.position = 'relative';
+                            wrapper.style.width = '150px';
+                            wrapper.style.height = '150px';
+
+                            // 마스킹 테이프 이미지
+                            const tape = document.createElement('img');
+                            tape.src = 'static/index/images/masking_tape_check.png';
+                            tape.className = 'masking-tape-check';
+
                             // 업로드된 이미지 폴더에 추가
                             const img = document.createElement('img');
                             img.src = res.filename;
@@ -295,7 +330,22 @@
                             img.style.objectFit = 'cover';
                             img.style.cursor = 'pointer';
                             
-                            document.getElementById('gallery').appendChild(img);
+                            img.onload = () => {
+                                const wrapper = document.createElement('div');
+                                wrapper.className = 'thumbnail-wrapper';
+                                wrapper.style.position = 'relative';
+                                wrapper.style.width = '150px';
+                                wrapper.style.height = '150px';
+
+                                const tape = document.createElement('img');
+                                tape.src = '/static/index/images/masking_tape_check.png';
+                                tape.className = 'masking-tape-check';
+                                
+                                // 조립 후 gallery에 삽입
+                                wrapper.appendChild(tape);
+                                wrapper.appendChild(img);
+                                document.getElementById('gallery').appendChild(wrapper);
+                            };
                         } else {
                             console.error('업로드 실패:', request.status, request.responseText);
                             error('업로드 실패' + request.responseText);

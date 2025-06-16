@@ -18,7 +18,7 @@ class User(AbstractUser):
         size=[500, 500],
         crop=['middle', 'center'],
         upload_to='profile/',
-        default='profile/default.png',  # 기본 이미지 경로
+        default='profile/camera_character.png',  # 기본 이미지 경로
         blank=True,
         null=True
     )
