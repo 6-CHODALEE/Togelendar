@@ -1,10 +1,12 @@
 {% extends 'base.html' %}
 
+{% load static %}
+
 {% block body %}
 <form method="POST" action="{% url 'community:promise:promise_vote' community.id promise.id %}">
     {% csrf_token %}
-    
     <div class="container mt-4" style="max-width: 800px; margin: 0 auto; background-color: white; padding: 30px;">
+        <img src="{% static 'index/images/masking_tape.png' %}" alt="마스킹 테이프" class="masking_tape">
         <div class="text-center mb-5">
             <h2><strong>만날 수 있는 날짜에 투표해주세요!</strong></h2>
         </div>
@@ -24,7 +26,19 @@
     .container {
         max-width: 1000px;
         margin: 0 auto;
+        position: relative;
     }
+
+    .masking_tape {
+        position: absolute;
+        top: -45px;
+        left: 50%;
+        transform: translateX(-50%) rotate(10deg);
+        width: 50px;
+        height: auto;
+        z-index: 2;
+        pointer-events: none;
+  }
 
     /* FullCalendar 버튼 공통 스타일 초기화 */
     .fc .fc-button {

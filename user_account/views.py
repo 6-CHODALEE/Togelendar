@@ -43,7 +43,7 @@ def signup(request):
         form = CustomUserCreationForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save(commit=False)
-            lng, lat = get_coordinates(form.cleaned_data['address'])  # ✅ 수정
+            lng, lat = get_coordinates(form.cleaned_data['address'])  # 수정
             user.longitude = lng
             user.latitude = lat
 
