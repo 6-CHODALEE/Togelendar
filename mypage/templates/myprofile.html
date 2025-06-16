@@ -1,7 +1,10 @@
 {% extends 'base.html' %}
 
+{% load static%}
+
 {% block body %}
 <form method="post" enctype="multipart/form-data" class="profile-edit-form">
+  <img src="{% static 'index/images/masking_tape.png' %}" alt="마스킹 테이프" class="masking-tape">
   {% csrf_token %}
   <h3 class="form-title">프로필 수정</h3>
   <hr>
@@ -44,7 +47,7 @@
     </div>
   </div>
 
-  <!-- ✅ 중앙 정렬 버튼 -->
+  <!-- 중앙 정렬 버튼 -->
   <div class="btn-submit-wrapper">
       <button type="submit" class="btn-submit">변경하기</button>
   </div>
@@ -67,12 +70,25 @@ function execDaumPostcode() {
 
 <style>
 .profile-edit-form {
+  position: relative;
   max-width: 900px;
   margin: 0 auto;
   padding: 30px;
   background-color: white;
   font-family: "Arial Rounded MT Bold", sans-serif;
 }
+
+.masking-tape {
+    position: absolute;
+    top: -45px;
+    left: 50%;
+    transform: translateX(-50%) rotate(10deg);
+    width: 50px;
+    height: auto;
+    z-index: 2;
+    pointer-events: none;
+  }
+
 
 .form-title {
   text-align: left;
@@ -141,7 +157,7 @@ function execDaumPostcode() {
   flex: 1;
   padding: 6px 12px;
   border: 1px solid #aaa;
-  border-radius: 12px;
+  border-radius: 0;
   font-size: 0.95rem;
   min-width: 300px;
 }
@@ -166,7 +182,7 @@ function execDaumPostcode() {
   font-size: 0.8rem;
   line-height: 1;
   white-space: nowrap;
-  border-radius: 8px;
+  border-radius: 0;
   border: 1px solid #ccc;
   background-color: white;
   color: black;
