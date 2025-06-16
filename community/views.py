@@ -70,13 +70,18 @@ def community_detail(request, community_id):
 
     member_users = []
     for m in members:
-        com = CreateCommunity.objects.get(community_name = m.community_name)
-        user = m.member
-        CreateCommunity.objects.filter(community_name = community.community_name)
-        member_users.append({
-            'username': user,
-            'profile_image': com.community_image.url
-        })
+        username = m.member
+        try:
+            user = User.objects.get(username=username)
+            member_users.append({
+                'username': user.username,
+                'profile_image': user.profile_image.url if user.profile_image else None
+            })
+        except User.DoesNotExist:
+            member_users.append({
+                'username': username,
+                'profile_image': None
+            })
     
     # 현재 유저가 투표한 약속 id들
     voted_ids = PromiseVote.objects.filter(username=request.user).values_list('promise_id', flat=True)
