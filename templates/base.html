@@ -35,6 +35,10 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
     <style>
+        @font-face {
+            font-family: 'GowunDodum';
+            src: url("{% static 'index/fonts/GowunDodum-Regular.ttf' %}") format('truetype');
+        }
         body {
             {% block background_style %}
                 {% if request.resolver_match.url_name == 'index' %}
@@ -48,6 +52,8 @@
             background-attachment: fixed;
             background-color: #e9e7e2;
             {% endblock %}
+
+            font-family: 'GowunDodum', sans-serif;
         }
     </style>
 
