@@ -6,9 +6,9 @@
 <div class="signup-wrapper">
     <div class="viewfinder">
         <div class="signup-content">
-            <div class="signup-title"><B>회원가입</B></div>
             <form action="" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
+                <div class="signup-title"><h2>회원가입</h2></div>
                 
                 {% for field in form %}
                 {% if field.name == 'postcode' or field.name == 'address' %}
@@ -28,9 +28,9 @@
                 
                 <!-- 우편번호 -->
                 <div class="zipcode-group">
-                <label for="visible_postcode">우편번호</label>
-                <input type="text" id="visible_postcode" readonly>
-                <button type="button" onclick="execDaumPostcode()">우편번호 찾기</button>
+                    <label for="visible_postcode">우편번호</label>
+                    <input type="text" id="visible_postcode" readonly>
+                    <button type="button" onclick="execDaumPostcode()">우편번호 찾기</button>
                 </div>
                 
                 <!-- 주소 (라벨 위, 입력창 아래로 정렬) -->
@@ -42,6 +42,7 @@
                 <button type="submit" class="custom-btn">회원가입</button>
             </form>
         </div>
+        <img src="{% static 'index/images/rec_frame00.png' %}" class="rec-frame" alt="프레임">
     </div>
 </div>
 
@@ -51,49 +52,49 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 85vh;
-        /* margin-top: -60px; */
     }
     
     .viewfinder {
         position: relative;
         width: 100%;
         max-width: 700px;
-        height: 700px;
-        padding: 30px;
-        border-radius: 12px;
-        background-image: url("{% static 'index/images/rec_frame.png' %}");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
+        /* height: 850px; */
+        aspect-ratio: 3/3.75;
         box-sizing: border-box;
+    }
+
+    .rec-frame {
+        position: absolute;
+        top: -50px;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 0;
+        pointer-events: none;
+        border-radius: 12px;
     }
 
     .signup-content {
         position: absolute;
         top: 0;
         left: 0;
-        z-index: 2;
+        z-index: 1;
         width: 100%;
-        height: 100%;
-        padding: 30px;
+        height: 800px;
         display: flex;
-        flex-direction: column;
         justify-content: center;
-        align-items: center;
-        color: black;
+        align-items: flex-start;
+        padding: 90px 30px 30px 30px;
+        border-radius: 12px;
+        box-sizing: border-box;
         backdrop-filter: brightness(1.1);
     }
     
-    .signup_content form {
-        width: 100%;
-        max-width: 360px;
-    }
-
     .signup-title {
         text-align: center;
         font-size: 24px;
-        margin-bottom: 24px;
+        margin-bottom: 30px;
         font-weight: bold;
     }
     
@@ -101,7 +102,7 @@
     .zipcode-group,
     .address-group {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         align-items: flex-start;
         margin-bottom: 15px;
         width: 100%;
@@ -110,18 +111,26 @@
     .form-group label,
     .zipcode-group label,
     .address-group label {
+        width: 120px;
         font-weight: bold;
         margin-bottom: 5px;
+        white-space: nowrap;
+        align-self: center;
     }
     
     .form-group input,
     .zipcode-group input,
     .address-group input,
     .form-group select {
-        width: 100%;
+        flex: 1;
         padding: 8px 10px;
-        border: 1px solid #A39F95;
+        border: none;
+        border-radius: 6px;
         box-sizing: border-box;
+    }
+
+    #file-upload-button {
+        border-radius: 6px;
     }
 
     .zipcode-group {
@@ -137,6 +146,7 @@
     .zipcode-group button {
         white-space: nowrap;
         border: 1px solid black;
+        border-radius: 6px;
         background-color: white;
         padding: 6px 12px;
     }
@@ -145,9 +155,10 @@
         background-color: #A39F95;
         color: black;
         border: none;
+        border-radius: 6px;
         padding: 10px;
         width: 100%;
-        margin-top: 30px;
+        margin-top: 20px;
         font-weight: 600;
     }
 </style>
