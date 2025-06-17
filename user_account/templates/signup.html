@@ -1,178 +1,156 @@
 {% extends 'base.html' %}
+
 {% load static %}
 
 {% block body %}
+<div class="signup-wrapper">
+    <div class="viewfinder">
+        <div class="signup-content">
+            <div class="signup-title"><B>회원가입</B></div>
+            <form action="" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                {% for field in form %}
+                {% if field.name == 'postcode' or field.name == 'address' %}
+                {{ field.as_hidden }}
+                {% elif field.name == 'profile_image' %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    <div>{{ field }}</div>
+                </div>
+                {% else %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                </div>
+                {% endif %}
+                {% endfor %}
+                
+                <!-- 우편번호 -->
+                <div class="zipcode-group">
+                <label for="visible_postcode">우편번호</label>
+                <input type="text" id="visible_postcode" readonly>
+                <button type="button" onclick="execDaumPostcode()">우편번호 찾기</button>
+                </div>
+                
+                <!-- 주소 (라벨 위, 입력창 아래로 정렬) -->
+                <div class="address-group">
+                    <label for="visible_address">주소</label>
+                    <input type="text" id="visible_address" readonly>
+                </div>
+                
+                <button type="submit" class="custom-btn">회원가입</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+
 <style>
     .signup-wrapper {
         display: flex;
         justify-content: center;
         align-items: center;
         height: 85vh;
+        /* margin-top: -60px; */
     }
-
-    .signup-box {
+    
+    .viewfinder {
         position: relative;
-        padding: 30px;
-        background-color: white;
         width: 100%;
-        max-width: 500px;
-        text-align: center;
+        max-width: 700px;
+        height: 700px;
+        padding: 30px;
+        border-radius: 12px;
+        background-image: url("{% static 'index/images/rec_frame.png' %}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        box-sizing: border-box;
     }
 
-  .masking-tape {
-    position: absolute;
-    top: -45px;
-    left: 50%;
-    transform: translateX(-50%) rotate(10deg);
-    width: 50px;
-    height: auto;
-    z-index: 2;
-    pointer-events: none;
-  }
+    .signup-content {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 2;
+        width: 100%;
+        height: 100%;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: black;
+        backdrop-filter: brightness(1.1);
+    }
+    
+    .signup_content form {
+        width: 100%;
+        max-width: 360px;
+    }
 
     .signup-title {
         text-align: center;
         font-size: 24px;
         margin-bottom: 24px;
-    }
-
-    .form-group {
-        display: flex;
-        align-items: center;
-        margin-bottom: 15px;
-    }
-    
-    .form-group label {
-        width: 120px;
-        text-align: left;
         font-weight: bold;
     }
     
-    .form-group input {
-        border: 1px solid #A39F95;
-        flex: 1;
-        padding: 8px 10px;
-        max-width: 300px;
-    }
-
-    .form-group select {
-        flex: 1;
-        padding: 8px 10px;
-        border: 1px solid #ccc;
-        max-width: 300px;
-    }
-    
-    .form-group input[type="file"] {
-        border: none;
-        border-radius: 0;
-        padding: 0;
-    }
-
-    .zipcode-group {
-        display: flex;
-        text-align: start;
-        align-items: center;
-        margin-bottom: 15px;
-    }
-
-    .zipcode-group label {
-        width: 120px;
-        font-weight: bold;
-    }
-
-    .zipcode-group input {
-        width: 150px;
-        padding: 8px;
-        border: 1px solid #A39F95;
-        margin-right: 10px;
-    }
-
-    .zipcode-group button {
-        border: 1px solid black;
-        background: white;
-        padding: 6px 12px;
-        white-space: nowrap;
-    }
-
+    .form-group,
+    .zipcode-group,
     .address-group {
         display: flex;
         flex-direction: column;
         align-items: flex-start;
         margin-bottom: 15px;
-        border-radius: 0;
         width: 100%;
     }
-
+    
+    .form-group label,
+    .zipcode-group label,
     .address-group label {
-        width: 120px;
         font-weight: bold;
-        text-align: start;
+        margin-bottom: 5px;
     }
-
-    .address-group input {
-        flex: 1;
-        padding: 8px;
+    
+    .form-group input,
+    .zipcode-group input,
+    .address-group input,
+    .form-group select {
+        width: 100%;
+        padding: 8px 10px;
         border: 1px solid #A39F95;
-        width: 100%;
-    }
-
-    #visible_address {
-        width: 100%;
         box-sizing: border-box;
     }
 
+    .zipcode-group {
+        flex-direction: row;
+        align-items: center;
+    }
+    
+    .zipcode-group input {
+        flex: 1;
+        margin-right: 10px;
+    }
+    
+    .zipcode-group button {
+        white-space: nowrap;
+        border: 1px solid black;
+        background-color: white;
+        padding: 6px 12px;
+    }
+    
     .custom-btn {
         background-color: #A39F95;
         color: black;
         border: none;
         padding: 10px;
-        display: block;
         width: 100%;
         margin-top: 30px;
         font-weight: 600;
     }
 </style>
-
-<div class="signup-wrapper">
-    <div class="signup-box">
-        <img src="{% static 'index/images/masking_tape.png' %}" alt="마스킹 테이프" class="masking-tape">
-        <div class="signup-title"><B>회원가입</B></div>
-        <form action="" method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            
-            {% for field in form %}
-            {% if field.name == 'postcode' or field.name == 'address' %}
-            {{ field.as_hidden }}
-            {% elif field.name == 'profile_image' %}
-            <div class="form-group">
-                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                <div>{{ field }}</div>
-            </div>
-            {% else %}
-            <div class="form-group">
-                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
-            </div>
-            {% endif %}
-            {% endfor %}
-            
-            <!-- 우편번호 -->
-            <div class="zipcode-group">
-                <label for="visible_postcode">우편번호</label>
-                <input type="text" id="visible_postcode" readonly>
-                <button type="button" onclick="execDaumPostcode()">우편번호 찾기</button>
-            </div>
-            
-            <!-- 주소 (라벨 위, 입력창 아래로 정렬) -->
-            <div class="address-group">
-                <label for="visible_address" style="font-weight: bold; margin-bottom: 7px;">주소</label>
-                <input type="text" id="visible_address" readonly>
-            </div>
-            
-            <button type="submit" class="custom-btn">회원가입</button>
-        </form>
-    </div>
-</div>
 
 <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script>
