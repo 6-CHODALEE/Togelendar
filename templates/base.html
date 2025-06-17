@@ -41,11 +41,8 @@
         }
         body {
             {% block background_style %}
-                {% if request.resolver_match.url_name == 'index' %}
-                    background-image: url("{% static 'index/images/index_background.png' %}");
-                {% else %}
-                    background-image: url("{% static 'index/images/background.png' %}");
-                {% endif %}
+            background-image: url("{% static 'index/images/white_background.jpg' %}");
+
             background-size: cover;
             background-repeat: no-repeat;
             background-position: center;

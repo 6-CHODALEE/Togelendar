@@ -17,4 +17,15 @@ class CustomUserCreationForm(UserCreationForm):
         
 
 class CustomAuthenticationForm(AuthenticationForm):
-    pass
+    username = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'placeholder': '아이디를 입력하세요',
+            'class': 'form-control'
+        })
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'placeholder': '비밀번호를 입력하세요',
+            'class': 'form-control'
+        })
+    )

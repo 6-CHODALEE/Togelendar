@@ -165,3 +165,7 @@ AUTH_USER_MODEL = 'user_account.User'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+ACCOUNT_FORMS = {
+    'login': 'user_account.forms.CustomAuthenticationForm'
+}
