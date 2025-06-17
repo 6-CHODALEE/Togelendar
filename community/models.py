@@ -9,7 +9,7 @@ import os
 
 # Create your models here.
 class CommunityMember(models.Model):
-    community_name = models.CharField(max_length=100)
+    community_name = models.ForeignKey(CreateCommunity, on_delete=models.CASCADE)
     create_user = models.CharField(max_length=100)
     member = models.CharField(max_length=100)
 

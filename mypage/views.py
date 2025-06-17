@@ -68,12 +68,10 @@ def mypage(request, username):
     ).select_related('from_user')
 
     my_memberships = CommunityMember.objects.filter(member=me.username)
-    my_communities = [
-        CreateCommunity.objects.filter(
-            community_name=m.community_name
-        ).first()
-        for m in my_memberships
-    ]
+
+    my_communities = [m.community_name for m in my_memberships]
+
+
     my_communities = [c for c in my_communities if c is not None]
     community_names = [c.community_name for c in my_communities]
 
@@ -130,9 +128,9 @@ def create_community(request, username):
             community.save()
 
         
-
+            print(community.community_name)
             CommunityMember.objects.create(
-                community_name=community.community_name,
+                community_name=community,
                 create_user=community.create_user,
                 member=request.user
             )

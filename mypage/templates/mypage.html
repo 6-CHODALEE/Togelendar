@@ -138,7 +138,7 @@
                     <label for="friendName" class="form-label mb-1 fw-bold">닉네임 검색</label>
                     <div class="input-group mb-2">
                         <input type="text" name="q" class="form-control" placeholder="닉네임 입력">
-                        <button class="btn btn-primary btn-sm" type="submit">검색</button>
+                        <button class="btn btn-sm custom-search-btn" type="submit">검색</button>
                     </div>
                     <input type="hidden" name="popup_open" id="popupOpenField" value="false">
                 </form>
@@ -225,6 +225,21 @@
 
 <!-- 팝업 스타일 -->
 <style>
+
+.custom-search-btn {
+  background-color: #A39F95;  /* 연분홍색 */
+  color: black;
+  font-weight: bold;
+  border: none;
+  border-radius: 0;           /* 라운드 제거 */
+  padding: 6px 16px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.custom-search-btn:hover {
+  background-color: #A39F95;  /* hover 시 조금 더 진하게 */
+}
+
 /* 본문 내용은 위로 띄우기 */
 .main-content {
   position: relative;

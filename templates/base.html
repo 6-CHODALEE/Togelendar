@@ -42,9 +42,9 @@
         body {
             {% block background_style %}
                 {% if request.resolver_match.url_name == 'index' %}
-                    background-image: url("{% static 'index/images/index_background.png' %}");
+                    background-image: url("{% static 'index/images/white_background.jpg' %}");
                 {% else %}
-                    background-image: url("{% static 'index/images/background.png' %}");
+                    background-image: url("{% static 'index/images/white_background.jpg' %}");
                 {% endif %}
             background-size: cover;
             background-repeat: no-repeat;
