@@ -18,7 +18,9 @@ from user_account.models import User
 # Create your views here.
 @login_required
 def community_detail(request, community_id):
+
     community = CreateCommunity.objects.get(id=community_id)
+
 
     promises = Promise.objects.filter(community=community)
 
@@ -39,10 +41,10 @@ def community_detail(request, community_id):
     friend_users = []
     for fr in friend_list:
         friend = fr.to_user if fr.from_user == request.user else fr.from_user
-
+        print(friend.username)
         # 이미 멤버인지 체크
         is_member = CommunityMember.objects.filter(
-            community_name = community.community_name,
+            community_name = community_id,
             create_user = community.create_user,
             member = friend.username
         ).exists()
@@ -63,7 +65,7 @@ def community_detail(request, community_id):
 
     # 커뮤니티 멤버 가져오기
     members = CommunityMember.objects.filter(
-        community_name = community.community_name,
+        community_name = community_id,
         create_user = community.create_user,
     )
 

@@ -33,7 +33,7 @@ class Command(BaseCommand):
                 'address': '서울 성북구 종암로24길 35',
                 'latitude': 37.601880,
                 'longitude': 127.034838,
-                'profile_image_path': os.path.join(DOWNLOADS_DIR, '짱구.jpg'),
+                'profile_image_path': os.path.join(DOWNLOADS_DIR, '감성 인물 사진1.jpg'),
             },
             {
                 'username': '철수',
@@ -43,7 +43,7 @@ class Command(BaseCommand):
                 'address': '서울 용산구 독서당로 111',
                 'latitude': 37.537159,
                 'longitude': 127.009426,
-                'profile_image_path': os.path.join(DOWNLOADS_DIR, '철수.jpg'),
+                'profile_image_path': os.path.join(DOWNLOADS_DIR, '감성 인물 사진2.png'),
             },
             {
                 'username': '맹구',
@@ -53,7 +53,7 @@ class Command(BaseCommand):
                 'address': '서울 강남구 삼성로 212',
                 'latitude': 37.497588,
                 'longitude': 127.065306,
-                'profile_image_path': os.path.join(DOWNLOADS_DIR, '맹구.png'),
+                'profile_image_path': os.path.join(DOWNLOADS_DIR, '감성 인물 사진3.png'),
             },
             {
                 'username': '훈이',
@@ -63,7 +63,7 @@ class Command(BaseCommand):
                 'address': '서울 송파구 올림픽로 300',
                 'latitude': 37.513262,
                 'longitude': 127.103412,
-                'profile_image_path': os.path.join(DOWNLOADS_DIR, '훈이.jpeg'),
+                'profile_image_path': os.path.join(DOWNLOADS_DIR, '감성 인물 사진4.jpeg'),
             },
             {
                 'username': '유리',
@@ -73,7 +73,7 @@ class Command(BaseCommand):
                 'address': '서울 동대문구 답십리로 27',
                 'latitude': 37.580088,
                 'longitude': 127.046430,
-                'profile_image_path': os.path.join(DOWNLOADS_DIR, '유리.jpg'),
+                'profile_image_path': os.path.join(DOWNLOADS_DIR, '감성 인물 사진5.jpg'),
             },
         ]
 
@@ -127,30 +127,3 @@ class Command(BaseCommand):
                 fr.status = 'accepted'
                 fr.save()
         self.stdout.write(self.style.SUCCESS("🎉 모든 유저 간 친구 관계 10개 생성 완료"))
-
-        community_name = '떡잎마을 방범대'
-        image_path = os.path.join(DOWNLOADS_DIR, '떡잎마을 방범대.jpeg')
-
-        if not CreateCommunity.objects.filter(community_name=community_name).exists():
-            대표 = created_users['짱구']
-            community = CreateCommunity(
-                community_name=community_name,
-                create_user=대표.username,
-                community_intro='떡잎 마을은 우리가 지킨다!'
-            )
-            if os.path.exists(image_path):
-                with open(image_path, 'rb') as img_file:
-                    community.community_image.save('떡잎마을방범대.jpeg', File(img_file), save=False)
-            community.save()
-            self.stdout.write(self.style.SUCCESS(f"✅ 커뮤니티 '{community_name}' 생성 완료"))
-        else:
-            community = CreateCommunity.objects.get(community_name=community_name)
-            self.stdout.write(self.style.WARNING(f"⚠️ 커뮤니티 '{community_name}' 이미 존재함"))
-
-        for user in created_users.values():
-            CommunityMember.objects.get_or_create(
-                community_name=community.community_name,
-                create_user=community.create_user,
-                member=user.username
-            )
-        self.stdout.write(self.style.SUCCESS(f"👥 5명 모두 '{community_name}' 커뮤니티에 가입 완료"))
