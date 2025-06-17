@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body %}
+<div style="width: 400px; height: 300px; background-color: white; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin: 100px auto; padding: 20px;">
+    <img class="tape" src="{% static 'index/images/red_pin.png' %}" style="position: absolute; top: 170px; left: 750px; transform: translateX(-50%) rotate(90deg); width: 40px; opacity: 0.6;">
+    <h2 style="text-align: center; line-height: 3;">잘못된 접근입니다!</h2>
+    <div>
+        <p style="text-align: center;">{{user}}님은 비정상적인 접근을 시도했습니다.</p>
+        <p style="text-align: center;">정상적인 접근 방법을 사용해주세요.</p>
+    </div>
+    <div class="button-wrapper" >
+        <a href="{% url 'mypage:mypage' user.username %}">
+            <button class="back-button"> MyPage로 돌아가기 </button>
+        </a>
+    </div>
+</div>
+
+<style>
+    .button-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.back-button {
+  padding: 10px 20px;
+  background-color: #ffffff; 
+  color: red;
+  border: solid 1px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.back-button:hover {
+    color: white;
+    background-color: #65afe3;
+    transform: translateY(-2px);
+}
+</style>
+{% endblock %}

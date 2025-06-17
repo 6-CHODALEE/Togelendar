@@ -37,9 +37,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-*b1yfrfbsio7bjh%5fzw^!jwj5lh$l-&t%07bxmd+3y_5x@k&a'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -73,7 +73,7 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-LOGIN_REDIRECT_URL = '/'
+LOGIN_URL = '/account/login/'
 LOGOUT_REDIRECT_URL = '/'
 
 SOCIALACCOUNT_LOGIN_ON_GET = True

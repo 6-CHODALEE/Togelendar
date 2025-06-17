@@ -149,6 +149,7 @@ def create_community(request, username):
 
 from .models import FriendRequest
 
+@login_required
 def search_friends(request, username):
     query = request.GET.get('q', '').strip()
     popup_open = request.GET.get('popup_open', 'false') == 'true' 
@@ -382,7 +383,7 @@ def respond_invite(request, username):
 
         if action == "accept":
             CommunityMember.objects.create(
-                community_name=invite.community.community_name,
+                community_name=invite.community,
                 create_user=invite.community.create_user,
                 member=invite.to_user  
             )

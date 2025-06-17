@@ -20,6 +20,11 @@ from user_account.models import User
 def community_detail(request, community_id):
 
     community = CreateCommunity.objects.get(id=community_id)
+    print(community)
+    print(type(str(request.user)))
+    print(type(CommunityMember.objects.filter(community_name = community).first().member))
+    if str(request.user) != CommunityMember.objects.filter(community_name = community).first().member:
+            return render(request, '403.html', status=403)
 
 
     promises = Promise.objects.filter(community=community)
@@ -41,13 +46,13 @@ def community_detail(request, community_id):
     friend_users = []
     for fr in friend_list:
         friend = fr.to_user if fr.from_user == request.user else fr.from_user
-        print(friend.username)
         # 이미 멤버인지 체크
         is_member = CommunityMember.objects.filter(
             community_name = community_id,
             create_user = community.create_user,
             member = friend.username
-        ).exists()
+        )
+
 
         # 초대 했는지 체크
         has_invite = CommunityInvite.objects.filter(
@@ -352,6 +357,7 @@ def delete_community(request, community_id):
 
 
 @require_POST
+@login_required
 def delete_photo(request, community_id, album_name, photo_id):
     photo = get_object_or_404(Photo, id=photo_id)
 

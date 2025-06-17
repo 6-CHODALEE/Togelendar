@@ -12,10 +12,12 @@ from django.contrib import messages
 import numpy as np
 import json
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
 
 # .env 파일에서 환경변수 로드
 load_dotenv()
 
+@login_required
 def get_nearby_places_all_types(lat, lng, api_key, radius=500):
     """
     지정된 네 가지 타입의 장소를 가져오고,
@@ -62,6 +64,7 @@ def get_nearby_places_all_types(lat, lng, api_key, radius=500):
     print("총 검색된 장소 수:", len(all_places))
     return all_places
 
+@login_required
 def find_optimal_midpoint(points, api_key, standard_time_gap=20, sleep_seconds=10):
     """
     사용자 좌표(points)와 ODsay API를 사용해 
@@ -134,6 +137,7 @@ def find_optimal_midpoint(points, api_key, standard_time_gap=20, sleep_seconds=1
 from django.http import JsonResponse
 from django.urls import reverse
 
+@login_required
 def location(request, community_id, promise_id):
     # ✅ 1. POST 요청만 허용
     if request.method != 'POST':

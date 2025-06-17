@@ -18,6 +18,8 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.conf.urls import handler404
+from django.shortcuts import render, redirect
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,3 +33,13 @@ urlpatterns = [
     path('togelendar/', include('promiselocation.urls')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+
+
+def custom_404_view(request, exception):
+    if not request.user.is_authenticated:
+        return redirect('account:login')  # 너가 정의한 login 뷰 name 사용
+    return render(request, '403.html', status=403)
+
+handler404 = custom_404_view

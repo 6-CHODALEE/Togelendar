@@ -17,8 +17,11 @@ from collections import defaultdict
 @login_required
 def create_promise(request, community_id):
     community = CreateCommunity.objects.get(id=community_id)
+    if str(request.user) != CommunityMember.objects.filter(community_name = community).first().member:
+            return render(request, '403.html', status=403)
 
     current_year = datetime.now().year
+
     
     years = list(range(current_year, current_year + 6))
     months = list(range(1,13))
@@ -85,6 +88,8 @@ def create_promise(request, community_id):
 @login_required
 def promise_vote(request, community_id, promise_id):
     community = CreateCommunity.objects.get(id=community_id)
+    if str(request.user) != CommunityMember.objects.filter(community_name = community).first().member:
+            return render(request, '403.html', status=403)
     promise = Promise.objects.get(id=promise_id, community=community)
  
     inclusive_end = promise.end_date + timedelta(days=1)
@@ -124,6 +129,8 @@ def promise_vote(request, community_id, promise_id):
 def promise_result(request, community_id, promise_id):
 
     community = get_object_or_404(CreateCommunity, id=community_id)
+    if str(request.user) != CommunityMember.objects.filter(community_name = community).first().member:
+            return render(request, '403.html', status=403)
     promise = get_object_or_404(Promise, id=promise_id, community=community)
 
     votes = PromiseVote.objects.filter(promise=promise)
@@ -152,7 +159,7 @@ def promise_result(request, community_id, promise_id):
         selected_list = [d.strftime('%Y-%m-%d') for d in selected_list]
 
     total_members = CommunityMember.objects.filter(
-        community_name=community.community_name,
+        community_name=community,
         create_user=community.create_user
     ).count()
     responded_members = PromiseVote.objects.filter(promise=promise).values('username').distinct().count()
@@ -279,6 +286,7 @@ from django.shortcuts import get_object_or_404
 from .models import Promise
 
 @require_POST
+@login_required
 def delete_promise(request, community_id, promise_id):
     promise = get_object_or_404(Promise, id=promise_id, community_id=community_id)
 
