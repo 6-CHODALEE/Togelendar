@@ -300,7 +300,7 @@
 
                     selectedPhotoId = null;
 
-                    // ✅ 삭제 후 앨범 URL로 이동
+                    // 삭제 후 앨범 URL로 이동
                     const encodedAlbumName = encodeURIComponent("{{ album_name }}");
                     window.location.href = `/community/{{ community_id }}/album/${encodedAlbumName}/`;
                 } else {
@@ -336,48 +336,46 @@
                         if (request.status >= 200 && request.status < 300) {
                             const res = JSON.parse(request.responseText);
                             load(res.id);
-                            
-                            // 썸네일 wrapper 생성
+
+                            // wrapper 및 구성 요소 생성
                             const wrapper = document.createElement('div');
                             wrapper.className = 'thumbnail-wrapper';
                             wrapper.style.position = 'relative';
                             wrapper.style.width = '150px';
                             wrapper.style.height = '150px';
 
-                            // 마스킹 테이프 이미지
                             const tape = document.createElement('img');
-                            tape.src = 'static/index/images/masking_tape_check.png';
+                            tape.src = '/static/index/images/masking_tape_check.png';
                             tape.className = 'masking-tape-check';
 
-                            // 업로드된 이미지 폴더에 추가
                             const img = document.createElement('img');
                             img.src = res.filename;
                             img.className = 'album-image rounded';
                             img.dataset.photoId = res.id;
+                            img.dataset.uploadedBy = currentUsername; 
                             img.style.width = '150px';
                             img.style.height = '150px';
                             img.style.objectFit = 'cover';
                             img.style.cursor = 'pointer';
-                            
-                            img.onload = () => {
-                                const wrapper = document.createElement('div');
-                                wrapper.className = 'thumbnail-wrapper';
-                                wrapper.style.position = 'relative';
-                                wrapper.style.width = '150px';
-                                wrapper.style.height = '150px';
 
-                                const tape = document.createElement('img');
-                                tape.src = '/static/index/images/masking_tape_check.png';
-                                tape.className = 'masking-tape-check';
-                                
-                                // 조립 후 gallery에 삽입
-                                wrapper.appendChild(tape);
-                                wrapper.appendChild(img);
-                                document.getElementById('gallery').appendChild(wrapper);
-                            };
+                            // 이미지 클릭 시 삭제 버튼 표시
+                            img.addEventListener('click', function () {
+                                selectedPhotoId = res.id;
+
+                                document.getElementById('mainPhoto').src = res.filename;
+                                document.getElementById('mainPhoto').style.display = 'block';
+                                document.getElementById('PhotoDelBtn').style.display = 'block';
+                                document.getElementById('albumMainPhotoBtn').style.display = 'block';
+                                document.getElementById('commentBox').style.display = 'block';
+                            });
+
+                            // 조립 후 바로 삽입
+                            wrapper.appendChild(tape);
+                            wrapper.appendChild(img);
+                            document.getElementById('gallery').appendChild(wrapper);
                         } else {
                             console.error('업로드 실패:', request.status, request.responseText);
-                            error('업로드 실패' + request.responseText);
+                            error('업로드 실패: ' + request.responseText);
                         }
                     };
                     request.onerror = () => error('서버 오류'); console.error('서버 연결 실패');
