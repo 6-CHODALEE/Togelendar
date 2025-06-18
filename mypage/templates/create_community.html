@@ -49,16 +49,17 @@
     position: relative;
     width: 100%;
     /* max-width: 700px; */
-    height: 600px;
+    height: 650px;
     overflow: hidden;
     box-sizing: border-box;
 }
 
   .rec-frame {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px;
       height: 100%;
       object-fit: contain;
       z-index: 0;
@@ -72,10 +73,11 @@
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 2;
-    width: 550px;
+    width: 600px;
     height: 100%;
     padding: 30px;
     display: flex;
+    padding: 30px;
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -89,7 +91,7 @@
     text-align: center;
     font-size: 24px;
     font-weight: bold;
-    margin-bottom: 30px;
+    margin: 30px;
   }
 
   .form-row {

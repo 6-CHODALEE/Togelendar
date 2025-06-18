@@ -3,59 +3,67 @@
 {% load static%}
 
 {% block body %}
-<form method="post" enctype="multipart/form-data" class="profile-edit-form">
-  <img src="{% static 'index/images/masking_tape.png' %}" alt="마스킹 테이프" class="masking-tape">
-  {% csrf_token %}
-  <h3 class="form-title">프로필 수정</h3>
-  <hr>
+<div class="profile-wrapper">
+  <div class="viewfinder">
+    <img src="{% static 'index/images/rec_frame_3.png' %}" alt="프레임" class="rec-frame">
+    <div class="profile-box">
 
-  <div class="form-content d-flex align-items-start">
-    <!-- 왼쪽: 이미지 -->
-    <div class="image-section text-center">
-        <img src="{{ me.profile_image.url }}" alt="프로필 이미지" class="profile-image">
-        <label for="id_profile_image" class="btn-image-change">이미지 변경하기</label>
-        <input type="file" name="profile_image" id="id_profile_image" style="display: none;">
-    </div>
-
-    <!-- 오른쪽: 정보 입력 -->
-    <div class="info-section ms-5">
-      <div class="form-group d-flex align-items-center mb-3">
-          <label for="{{ form.username.id_for_label }}">아이디</label>
-          {{ form.username }}
-      </div>
-      <div class="form-group d-flex align-items-center mb-3">
-          <label for="{{ form.email.id_for_label }}">이메일</label>
-          {{ form.email }}
-      </div>
-      <div class="form-group d-flex align-items-center mb-3 postcode-group">
-          <label for="{{ form.postcode.id_for_label }}">우편번호</label>
-          {{ form.postcode }}
-          <button type="button" class="btn-zipcode" onclick="execDaumPostcode()">우편번호 찾기</button>
-      </div>
-      <div class="form-group d-flex align-items-center mb-3">
-          <label for="{{ form.address.id_for_label }}">주소</label>
-          {{ form.address }}
-      </div>
-      <div class="form-group d-flex align-items-center mb-3">
-          <label for="{{ form.password1.id_for_label }}">새 비밀번호</label>
-          {{ form.password1 }}
-      </div>
-      <div class="form-group d-flex align-items-center mb-3">
-          <label for="{{ form.password2.id_for_label }}">비밀번호 확인</label>
-          {{ form.password2 }}
-      </div>
+      <form method="post" enctype="multipart/form-data" class="profile-edit-form">
+        {% csrf_token %}
+        <h3 class="form-title">프로필 수정</h3>
+        
+        <div class="form-content d-flex align-items-start">
+          <!-- 왼쪽: 이미지 -->
+          <div class="image-section text-center">
+            <img src="{{ me.profile_image.url }}" alt="프로필 이미지" class="profile-image">
+            <label for="id_profile_image" class="btn-image-change">이미지 변경하기</label>
+            <input type="file" name="profile_image" id="id_profile_image" style="display: none;">
+          </div>
+          
+          <!-- 오른쪽: 정보 입력 -->
+          <div class="info-section">
+            <div class="form-group d-flex align-items-center mb-3">
+              <label for="{{ form.username.id_for_label }}">아이디</label>
+              {{ form.username }}
+            </div>
+            <div class="form-group d-flex align-items-center mb-3">
+              <label for="{{ form.email.id_for_label }}">이메일</label>
+              {{ form.email }}
+            </div>
+            <div class="form-group d-flex align-items-center mb-3 zipcode-group">
+              <label for="{{ form.postcode.id_for_label }}">우편번호</label>
+              <div class="zipcode-input-wrapper">
+                {{ form.postcode }}
+                <button type="button" class="btn-zipcode" onclick="execDaumPostcode()">우편번호 찾기</button>
+              </div>
+            </div>
+            <div class="form-group d-flex align-items-center mb-3">
+              <label for="{{ form.address.id_for_label }}">주소</label>
+              {{ form.address }}
+            </div>
+            <div class="form-group d-flex align-items-center mb-3">
+              <label for="{{ form.password1.id_for_label }}">새 비밀번호</label>
+              {{ form.password1 }}
+            </div>
+            <div class="form-group d-flex align-items-center mb-3">
+              <label for="{{ form.password2.id_for_label }}">비밀번호 확인</label>
+              {{ form.password2 }}
+            </div>
+          </div>
+        </div>
+        
+        <!-- 중앙 정렬 버튼 -->
+        <div class="btn-submit-wrapper">
+          <button type="submit" class="btn-submit">변경하기</button>
+        </div>
+      </form>
     </div>
   </div>
-
-  <!-- 중앙 정렬 버튼 -->
-  <div class="btn-submit-wrapper">
-      <button type="submit" class="btn-submit">변경하기</button>
-  </div>
-</form>
-
-<!-- Daum 주소 API -->
-<script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
-<script>
+</div>
+  
+  <!-- Daum 주소 API -->
+  <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+  <script>
 function execDaumPostcode() {
     new daum.Postcode({
         oncomplete: function(data) {
@@ -69,44 +77,73 @@ function execDaumPostcode() {
 </script>
 
 <style>
-.profile-edit-form {
-  position: relative;
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 30px;
-  background-color: white;
-  font-family: "Arial Rounded MT Bold", sans-serif;
+.profile-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
-.masking-tape {
-    position: absolute;
-    top: -45px;
-    left: 50%;
-    transform: translateX(-50%) rotate(10deg);
-    width: 50px;
-    height: auto;
-    z-index: 2;
-    pointer-events: none;
-  }
+.viewfinder {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  aspect-ratio: 3/4;
+  padding: 30px;
+}
 
+.rec-frame {
+  position: absolute;
+  top: 24%;
+  left: 0;
+  width: 100%;
+  height: 500px;
+  object-fit: contain;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.profile-box {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  max-width: 900px;
+  height: 600px;
+  padding: 30px;
+  border-radius: 12px;
+  z-index: 1;
+  backdrop-filter: brightness(1.1);
+}
+
+.profile-edit-form {
+  position: static;
+  margin-top: 35px;
+  width: 100%;
+}
 
 .form-title {
-  text-align: left;
+  text-align: center;
   font-weight: bold;
   font-size: 1.8rem;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
 .form-content {
   display: flex;
+  flex: 1;
   justify-content: center;
   gap: 0px;
 }
 
 .image-section {
-  flex: 0 0 200px;
-  margin-left: 50px;
+  flex: 0 0 35%;
+  width: 350px;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .profile-image {
@@ -120,10 +157,11 @@ function execDaumPostcode() {
 .btn-image-change {
   display: inline-block;
   padding: 6px 18px;
-  font-size: 0.9rem;
-  border: 1px solid #000000;
+  margin-top: 10px;
+  border: 1px solid black;
+  border-radius: 6px;
   background-color: white;
-  color: #888;
+  color: black;
 }
 
 .btn-image-change:hover {
@@ -132,8 +170,9 @@ function execDaumPostcode() {
 }
 
 .info-section {
-  flex: 1;
-  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .form-group {
@@ -144,9 +183,9 @@ function execDaumPostcode() {
 }
 
 .form-group label {
-  width: 120px;
+  width: 100px;
   font-weight: bold;
-  text-align: right;
+  text-align: left;
   flex-shrink: 0;
   margin: 0;
 }
@@ -156,9 +195,8 @@ function execDaumPostcode() {
 .form-group textarea {
   flex: 1;
   padding: 6px 12px;
-  border: 1px solid #aaa;
-  border-radius: 0;
-  font-size: 0.95rem;
+  border: none;
+  border-radius: 6px;
   min-width: 300px;
 }
 
@@ -169,29 +207,42 @@ function execDaumPostcode() {
 }
 
 .btn-submit {
-  background-color: #ffffff;
-  border: 1px color black;
+  background-color: #A39F95;
+  border: none;
+  border-radius: 6px;
   padding: 10px 24px;
-
   color: black;
+  font-weight: bold;
 }
 
+.zipcode-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.zipcode-input-wrapper {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.zipcode-input-wrapper input {
+  flex: 1;
+  min-width: 120px;
+}
 
 .btn-zipcode {
   padding: 4px 5px;
-  font-size: 0.8rem;
-  line-height: 1;
   white-space: nowrap;
-  border-radius: 0;
-  border: 1px solid #ccc;
+  border: 1px solid black;
+  border-radius: 6px;
   background-color: white;
   color: black;
-  transition: background-color 0.2s ease-in-out;
-  margin-left: 6px; /* 버튼과 입력칸 간격 줄이기 */
 }
 
 .btn-zipcode:hover {
-  background-color: #ffe4fb;
+  background-color: #A39F95;
   color: black;
 }
 </style>
