@@ -20,9 +20,7 @@ from user_account.models import User
 def community_detail(request, community_id):
 
     community = CreateCommunity.objects.get(id=community_id)
-    print(community)
-    print(type(str(request.user)))
-    print(type(CommunityMember.objects.filter(community_name = community).first().member))
+
     if str(request.user) != CommunityMember.objects.filter(community_name = community).first().member:
             return render(request, '403.html', status=403)
 
@@ -178,7 +176,7 @@ def album_detail(request, community_id, album_name):
     for m in members:
         user = m.member
         temp_user = User.objects.get(username = user)
-        print(temp_user)
+
         member_users.append({
             'username': user,
             'profile_image': temp_user.profile_image.url if temp_user.profile_image else None

@@ -128,7 +128,7 @@ def create_community(request, username):
             community.save()
 
         
-            print(community.community_name)
+
             CommunityMember.objects.create(
                 community_name=community,
                 create_user=community.create_user,

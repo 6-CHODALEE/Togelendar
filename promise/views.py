@@ -63,7 +63,6 @@ def create_promise(request, community_id):
                 return render(request, 'create_promise.html', context)
             
             else:
-                print('if문 통과')
                 promise = form.save(commit=False)
                 promise.community = community
                 promise.promise_creator = request.user.username
