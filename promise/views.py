@@ -17,7 +17,9 @@ from collections import defaultdict
 @login_required
 def create_promise(request, community_id):
     community = CreateCommunity.objects.get(id=community_id)
-    if str(request.user) != CommunityMember.objects.filter(community_name = community).first().member:
+    community_members = CommunityMember.objects.filter(community_name=community).values_list('member', flat=True)
+
+    if str(request.user) not in community_members:
             return render(request, '403.html', status=403)
 
     current_year = datetime.now().year
@@ -87,7 +89,9 @@ def create_promise(request, community_id):
 @login_required
 def promise_vote(request, community_id, promise_id):
     community = CreateCommunity.objects.get(id=community_id)
-    if str(request.user) != CommunityMember.objects.filter(community_name = community).first().member:
+    community_members = CommunityMember.objects.filter(community_name=community).values_list('member', flat=True)
+
+    if str(request.user) not in community_members:
             return render(request, '403.html', status=403)
     promise = Promise.objects.get(id=promise_id, community=community)
  
@@ -128,7 +132,9 @@ def promise_vote(request, community_id, promise_id):
 def promise_result(request, community_id, promise_id):
 
     community = get_object_or_404(CreateCommunity, id=community_id)
-    if str(request.user) != CommunityMember.objects.filter(community_name = community).first().member:
+    community_members = CommunityMember.objects.filter(community_name=community).values_list('member', flat=True)
+
+    if str(request.user) not in community_members:
             return render(request, '403.html', status=403)
     promise = get_object_or_404(Promise, id=promise_id, community=community)
 

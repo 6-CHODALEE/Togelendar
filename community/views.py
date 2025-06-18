@@ -20,8 +20,9 @@ from user_account.models import User
 def community_detail(request, community_id):
 
     community = CreateCommunity.objects.get(id=community_id)
+    community_members = CommunityMember.objects.filter(community_name=community).values_list('member', flat=True)
 
-    if str(request.user) != CommunityMember.objects.filter(community_name = community).first().member:
+    if str(request.user) not in community_members:
             return render(request, '403.html', status=403)
 
 
@@ -167,7 +168,7 @@ def album_detail(request, community_id, album_name):
     photos = Photo.objects.filter(promise=promise)
     main_photo = photos.filter(is_main=True).first()
     members = CommunityMember.objects.filter(
-        community_name = community.community_name,
+        community_name = community,
         create_user = community.create_user,
     )
     member_users = []
