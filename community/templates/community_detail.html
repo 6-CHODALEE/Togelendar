@@ -44,10 +44,14 @@
                                     <label for="communityIntro" class="form-label">하뮤니티 소개</label>
                                     <textarea class="form-control" name="community_intro" id="communityIntro" rows="3">{{ community.community_intro }}</textarea>
                                 </div>
-                                <div class="text-end">
-                                    <button type="submit" class="btn btn-primary btn-sm">저장</button>
-                                    <button type="button" class="btn btn-secondary btn-sm" id="closeEditInfo">취소</button>
-                                    <button type="button" class="btn btn-danger btn-sm" id="deleteCommunityBtn">하뮤니티 폐쇄하기</button>
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <button type="button" class="btn btn-danger btn-sm" id="deleteCommunityBtn">하뮤니티 폐쇄하기</button>
+                                    </div>
+                                    <div class="text-end">
+                                        <button type="button" class="btn btn-secondary btn-sm" id="closeEditInfo">취소</button>
+                                        <button type="submit" class="btn btn-primary btn-sm">저장</button>
+                                    </div>
                                 </div>
                             </form>
                         </div>
@@ -182,6 +186,10 @@
 </div>
 
 <style>
+    .html, body {
+        height: 100%;
+    }
+
     .album-line-wrapper {
         position: relative;
         width: 100%;
@@ -314,8 +322,8 @@
     .modal-overlay {
         position: absolute;
         top: 0; left: 0;
-        width: 100vw;
-        height: 100vh;
+        width: 100%;
+        height: 100%;
         background: rgba(0, 0, 0, 0.3);
         display: flex;
         justify-content: center;
@@ -513,6 +521,11 @@
             e.preventDefault();
             editInfoOverlay.style.display = "flex";
             editInfoModal.style.display = "block";
+
+             // 핵심 부분: 전체 페이지 높이를 modal-overlay에 설정
+            editInfoOverlay.style.height = document.documentElement.scrollHeight + "px";
+    
+
             // 위치 정렬(버튼 아래로)
             const rect = editInfoBtn.getBoundingClientRect();
             editInfoModal.style.top = `${rect.bottom + window.scrollY + 5}px`;
