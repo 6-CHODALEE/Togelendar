@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 import os
 import dotenv
 import requests
+from django.contrib import messages
 
 
 # .env 파일에서 환경변수 로드
@@ -26,8 +27,7 @@ def get_coordinates(address):
     }
 
     response = requests.get(url, params=params)
-    print(response.status_code)
-    print(response.text)  # 🔥 응답 전체 보기
+
     if response.status_code == 200:
         result = response.json()
         if result['results']:
@@ -44,11 +44,11 @@ def signup(request):
         form = CustomUserCreationForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save(commit=False)
-            lng, lat = get_coordinates(form.cleaned_data['address'])  # ✅ 수정
+            lng, lat = get_coordinates(form.cleaned_data['address'])  # 수정
             user.longitude = lng
             user.latitude = lat
 
-            user.save()  # 🔥 이제 최종 저장
+            user.save()  # 최종 저장
 
             # Elasticsearch 색인
             es = settings.ES_CLIENT

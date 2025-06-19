@@ -1,11 +1,15 @@
 {% extends 'base.html' %}
 
+{% load static %}
+
 {% block body %}
 <form method="POST" action="{% url 'community:promise:promise_vote' community.id promise.id %}">
     {% csrf_token %}
-    
-    <div class="container mt-5 text-center" style="max-width: 800px; margin: 0 auto;">
-        <h2 class="mb-5">만날 수 있는 날짜에 투표해주세요!</h2>
+    <div class="container mt-4" style="max-width: 800px; margin: 0 auto; background-color: white; padding: 30px;">
+        <img src="{% static 'index/images/masking_tape.png' %}" alt="마스킹 테이프" class="masking_tape">
+        <div class="text-center mb-5">
+            <h2><strong>만날 수 있는 날짜에 투표해주세요!</strong></h2>
+        </div>
         <div id="calendar"></div>
         
         <!--선택된 날짜를 담을 hidden input-->
@@ -19,25 +23,243 @@
 </form>
 
 <style>
-        /* 평일 색 지정 */
-        .fc-col-header-cell:nth-child(2) .fc-col-header-cell-cushion,
-        .fc-col-header-cell:nth-child(3) .fc-col-header-cell-cushion,
-        .fc-col-header-cell:nth-child(4) .fc-col-header-cell-cushion,
-        .fc-col-header-cell:nth-child(5) .fc-col-header-cell-cushion,
-        .fc-col-header-cell:nth-child(6) .fc-col-header-cell-cushion,
-        .fc-day-mon .fc-daygrid-day-number,
-        .fc-day-tue .fc-daygrid-day-number,
-        .fc-day-wed .fc-daygrid-day-number,
-        .fc-day-thu .fc-daygrid-day-number,
-        .fc-day-fri .fc-daygrid-day-number {color: black;}
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        position: relative;
+    }
 
-        /* 토요일 색 지정 */
-        .fc-col-header-cell:nth-child(7) .fc-col-header-cell-cushion,
-        .fc-day-sat .fc-daygrid-day-number {color: blue;}
-        
-        /* 일요일 색 지정*/
-        .fc-col-header-cell:nth-child(1) .fc-col-header-cell-cushion,
-        .fc-day-sun .fc-daygrid-day-number {color: red;}
+    .masking_tape {
+        position: absolute;
+        top: -45px;
+        left: 50%;
+        transform: translateX(-50%) rotate(10deg);
+        width: 50px;
+        height: auto;
+        z-index: 2;
+        pointer-events: none;
+  }
+
+    /* FullCalendar 버튼 공통 스타일 초기화 */
+    .fc .fc-button {
+        background-color: white;
+        border: 2px solid #A39F95;
+        color: black;
+        font-weight: bold;
+        font-size: 16px;
+        box-shadow: none;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    /* 🔧 버튼 정렬 및 스타일 */
+    .fc-toolbar-chunk {
+        display: flex;
+        align-items: center;
+        gap: 10px;  /* 버튼 간격 */
+    }
+
+    /* 오늘 버튼 */
+    .fc .fc-today-button {
+        background-color: white !important;      
+        color: black !important;                
+        border: 1px solid #A39F95 !important;   
+        border-radius: 6px !important;
+        font-weight: bold !important;
+        font-size: 15px !important;
+    }
+
+    .fc .fc-today-button:hover {
+        background-color: #A39F95 !important;    
+        color: black !important;
+    }
+
+
+    /* 이전/다음 버튼 공통 스타일 */
+    .fc .fc-prev-button,
+    .fc .fc-next-button {
+        background-color: white !important;   
+        border: none !important;              
+        border-radius: 0;
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: none;
+    }
+
+    /* 기존 텍스트 아이콘 숨김 */
+    .fc .fc-prev-button .fc-icon,
+    .fc .fc-next-button .fc-icon {
+        display: none;
+    }
+
+    /* 화살표 (삼각형) */
+    .fc .fc-prev-button::before {
+        content: "";
+        width: 0;
+        height: 0;
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+        border-right: 12px solid #A39F95;
+    }
+
+    .fc .fc-next-button::before {
+        content: "";
+        width: 0;
+        height: 0;
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+        border-left: 12px solid #A39F95;
+    }
+
+    /* hover 시 배경 유지 + 화살표 색상만 변경 */
+    .fc .fc-prev-button:hover,
+    .fc .fc-next-button:hover {
+        background-color: #A39F95 !important;
+    }
+
+    .fc .fc-prev-button:hover::before {
+        border-right-color: #A39F95;
+    }
+
+    .fc .fc-next-button:hover::before {
+        border-left-color: #A39F95;
+    }
+
+    /* 아이콘 사이즈 */
+    .fc .fc-prev-button .fc-icon,
+    .fc .fc-next-button .fc-icon {
+        font-size: 1.2rem;
+    }
+
+    /* 버튼 그룹 깨기 (중첩 배경 방지) */
+    .fc .fc-button-group {
+        display: flex;
+        gap: 10px;
+    }
+
+    /* 툴바 정렬 */
+    .fc-header-toolbar {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+    }
+    .fc-toolbar-promise_name {
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .fc-header-toolbar {
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+
+    .fc .fc-scrollgrid,
+    .fc .fc-scrollgrid > tbody,
+    .fc .fc-scrollgrid > tbody > tr,
+    .fc .fc-scrollgrid > tbody > tr > td {
+        overflow: hidden;
+    }
+    
+    .fc .fc-view-harness {
+        /* 기존 설정 유지하면서 border 제거 */
+        overflow: visible !important;
+        box-sizing: border-box;
+        padding: 30px;
+
+    }
+
+    /* 가장 안쪽 테이블의 테두리 없애기 (테두리 잘림 방지) */
+    .fc .fc-scrollgrid {
+        border: 1px solid black;
+        border-collapse: separate !important; /*  테두리 간격을 위해 필수 */
+        border-spacing: 16px;                /*  내부 셀과 테두리 간 여백 */
+        background-color: white;
+    }
+    
+    /* 요일 헤더 스타일 */
+    .fc-col-header-cell-cushion {
+        font-size: 16px;
+        font-weight: bold;
+        text-decoration: none;
+    }
+    /* 평일 색 지정 */
+    .fc-col-header-cell:nth-child(2) .fc-col-header-cell-cushion,
+    .fc-col-header-cell:nth-child(3) .fc-col-header-cell-cushion,
+    .fc-col-header-cell:nth-child(4) .fc-col-header-cell-cushion,
+    .fc-col-header-cell:nth-child(5) .fc-col-header-cell-cushion,
+    .fc-col-header-cell:nth-child(6) .fc-col-header-cell-cushion,
+    .fc-day-mon .fc-daygrid-day-number,
+    .fc-day-tue .fc-daygrid-day-number,
+    .fc-day-wed .fc-daygrid-day-number,
+    .fc-day-thu .fc-daygrid-day-number,
+    .fc-day-fri .fc-daygrid-day-number {color: black;}
+
+    /* 토요일 색 지정 */
+    .fc-col-header-cell:nth-child(7) .fc-col-header-cell-cushion,
+    .fc-day-sat .fc-daygrid-day-number {color: blue;}
+    
+    /* 일요일 색 지정*/
+    .fc-col-header-cell:nth-child(1) .fc-col-header-cell-cushion,
+    .fc-day-sun .fc-daygrid-day-number {color: red;}
+
+    /* 날짜 셀 칸 테두리 제거 */
+    .fc .fc-daygrid-day,
+    .fc .fc-scrollgrid td,
+    .fc .fc-scrollgrid th {
+        border: none !important;
+    }
+    .fc .fc-col-header {
+        border-bottom: 1px solid #000000 !important;  /* 원하는 색으로 조절 가능 */
+    }
+    
+    .fc .fc-daygrid-day-frame {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 80px;  
+        padding: 0;
+    }
+
+    .fc .fc-daygrid-day-number {
+        position: relative !important;  /* 기존 absolute 제거 */
+        font-weight: bold;
+        font-size: 14px;
+        z-index: 2;  /* 박스보다 위에 */
+    }
+    
+    .fc-event.vote-selected-day {
+        background-color: rgba(163, 159, 149, 0.5);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        position: absolute;
+        top: -5px;
+        left: -20px;
+        transform: translateX(-50%);
+        z-index: 1;
+        border: none;
+        pointer-events: none;
+    }
+
+    .btn-outline-dark.px-4.py-2 {
+        color: black;
+        background-color: #A39F95;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        transition: all 0.2s ease;
+    }
+    /* 오늘(today) 날짜 기본 배경 제거 */
+    .fc-day-today {
+        background-color: transparent !important;
+    }
+    
 </style>
 {% endblock %}
 
@@ -79,6 +301,14 @@
 
         calendar.render();
 
+        // 스크롤바 제거
+        setTimeout(() => {
+            const scrollers = document.querySelectorAll('.fc-scroller');
+            scrollers.forEach(el => {
+                el.style.overflow = 'hidden';
+            });
+        }, 100);
+
         function updateHiddenInput() {
             document.getElementById('selected-dates').value = Array.from(selectedDates).join(',');
         }
@@ -89,8 +319,7 @@
                 start:dateStr,
                 end: dateStr,
                 allDay: true,
-                display: 'background',
-                color: '#c6f6d5'
+                classNames: ['vote-selected-day']
             });
             updateHiddenInput();
         }
@@ -98,7 +327,7 @@
         // 날짜 강조 제거
         function removeHighlight(dateStr) {
             calendar.getEvents().forEach(e => {
-                if (e.startStr === dateStr && e.display === 'background') {
+                if (e.startStr === dateStr) {
                     e.remove();
                 }
             });

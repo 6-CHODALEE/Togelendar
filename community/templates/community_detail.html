@@ -1,23 +1,28 @@
 {% extends 'base.html' %}
 
+{% load static %}
+{% load custom_tags %}
+
 {% block body %}
-<div class="container mt-4">
+<div class="container mt-2">
     <div class=" text-center py-3 mb-3">
-        <div style="width: 100%; height: 240px; overflow: hidden; border-radius: 8px; position: relative;">
+        <div style="width: 100%; height: 300px; overflow: hidden; position: relative;">
             <img src="{{community.community_image.url}}" 
             alt="{{community.community_name}} 대표사진"
-            style="width:100%; height: 100%; object-fit: cover; object-position: center;">
+            class="w-100 rounded" style="height: 300px; object-fit: cover;">
 
-            <a id="editImageBtn" href="#" class="circle-button round-edit-button btn btn-outline-secondary btn-sm" title="모임 대표 이미지 수정">✎</a>
-            <div class="editImageOverlay modal-overlay" style="display: none;">
-                <div id="editImageModal" style="display: none; position: absolute; top: 200px; right: 100px; background: white; padding: 20px; border-radius: 10px; border: 1px solid #ccc;">
-                    <h5 class="fw-bold">대표 사진 바꾸기</h5>
-                    <form id="imageUploadForm" enctype="multipart/form-data">
-                        <input type="file" name="image" accept="image/*"><br>
-                        <button type="submit" class="btn btn-sm btn-primary">수정</button>
+            <a id="editImageBtn" href="#" class="circle-button round-edit-button btn btn-outline-secondary btn-sm" title="하뮤니티" 대표 이미지 수정">✎</a>
+        </div>
+        <div class="editImageOverlay modal-overlay" style="display: none;">
+            <div id="editImageModal">
+                <h5 class="fw-bold">대표 사진 바꾸기</h5>
+                <form id="imageUploadForm" enctype="multipart/form-data">
+                    <input type="file" name="image" accept="image/*"><br>
+                    <div class="d-flex justify-content-end gap-2 mt-2">    
                         <button type="button" class="btn btn-sm btn-secondary" id="closeEditImage">취소</button>
-                    </form>
-                </div>
+                        <button type="submit" class="btn btn-sm btn-primary">수정</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -28,64 +33,83 @@
             <div class="d-flex align-items-center mb-3">
                 <h4 class="fw-bold mb-0 me-2">{{community.community_name}}</h4>
                 {% if username == community.create_user %}
-                <a id="editInfoBtn" href="#" class="circle-button btn btn-outline-secondary btn-sm ms-2" title="모임 정보 수정">✎</a>
+                <a id="editInfoBtn" href="#" class="circle-button btn btn-outline-secondary btn-sm ms-2" title="하뮤니티 정보 수정">✎</a>
                 
                     <div class="editInfoOverlay modal-overlay" style="display: none;">
-                        <div id="editInfoModal" style="display: none; position: absolute; z-index: 1000; background: white; padding: 20px; border-radius: 10px; border: 1px solid #ccc; width: 400px;">
-                            <h5 class="fw-bold">모임 정보 수정</h5>
+                        <div id="editInfoModal" style="display: none; position: absolute; z-index: 1000; background: white; padding: 20px; border: 1px solid #ccc; width: 400px;">
+                            <h5 class="fw-bold">하뮤니티 정보 수정</h5>
                             <form id="editInfoForm">
                                 <div class="mb-2">
-                                    <label for="communityName" class="form-label">모임 이름</label>
+                                    <label for="communityName" class="form-label">하뮤니티 이름</label>
                                     <input type="text" class="form-control" id="communityName" name="community_name" value="{{ community.community_name }}">
                                 </div>
                                 <div class="mb-2">
-                                    <label for="communityIntro" class="form-label">모임 소개</label>
+                                    <label for="communityIntro" class="form-label">하뮤니티 소개</label>
                                     <textarea class="form-control" name="community_intro" id="communityIntro" rows="3">{{ community.community_intro }}</textarea>
                                 </div>
-                                <div class="text-end">
-                                    <button type="submit" class="btn btn-primary btn-sm">저장</button>
-                                    <button type="button" class="btn btn-secondary btn-sm" id="closeEditInfo">취소</button>
-                                    <button type="button" class="btn btn-danger btn-sm" id="deleteCommunityBtn">모임 폐쇄하기</button>
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <button type="button" class="btn btn-danger btn-sm" id="deleteCommunityBtn">하뮤니티 폐쇄하기</button>
+                                    </div>
+                                    <div class="text-end">
+                                        <button type="button" class="btn btn-secondary btn-sm" id="closeEditInfo">취소</button>
+                                        <button type="submit" class="btn btn-primary btn-sm">수정</button>
+                                    </div>
                                 </div>
                             </form>
                         </div>
                     </div>
                 {% endif %}
             </div>
-                <h5>{{community.community_intro}}</h5>
+            <h5>{{community.community_intro}}</h5>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-md-8" style="padding-left: 2rem;">
             <!--폴더 리스트-->
-            <div class="row">
-                <div class="col-4 col-md-2 mb-4 text-center">
-                    {% for promise in promises %}
-                        <a href="{% url 'community:album_detail' community.id promise.promise_name %}">
-                            <div class="text-center mt-3">
-                                {% if promise.main_photo %}
-                                    <img src="{{promise.main_photo.image.url}}" style="max-height: 80px;">
-                                {% else %}
-                                    <img src="https://cdn-icons-png.flaticon.com/512/716/716784.png" 
-                                        style="max-height: 80px;">
-                                {% endif %}
-                                <div class="mt-2 fw-bold">{{promise.promise_name}}</div>
+            
+            {% for promise in promises %}
+                {% if forloop.counter0|divisibleby:3 %}
+                    <div class="album-line-wrapper row g-3">
+                        <img src="{% static 'index/images/brown_rope.png' %}" alt="줄" class="album-line">
+                        <div class="d-flex flex-wrap justify-content-start">
+                {% endif %}
+                            <div class="album-gallery col-6 col-md-4 mb-3">
+                                <div class="album-box">
+                                    <a href="{% url 'community:album_detail' community.id promise.promise_name %}" class="text-decoration-none">
+                                        <div class=" card album-box-inner">
+                                            {% if promise.main_photo %}
+                                                <img src="{{promise.main_photo.image.url}}" class="album-box-img">
+                                            {% else %}
+                                                {% random_album_image as random_image %}
+                                                <img src="{{ random_image }}" class="album-box-img">
+                                            {% endif %}
+                                        </div>
+                                        <div class="album-box-title">{{promise.promise_name}}</div>
+                                    </a>
+                                </div>
                             </div>
-                        </a>
-                    {% endfor %}
-                </div>
-            </div>
+
+                        {% if forloop.counter|divisibleby:3 or forloop.last %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
         </div>
 
         <!--오른쪽 정보-->
-        <div class="col-md-4 border-start ps-3" style="border-color: black;">
+        <div class="col-md-4 ps-3" style="border-left: 2px solid black;">
             <!--커뮤니티 멤버 리스트-->
-            <div class="bg-light p-3 mb-3" style="min-height: 100px; position: relative;">
+            <div class="member-box p-3 mb-3">
                 <h6 class="fw-bold d-flex justify-content-between">
                     커뮤니티 멤버
-                    <a href="#" id="showMemberPopover" class="btn btn-outline-secondary btn-sm">
+                    <a href="#" id="showMemberPopover" class="member-invite-btn btn btn-outline-secondary btn-sm">
                         멤버 추가
                     </a>
                     <!--멤버 추가 팝업-->
                     <div id="memberPopover" class="popover-form" style="display: none;">
                         <div class="popover-arrow"></div>
-                        <h6>친구 목록</h6>
+                        <h6 class="fw-bold">친구 목록</h6>
                         <ul class="list-group">
                             {% for friend in friend_users %}
                             <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -111,12 +135,14 @@
                 </div>
             </h6>
                 <!--커뮤니티 멤버 목록 표시-->
-                <div class="bg-light p-3 mb-3" style="min-height: 100px;">
-                    <h6 class="fw-bold">참여 중인 멤버</h6>
-                    {% if members %}
+                <div style="min-height: 100px;">
+                    {% if member_users %}
                         <ul id="memberList" class="list-unstyled mb-0">
-                            {% for member in members %}
-                                <li>👤 {{member.member}}</li>
+                            {% for member in member_users %}
+                            <li class="mt-2">
+                                <img src="{{member.profile_image}}" alt="{{member.username}}의 프로필 이미지" class="member-profile-img me-2">
+                                {{member.username}}
+                            </li>
                             {% endfor %}
                         </ul>
                     {% else %}
@@ -127,28 +153,28 @@
     
 
             <!--약속 정하기-->
-            <div class="bg-light p-3 mb-3" style="min-height: 100px;">
+            <div class="promise-box p-3 mb-3">
                 <h6 class="fw-bold d-flex justify-content-between align-items-center">
                     약속
                     <div class="d-flex gap-2">
-                        <a href="{% url 'community:promise:no_place_promise' community.id %}" class="btn btn-outline-secondary btn-sm same-width">장소 정하기</a>
-                        <a href="{% url 'community:promise:create_promise' community.id %}" class="btn btn-outline-secondary btn-sm same-width">날짜 정하기</a>
+                        <a href="{% url 'community:promise:no_place_promise' community.id %}" class="promise-location-btn btn btn-outline-secondary btn-sm same-width">장소 정하기</a>
+                        <a href="{% url 'community:promise:create_promise' community.id %}" class="promise-date-btn btn btn-outline-secondary btn-sm same-width">날짜 정하기</a>
                     </div>
                 </h6>
-                <div>
+                <div class="promise-list">
                     {% if promises %}
-                        <ul class="list-unstyled mb-0">
+                        <ul class="list-unstyled">
                             {% for promise in promises %}
-                                <li>
+                                <li class="mt-2">
                                     {% if promise.id in voted_ids %}
                                         <!--투표 완료한 경우-->
                                         <a href="{% url 'community:promise:promise_result' community.id promise.id %}">
-                                            📅{{promise.promise_name}}
+                                            📅 {{promise.promise_name}}
                                         </a>
                                     {% else %}
                                         <!--투표하지 않은 경우-->
                                         <a href="{% url 'community:promise:promise_vote' community.id promise.id %}">
-                                            📅{{promise.promise_name}}
+                                            📅 {{promise.promise_name}}
                                         </a>
                                     {% endif %}
                                 </li>
@@ -164,6 +190,139 @@
 </div>
 
 <style>
+    .html, body {
+        height: 100%;
+    }
+
+    .editImageOverlay.modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vw;
+        background: rgba(0, 0, 0, 0.3);
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        z-index: 2000;
+    }
+
+    #editImageModal {
+        position: absolute;
+        top: 420px;
+        right: 100px;
+        z-index: 2001;
+        background: white;
+        padding: 20px;
+    }
+
+    .album-line-wrapper {
+        position: relative;
+        width: 100%;
+        margin-top: 20px;
+        /* padding-top: 30px; */
+    }
+
+    .album-line {
+        position: absolute;
+        top: -20px;
+        left: 0;
+        width: 100%;
+        height: 70px;
+        object-fit: cover;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .album-gallery {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        z-index: 1;
+        position: relative;
+        margin-top: 20px;
+    }
+
+    .album-box {
+        width: 100%;
+        max-width: 200px;
+        border-radius: 2px;
+        background: white;
+        box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+        aspect-ratio: 3/4; /* 폴라로이드 비율 느낌 */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 15px;
+        margin: 5px;
+
+        /* 그림자 */
+        box-shadow: 
+            0 6px 8px rgba(0, 0, 0, 0.2),
+            0 20px 30px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease;
+    }
+
+    .album-box::before {
+        content: "";
+        position: absolute;
+        width: 80px;
+        height: 80px;
+        top: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-image: url("{% static 'index/images/clip.png' %}");
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        z-index: 2;
+    }
+
+    .album-box-inner {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        background: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 0;
+    }
+    
+    .album-box-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+    }
+
+    .album-box-title {
+        display: block;
+        margin-top: 20px;
+        font-weight: bold;
+        text-align: center;
+        color: black;
+    }
+
+    .member-box {
+        min-height: 100px;
+        position: relative;
+        background: white;
+    }
+
+    .member-profile-img {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: none;
+    }
+
+    .promise-box {
+        min-height: 100px;
+        position: relative;
+        background-color: white;
+    }
+
     .same-width {
         min-width: 75px; /* 너비 맞추고 싶으면 여기 조정 */
         text-align: center;
@@ -187,15 +346,31 @@
     }
 
     .modal-overlay {
-        position: fixed;
+        position: absolute;
         top: 0; left: 0;
-        width: 100vw;
-        height: 100vh;
+        width: 100%;
+        height: 100%;
         background: rgba(0, 0, 0, 0.3);
         display: flex;
         justify-content: center;
         align-items: center;
         z-index: 1000;
+    }
+
+    .member-invite-btn,
+    .promise-location-btn,
+    .promise-date-btn {
+        background-color: #A39F95;
+        border: none;
+        border-radius: 6px;
+        text-align: center;
+        color: black;
+        font-weight: bold;
+    }
+
+    .promise-list a {
+        color: black;
+        text-decoration: none;
     }
 
     .popover-form {
@@ -204,9 +379,8 @@
         right: 0;
         width: 400px;
         background: white;
-        border: 1px solid #ccc;
+        border-radius: 0;
         padding: 15px;
-        border-radius: 12px;
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         z-index: 1000;
     }
@@ -231,6 +405,7 @@
         const toggleBtn = document.getElementById("showMemberPopover");
         const popover = document.getElementById("memberPopover");
         const closeBtn = document.getElementById("closeMemberPopover");
+        const deleteBtn = document.getElementById('deleteCommunityBtn');
 
         toggleBtn.addEventListener("click", function (e) {
             e.preventDefault();
@@ -241,20 +416,28 @@
             popover.style.display = "none";
         });
 
-        const deleteBtn = document.getElementById('deleteCommunityBtn');
+        document.addEventListener("click", function (e) {
+            if (popover.style.display === "block" &&
+            !popover.contains(e.target) &&
+            !toggleBtn.contains(e.target)) {
+                popover.style.display = "none";
+            }
+        });
+        
+
         if (deleteBtn) {
             deleteBtn.addEventListener('click', function () {
-                if (confirm("정말로 이 모임을 폐쇄하시겠습니까? 관련 데이터가 모두 삭제됩니다.")) {
+                if (confirm("정말로 해당 하뮤니티를 폐쇄하시겠습니까? 관련 데이터가 모두 삭제됩니다.")) {
                     fetch("{% url 'community:delete_community' community.id %}", {
                         method: 'POST',
                         headers: {
-                            'X-CSRFToken': '{{ csrf_token }}',
+                            'X-CSRFToken': csrfToken,
                         }
                     }).then(response => {
                         if (response.redirected) {
                             window.location.href = response.url;
                         } else {
-                            alert("모임 삭제에 실패했습니다.");
+                            alert("하뮤니티 삭제에 실패했습니다.");
                         }
                     });
                 }
@@ -262,14 +445,14 @@
         }
         
         document.querySelectorAll('.invite-member-btn').forEach(button => {
-            button.addEventListener("click", () => {
-                const username = button.dataset.username;
+            button.addEventListener("click", function() {
+                const username = this.dataset.username;
                 
                 fetch("{% url 'community:invite_member_ajax' community.id %}", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": "{{csrf_token}}"
+                        "X-CSRFToken": csrfToken
                     },
                     body: JSON.stringify({
                         community_id: "{{community.id}}",
@@ -279,9 +462,11 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
+                        // 버튼 상태 변경
                         button.textContent = "초대 보냄";
                         button.className = "btn btn-sm btn-success";
                         button.disabled = true;
+
                     } else {
                         alert("초대 실패: " + (data.message || data.error || "알 수 없는 오류"));
                     }
@@ -290,29 +475,18 @@
                     console.error("요청 실패: ", err);
                     alert("서버 오류 발생");
                 });
-                // 멤버 추가 후, 자동으로 목록 갱신
-                if (data.success) {
-                    button.textContent = "추가됨";
-                    button.className = "btn btn-sm btn-success";
-                    button.disabled = true;
-
-                    // 멤버 리스트에 추가
-                    const memberList = document.getElementById("memberList");
-
-                    // 리스트가 없으면 ul태그 생성
-                    if (!memberList) {
-                        const newList = document.createElement("ul");
-                        newList.id = "memberList";
-                        newList.className = "list-unstyled mb-0";
-                        document.querySelector(".bg-light.p-3.mb-3").appendChild(newList);
-                    }
-
-                    const li = document.createElement("li");
-                    li.textContent = "👤 " + username;
-                    document.getElementById("memberList").appendChild(li);
-                }
             });
         });
+
+        // 배경 클릭 시 모달 닫기 함수
+        function bindModalCloseOnOverlayClick(overlay, modal) {
+            overlay.addEventListener("click", function (e) {
+                if (e.target === overlay) {
+                    modal.style.display = "none";
+                    overlay.style.display = "none";
+                }
+            });
+        }
 
         const editImageBtn = document.querySelector(".round-edit-button");
         const editImageModal = document.getElementById("editImageModal");
@@ -325,6 +499,8 @@
             e.preventDefault();
             editImageOverlay.style.display = "flex";
             editImageModal.style.display = "block";
+
+            editImageOverlay.style.height = document.documentElement.scrollHeight + "px";
         });
 
         // 모임 대표 사진 수정 모달 닫기(버튼)
@@ -334,12 +510,7 @@
         });
 
         // 배경 클릭 시 모달 닫기
-        editImageOverlay.addEventListener("click", function (e) {
-            if (e.target === editImageOverlay) {
-                editImageModal.style.display = "none";
-                editImageOverlay.style.display = "none";
-            }
-        });
+        bindModalCloseOnOverlayClick(editImageOverlay, editImageModal);
 
         // 이미지 업로드 AJAZ 처리
         imageUploadForm.addEventListener('submit', function (e) {
@@ -349,7 +520,7 @@
             fetch("{% url 'community:update_image' community.id %}", {
                 method: "POST",
                 headers: {
-                    "X-CSRFToken": "{{csrf_token}}"
+                    "X-CSRFToken": csrfToken
                 },
                 body: formData
             })
@@ -378,6 +549,11 @@
             e.preventDefault();
             editInfoOverlay.style.display = "flex";
             editInfoModal.style.display = "block";
+
+             // 핵심 부분: 전체 페이지 높이를 modal-overlay에 설정
+            editInfoOverlay.style.height = document.documentElement.scrollHeight + "px";
+    
+
             // 위치 정렬(버튼 아래로)
             const rect = editInfoBtn.getBoundingClientRect();
             editInfoModal.style.top = `${rect.bottom + window.scrollY + 5}px`;
@@ -391,12 +567,7 @@
         });
 
         // 배경 클릭 시 모달 닫기
-        editInfoOverlay.addEventListener("click", function (e) {
-            if (e.target === editInfoOverlay) {
-                editInfoModal.style.display = "none";
-                editInfoOverlay.style.display = "none";
-            }
-        });
+        bindModalCloseOnOverlayClick(editInfoOverlay, editInfoModal);
 
         // 저장 버튼 AJAX 처리
         editInfoForm.addEventListener("submit", function (e) {
@@ -411,7 +582,7 @@
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRFToken": "{{csrf_token}}"
+                    "X-CSRFToken": csrfToken
                 },
                 body: JSON.stringify(formData)
             })

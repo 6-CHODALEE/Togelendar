@@ -1,16 +1,16 @@
 from django.db import models
 from django_resized import ResizedImageField
 from django.conf import settings
-from account.models import User
+from user_account.models import User
 # 커뮤니티 생성 정보 저장 모델
 class CreateCommunity(models.Model):
     id = models.AutoField(primary_key=True)
-    community_name = models.CharField(max_length=100)
+    community_name = models.CharField(max_length=100, unique=True)
     create_user = models.CharField(max_length=100)
     community_intro = models.TextField()
     community_image = ResizedImageField(
         size=[500, 500],
-        crop=['middle', 'center'],
+        crop=None,
         upload_to='mypage/mypage_image/',
         quality=90,
         force_format='JPEG'

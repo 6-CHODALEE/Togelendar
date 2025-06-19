@@ -9,63 +9,68 @@
             <!-- 프로필 이미지 -->
             <!-- 중앙 정렬된 프로필 박스 -->
             <div class="text-center mb-4">
-                <!-- 프로필 이미지 -->
-                {% if me.profile_image %}
-                    <img src="{{ me.profile_image.url }}"
-                        class="rounded-circle mb-2"
-                        style="width: 170px; height: 170px; object-fit: cover;"
-                        alt="프로필 이미지">
-                {% else %}
-                    <img src="{% static 'default_profile.png' %}"
-                        class="rounded-circle mb-2"
-                        style="width: 100px; height: 100px; object-fit: cover;"
-                        alt="기본 이미지">
-                {% endif %}
+                <div class="profile-image-wrapper position-relative">
+                  {% if me.profile_image %}
+                      <img src="{{ me.profile_image.url }}"
+                          class="rounded-circle mb-3"
+                          style="width: 170px; height: 170px; object-fit: cover;"
+                          alt="프로필 이미지">
+                  {% else %}
+                      <img src="{% static 'index/images/camera_character.png' %}"
+                          class="rounded-circle mb-3"
+                          style="width: 170px; height: 170px; object-fit: cover;"
+                          alt="기본 이미지">
+                  {% endif %}
 
+                  <!-- ✎ 버튼을 이미지 위에 위치시킴 -->
+                <a href="{% url 'mypage:verify_password' me %}" class="circle-button edit-profile-button">✎</a>
+
+                </div>
                 <!-- 이름 -->
-                <p class="fw-bold mb-1">{{ me.username }}</p>
-
-                <!-- 함친 수 -->
-                <p class="mb-2">
-                    함친
-                    <strong id="showFriendList" style="cursor:pointer;" class="fw-bold">
-                        {{ friend_count }}명
-                    </strong>
-                </p>
+                <h4 class="fw-bold mb-2">{{ me.username }}</h4>
 
                 <!-- 버튼 2개 수평 정렬 -->
-                <div class="d-flex justify-content-center gap-2">
-                    <a href="#" id="togglePopover" class="btn btn-secondary btn-sm position-relative">
+                <div class="d-flex justify-content-center align-items-center gap-2">
+                    <p>
+                        함친
+                        <strong id="showFriendList" style="cursor:pointer;" class="fw-bold">
+                            {{ friend_count }}명
+                        </strong>
+                    </p>
+                    <a href="#" id="togglePopover" class="custom-dotted-btn btn btn-sm position-relative">
                         함친 추가
                         {% if received_requests %}
-                            <span class="badge-friend bg-danger text-white position-absolute top-0 start-100 translate-middle">
+                            <span class="badge-friend bg-danger text-white position-absolute top-0 start-100 translate-middle" id="friend_request_badge">
                                 {{ received_requests|length }}
                             </span>
                         {% endif %}
                     </a>
-                    <a href="{% url 'mypage:verify_password' me %}" class="btn btn-outline-dark btn-sm">프로필 편집</a>
                 </div>
             </div>
             <div class="col ms-4">
-                <div class="mx-auto border rounded shadow-sm bg-white p-4" style="width: 100%; max-width: 1400px; min-width: 1000px;">             
+                <div class="mx-auto" style="width: 100%; max-width: 1400px; min-width: 1000px;">
                     <!-- 상단: 월 표시 + 주간 이동 버튼 -->
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4 class="fw-bold mb-0">{{ week_dates.0|date:"Y년 n월" }}</h4>
-                        <div class="d-flex gap-2 align-items-center">
-                            <a href="?base_date={{ prev_week }}" class="btn btn-outline-secondary btn-sm">&lt;</a>
-                            <span class="fw-bold">{{ base_date|date:"Y년 n월 j일" }} 기준 주</span>
-                            <a href="?base_date={{ next_week }}" class="btn btn-outline-secondary btn-sm">&gt;</a>
-
-                            <!-- ✅ 오늘로 이동 버튼 -->
-                            <a href="?base_date={{ today|date:'Y-m-d' }}" class="btn btn-outline-primary btn-sm ms-2">오늘</a>
+                        <div class="d-flex align-items-end gap-2">
+                          <h4 class="fw-bold mb-0">{{ week_dates.0|date:"Y년 n월" }}</h4>
+                          <span class="text-muted" style="font-size: 1rem; margin-bottom: 2px;">
+                            {{ week_dates.0|date:"m/d" }} ~ {{ week_dates.6|date:"m/d" }}
+                          </span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                          <a href="?base_date={{ today|date:'Y-m-d' }}" class="go-today-btn">오늘로 가기</a>
+                          <a href="?base_date={{ prev_week }}" class="arrow-btn">
+                            <span class="arrow-left"></span>
+                          </a>
+                          <a href="?base_date={{ next_week }}" class="arrow-btn">
+                            <span class="arrow-right"></span>
+                          </a>
                         </div>
                     </div>
 
-                    <p class="mb-3">이번 주: {{ week_dates.0|date:"m/d" }} ~ {{ week_dates.6|date:"m/d" }}</p>
-
                     <!-- 캘린더 테이블 -->
-                    <table class="table calendar-table table-bordered text-center align-middle mb-0">
-                        <thead>
+                    <table class="table calendar-table table-bordered text-center align-middle mb-0" >
+                        <thead style="border-bottom: 1px solid #000000 !important;" >
                             <tr>
                                 {% for label in weekday_labels %}
                                     <th class="fw-bold {% if label == '일' %}text-danger{% elif label == '토' %}text-primary{% endif %}">
@@ -86,7 +91,7 @@
                                             {% for result in weekly_promises|get_item:date %}
                                                 <a href="{% url 'community:promise:promise_result' community_id=result.promise.community.id promise_id=result.promise.id %}"
                                                 class="calendar-promise"
-                                                title="{{ result.promise_name }}" style="color: white;">
+                                                title="{{ result.promise_name }}" style="color: rgb(1, 1, 1); text-decoration: none;">
                                                     {{ result.promise_name }}
                                                 </a>
                                             {% empty %}
@@ -125,7 +130,7 @@
             </div>
         
 
-            <!-- ✅ 팝업 폼 -->
+            <!-- 팝업 폼 -->
             <div id="popoverForm" class="popover-form">
                 <div class="popover-arrow"></div>
 
@@ -133,7 +138,7 @@
                     <label for="friendName" class="form-label mb-1 fw-bold">닉네임 검색</label>
                     <div class="input-group mb-2">
                         <input type="text" name="q" class="form-control" placeholder="닉네임 입력">
-                        <button class="btn btn-primary btn-sm" type="submit">검색</button>
+                        <button class="btn btn-sm custom-search-btn" type="submit">검색</button>
                     </div>
                     <input type="hidden" name="popup_open" id="popupOpenField" value="false">
                 </form>
@@ -163,22 +168,23 @@
     </div>
 
     <!-- 아래: 커뮤니티 리스트 -->
+    <!-- 커뮤니티 상단 바 -->
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center bg-light p-3 mt-4">
-            <h5 class="mb-0 d-inline">{{ me }}의 커뮤니티 리스트</h5>
-            
-            <div>
-                {% if invite_requests %}
-                    <a href="" id="showInvitePopover" class="btn btn-outline-secondary btn-sm me-2">
-                        가입 요청 {{invite_requests|length}}건
-                    </a>
-                {% endif %}
-                <a href="{% url 'mypage:create_community' me %}" class="btn btn-warning btn-sm">
-                    커뮤니티 생성하기
-                </a>
-            </div>
+    <div class="d-flex justify-content-between align-items-center community-header-bar mt-4">
+        <h5 class="fw-bold mb-0">{{ me }}의 하뮤니티 리스트</h5>
+        <div class="d-flex gap-2">
+        {% if invite_requests %}
+            <a href="#" id="showInvitePopover" class="btn btn-outline-request btn-sm" style="border-radius: 0;">
+            가입요청 {{ invite_requests|length }}건
+            </a>
+        {% endif %}
+        <a href="{% url 'mypage:create_community' me %}" class="btn btn-create btn-sm" style="border-radius: 0;">
+            생성하기
+        </a>
         </div>
     </div>
+    </div>
+
 
     <!--커뮤니티 가입 요청 팝업-->
     <div id="invitePopover" class="popover-form" style="display: none;">
@@ -197,114 +203,324 @@
         {% endfor %}
     </div>
 
-    <div class="container mt-3">
-        {% for community in communities %}
-            <div class="d-flex justify-content-between align-items-center p-3 mb-2 border rounded bg-light">
-                <div># {{ community.community_name }}</div>
-                <a href="{% url 'community:community_detail' community.id %}" class="btn btn-outline-dark btn-sm">입장하기</a>
+    <!-- 커뮤니티 리스트 -->
+    <div class="container mt-4">
+        {% if communities %}
+            {% for community in communities %}
+            <div class="d-flex justify-content-between align-items-center community-card">
+                <div class="fw-bold">{{ community.community_name }}</div>
+                <a href="{% url 'community:community_detail' community.id %}" class="btn btn-enter btn-sm">입장하기</a>
             </div>
-        {% empty %}
-            <p class="text-muted">참여 중인 커뮤니티가 없습니다.</p>
-        {% endfor %}
+            {% endfor %}
+        {% else %}
+            <div class="no-community-message">
+            참여 중인 커뮤니티가 없습니다.
+            </div>
+        {% endif %}
     </div>
 </div>
 
-<!-- ✅ Django에서 넘긴 검색 결과 JSON 저장 -->
+<!-- Django에서 넘긴 검색 결과 JSON 저장 -->
 {{ results|json_script:"search-results-data" }}
 
-<!-- ✅ 팝업 스타일 -->
+<!-- 팝업 스타일 -->
 <style>
-/* 📌 달력 셀: 고정된 너비 설정 */
-.calendar-table {
-    table-layout: fixed;
-    width: 100%;
+
+.custom-search-btn {
+  background-color: #A39F95;  
+  color: black;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 16px;
+  /* transition: background-color 0.2s ease-in-out; */
 }
 
-.calendar-table td {
-    width: 14.28%;               /* 100% / 7일 */
-    max-width: 14.28%;
-    min-width: 14.28%;
-    overflow: hidden;
-    position: relative;
-    height: 100px;
-    vertical-align: top;
-    padding: 0.5rem;
-    box-sizing: border-box;
+.custom-search-btn:hover {
+  background-color: #A39F95;  /* hover 시 조금 더 진하게 */
 }
 
-/* 📌 날짜 (우측 상단) */
-/* 날짜는 위 고정 */
-.calendar-date {
-    position: absolute;
-    top: 4px;
-    right: 6px;
-    z-index: 2;
+/* 본문 내용은 위로 띄우기 */
+.main-content {
+  position: relative;
+  z-index: 1;
 }
 
 
-/* 약속 배지 */
-.calendar-promise {
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    font-size: 0.75rem;
-    font-weight: 500;
-    border-radius: 8px;
-    background-color: #6c757d;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding: 2px 6px;
-    box-sizing: border-box;
+/* 상단 헤더 구분선 */
+.community-header-bar {
+  border-bottom: 2px solid black;
+  padding-bottom: 10px;
 }
 
-/* 📌 약속 없음 메시지도 동일한 줄 위치에 정렬 */
-.calendar-empty {
-    margin-top: 28px;
-    font-size: 0.75rem;
-    color: #aaa;
-} 
-/* 약속 영역은 아래에 여유 공간 */
-.calendar-promises-wrapper {
-    margin-top: 22px; /* 날짜 아래 공간 확보 */
+/* 가입 요청 버튼 */
+.btn-outline-request {
+  border: 2px solid #A39F95;
+  border-radius: 6px !important;
+  background-color: white;
+  color: black;
+  padding: 6px 14px;
+  font-weight: bold;
+}
+
+/* 생성하기 버튼 */
+.btn-create {
+  background-color: #A39F95;
+  border: none;
+  border-radius: 6px !important;
+  color: black;
+  padding: 6px 14px;
+  font-weight: bold;
+}
+
+/* 입장하기 버튼 */
+.btn-enter {
+  background-color: white;
+  border: none;
+  border-radius: 6px !important;
+  color: black;
+  padding: 6px 14px;
+  font-weight: bold;
+}
+
+.no-community-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px; /* 필요에 따라 조정 */
+  font-size: 1.1rem;
+  color: #666;
+}
+
+/* 커뮤니티 카드 스타일 */
+.community-card {
+  background-color: white;
+  border: 1.5px solid #333;
+  padding: 16px 24px;
+  margin-bottom: 16px;
+}
+
+.custom-dotted-btn {
+  background-color: white;
+  border: 1px solid #000000;
+  border-radius: 6px;
+  color: black;
+  padding: 5px 10px;
+  font-weight: bold;
+  transition: all 0.2s ease-in-out;
+}
+
+.circle-button {
+    width: 32px;
+    height: 32px;
+    padding: 0;
     display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
- 
-.popover-form {
-    position: absolute;  /* 꼭 필요 */
-    z-index: 1000;
-    width: 400px;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    padding: 15px;
-}
-
-.popover-arrow {
-    position: absolute;
-    top: -10px;
-    left: 20px;
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-bottom: 10px solid white;
-}
-
-.badge-friend {
-    font-size: 0.65rem;
-    padding: 4px 6px;
-    border-radius: 999px;
-    min-width: 20px;
-    text-align: center;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
     line-height: 1;
+    text-decoration: none;
+}
+
+.edit-profile-button {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  transform: translate(0%, 0%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: transparent; 
+  color: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2;
+}
+
+/* 전체 배경 및 기본 폰트 설정 */
+body {
+  background-color: white;
+}
+
+/* 프로필 섹션 */
+.profile-box {
+  width: 220px;
+  text-align: center;
+  padding: 20px;
+}
+
+.profile-box img {
+  width: 170px;
+  height: 170px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-bottom: 10px;
+}
+
+.profile-box .btn {
+  font-size: 0.8rem;
+  padding: 5px 10px;
+  border-radius: 20px !important;
+  background-color: #A39F95;
+  color: black;
+  border: none;
+}
+
+.profile-box .btn:hover {
+  background-color: #A39F95;
+}
+
+/* 달력 상단 스타일 */
+.calendar-card {
+  border: 2px solid black;
+  padding: 20px;
+  background: rgb(0, 0, 0);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+.go-today-btn {
+  padding: 4px 12px;
+  border: 2px solid #A39F95;
+  border-radius: 6px;
+  background: rgb(255, 255, 255);
+  color: black;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.go-today-btn:hover {
+  background: rgb(255, 255, 255);
+}
+
+.arrow-btn {
+  background: none;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  padding: 6px;
+}
+
+.arrow-left, .arrow-right {
+  display: inline-block;
+  width: 0;
+  height: 0;
+}
+
+.arrow-left {
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-right: 12px solid #A39F95;
+}
+
+.arrow-right {
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-left: 12px solid #A39F95;
+}
+
+/* 캘린더 테이블 */
+.calendar-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid black;
+  overflow: hidden;  
+}
+
+.calendar-table thead th {
+  text-align: center;
+  font-weight: bold;
+  color: black;
+  padding: 10px;
+  border-bottom: 1px solid black;
+  background-color: #fcf4f4;
+}
+
+.calendar-table thead th:first-child { color: red; }
+.calendar-table thead th:last-child { color: blue; }
+.calendar-table td {
+  vertical-align: top;
+  height: 120px;
+  padding: 8px;
+  position: relative;
+  background-color: white;
+}
+
+.calendar-date {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #888;
+}
+
+.calendar-promises-wrapper {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.calendar-promise {
+  background-color: #c3f0ff;
+  color: #000;
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 커뮤니티 리스트 */
+.community-card {
+  background: white;
+  border: 2px solid #A39F95;
+  padding: 16px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.community-card .btn {
+  background-color: #A39F95;
+  color: black;
+  border: none;
+  border-radius: 0;
+  padding: 5px 10px;
+  font-weight: bold;
+}
+
+.community-card .btn:hover {
+  background-color: #A39F95;
+}
+
+/* 팝업 스타일 */
+.popover-form {
+  background: white;
+  border: 1px solid #ddd;
+  padding: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  z-index: 1000;
+  width: 400px;
+}
+
+/* 친구 요청 배찌 */
+#friend_request_badge{
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    border-radius: 50%;
 }
 </style>
 
-<!-- ✅ 팝업 동작 및 검색 결과 출력 JS -->
+<!-- 팝업 동작 및 검색 결과 출력 JS -->
 <script>
 const currentUsername = "{{ request.user.username }}";
 const csrftoken = '{{ csrf_token }}';
@@ -316,26 +532,65 @@ const resultsContainer = document.getElementById("searchResults");
 const searchForm = document.getElementById('searchForm');
 const popupOpenField = document.getElementById('popupOpenField');
 
-// ✅ 검색할 때 현재 팝업 상태 기록
+
+
+function renderSearchResults(users) {
+    resultsContainer.innerHTML = "";  // 이전 결과 초기화
+
+    if (users.length === 0) {
+        resultsContainer.innerHTML = "<li class='list-group-item text-muted'>검색 결과 없음</li>";
+        return;
+    }
+
+    users.forEach(user => {
+        const li = document.createElement("li");
+        li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+        const infoSpan = document.createElement("span");
+        infoSpan.innerHTML = `<strong>${user.username}</strong> (${user.email})`;
+
+        const addButton = document.createElement("button");
+        addButton.className = "btn btn-sm";
+
+        if (user.request_status === 'pending') {
+            addButton.textContent = "요청 보냄";
+            addButton.classList.add('btn-secondary');
+            addButton.disabled = true;
+        } else {
+            addButton.textContent = "요청보내기";
+            addButton.classList.add('btn-primary');
+            addButton.onclick = (e) => {
+                e.stopPropagation();
+                sendFriendRequest(user.username, addButton);
+            };
+        }
+
+        li.appendChild(infoSpan);
+        li.appendChild(addButton);
+        resultsContainer.appendChild(li);
+    });
+}
+
+// 검색할 때 현재 팝업 상태 기록
 searchForm.addEventListener('submit', () => {
     const isPopupOpen = window.getComputedStyle(popover).display !== "none";
     popupOpenField.value = isPopupOpen ? "true" : "false";
 });
 
-// ✅ 서버에서 넘어온 값으로 검색 후 팝업 상태 복원
+// 서버에서 넘어온 값으로 검색 후 팝업 상태 복원
 const hasQuery = "{{ query|default:'' }}" !== "";
 const shouldOpenPopover = "{{ open_popover|yesno:'true,false' }}" === "true";
 
 if (hasQuery && shouldOpenPopover) {
     showPopover();  // 원래 팝업 띄우기
     setTimeout(() => {
-        showPopover();  // 📌 팝업 위치 재조정
-    }, 10);  // 📌 DOM 렌더링 이후 실행되도록 딜레이
+        showPopover();  // 팝업 위치 재조정
+    }, 10);  // DOM 렌더링 이후 실행되도록 딜레이
 } else {
     hidePopover();
 }
 
-// ✅ "함친 추가" 버튼 클릭 시 팝업 열기 (서버 상태 무시)
+// "함친 추가" 버튼 클릭 시 팝업 열기 (서버 상태 무시)
 btn.addEventListener("click", (e) => {
     e.preventDefault();
     showPopover();
@@ -360,22 +615,22 @@ function showPopover() {
     popover.style.display = "block";
 }
 
-// ✅ 팝업 닫기 함수
+// 팝업 닫기 함수
 function hidePopover() {
     popover.style.display = "none";
 }
 
-// ✅ 닫기 버튼
+// 닫기 버튼
 closeBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     clearSearchState();
     hidePopover();
 
-    // ✅ 팝업 닫을 때 URL을 /mypage/<username>으로 강제 이동
+    // 팝업 닫을 때 URL을 /mypage/<username>으로 강제 이동
     window.location.href = `/mypage/${currentUsername}/`;
 });
 
-// ✅ 검색 상태 초기화
+// 검색 상태 초기화
 function clearSearchState() {
     const searchInput = document.querySelector('input[name="q"]');
     if (searchInput) {
@@ -388,7 +643,7 @@ function clearSearchState() {
 }
 
 
-// ✅ 검색 결과 렌더링
+// 검색 결과 렌더링
 const jsonDataElement = document.getElementById('search-results-data');
 
 if (jsonDataElement) {
@@ -406,7 +661,7 @@ if (jsonDataElement) {
             const addButton = document.createElement("button");
             addButton.className = "btn btn-sm";
 
-            // ✅ 상태에 따라 버튼 표시 변경
+            // 상태에 따라 버튼 표시 변경
             if (user.request_status === 'pending') {
                 addButton.textContent = "요청 보냄";
                 addButton.classList.add('btn-secondary');
@@ -429,13 +684,13 @@ if (jsonDataElement) {
     }
 }
 
-// ✅ 요청보내기 Ajax 함수 (이 부분 새로 추가됨!)
+// 요청보내기 Ajax 함수 (이 부분 새로 추가됨!)
 function sendFriendRequest(nickname, button) {
     fetch(`/mypage/${currentUsername}/friend/request/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken  // ✅ 여기!
+            'X-CSRFToken': csrftoken
         },
         body: JSON.stringify({ to_username: nickname })
     })
@@ -453,7 +708,7 @@ function sendFriendRequest(nickname, button) {
     });
 }
 
-// ✅ 버튼 UI 업데이트 함수
+// 버튼 UI 업데이트 함수
 function addFriend(nickname, button) {
     button.textContent = "요청 보냄";
     button.className = "btn btn-sm btn-secondary";
@@ -462,7 +717,7 @@ function addFriend(nickname, button) {
 }
 
 
-function acceptRequest(fromUsername, button) {  // ✅ button 파라미터 추가
+function acceptRequest(fromUsername, button) {  // button 파라미터 추가
     fetch(`/mypage/${currentUsername}/friend/accept/`, {
         method: 'POST',
         headers: {
@@ -480,7 +735,7 @@ function acceptRequest(fromUsername, button) {  // ✅ button 파라미터 추�
     })
     .then(data => {
         if (data.success) {
-            acceptFriend(fromUsername, button);  // ✅ 여기서 button 제대로 전달
+            acceptFriend(fromUsername, button);  // 여기서 button 제대로 전달
         } else {
             alert("에러: " + data.error);
         }
@@ -492,12 +747,12 @@ function acceptRequest(fromUsername, button) {  // ✅ button 파라미터 추�
 }
 
 function acceptFriend(fromUsername, button) {
-    // ✅ 수락 버튼 비활성화
+    // 수락 버튼 비활성화
     button.textContent = "수락 완료";
     button.className = "btn btn-sm btn-secondary";
     button.disabled = true;
 
-    // ✅ 같은 줄의 거절 버튼도 찾아서 비활성화
+    // 같은 줄의 거절 버튼도 찾아서 비활성화
     const parent = button.closest('.d-flex');
     const rejectBtn = parent.querySelector('.reject-btn');
     if (rejectBtn) {
@@ -567,8 +822,17 @@ if (inviteBtn && invitePopover) {
     inviteBtn.addEventListener("click", function (e) {
         e.preventDefault();
         const rect = inviteBtn.getBoundingClientRect();
+        const popoverWidth = invitePopover.offsetWidth || 400;  // 예상 팝업 너비
+        let left = rect.left + window.scrollX;
+
+        // 화면 오른쪽을 벗어나면 위치 조정
+        const maxLeft = window.innerWidth - popoverWidth - 10;
+        if (left > maxLeft) {
+            left = maxLeft;
+        }
+
         invitePopover.style.top = `${rect.bottom + window.scrollY + 5}px`;
-        invitePopover.style.left = `${rect.left + window.scrollX}px`;
+        invitePopover.style.left = `${left}px`;
         invitePopover.style.display = "block";
     });
 }
@@ -658,9 +922,9 @@ window.addEventListener("click", function (e) {
         !popover.contains(e.target) &&
         e.target !== btn
     ) {
-        clearSearchState();  // ✅ 검색 input 초기화 + results 비우기
-        hidePopover();       // ✅ 팝업 숨기기
-        window.location.href = `/mypage/${currentUsername}/`;  // ✅ 새로고침 또는 URL 초기화
+        clearSearchState();  // 검색 input 초기화 + results 비우기
+        hidePopover();       // 팝업 숨기기
+        window.location.href = `/mypage/${currentUsername}/`;  // 새로고침 또는 URL 초기화
     }
 
     // 커뮤니티 가입 요청 팝업
@@ -680,6 +944,31 @@ window.addEventListener("click", function (e) {
     ) {
         friendListPopover.style.display = "none";
     }
+});
+
+// 실시간 검색 Ajax
+const searchInput = document.querySelector('input[name="q"]');
+searchInput.addEventListener('input', function () {
+    const keyword = this.value.trim();
+
+    if (popover.style.display !== "block") return; // 팝업이 열릴 때만 검색
+    if (keyword.length === 0) {
+        resultsContainer.innerHTML = "";
+        return;
+    }
+
+    fetch(`/mypage/${currentUsername}/search_friends/?q=${encodeURIComponent(keyword)}`, {
+        headers: {
+            'x-requested-with': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        renderSearchResults(data);
+    })
+    .catch(error => {
+        console.error("검색 실패:", error);
+    });
 });
 </script>
 {% endblock %}

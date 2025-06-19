@@ -1,12 +1,144 @@
 {% extends 'base.html' %}
 
+{% load static %}
+
 {% block body %}
-  <p>커뮤니티 생성</p>
+<div class="create-wrapper">
+  <div class="viewfinder">
+    <div class="create-box">
+      <h2>하뮤니티 생성</h2>
+      
+      {% if messages %}
+      {% for message in messages %}
+      <div class="alert alert-danger" role="alert">
+        {{ message|linebreaksbr }}
+      </div>
+      {% endfor %}
+      {% endif %}
+      
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-row">
+          <label for="{{form.community_name.id_for_label}}">이름</label>
+          {{ form.community_name }}
+        </div>
+        <div class="form-row intro-row">
+          <label for="{{form.community_intro.id_for_label}}">소개</label>
+          {{ form.community_intro }}
+        </div>
+        <div class="form-row">
+          <label for="{{form.community_image.id_for_label}}">대표 사진</label>
+          {{ form.community_image}}
+        </div>
+        
+        <input type="submit" class="submit-btn" value="생성하기">
+      </form>
+    </div>
+    <img src="{% static 'index/images/rec_frame_2.png' %}" class="rec-frame" alt="프레임">
+  </div>
+</div>
 
-  <form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
+<style>
+  .create-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .viewfinder {
+    position: relative;
+    width: 100%;
+    /* max-width: 700px; */
+    height: 650px;
+    overflow: hidden;
+    box-sizing: border-box;
+}
 
-    <button type="submit" class="btn btn-warning btn-sm">생성하기</button> 
-  </form>
+  .rec-frame {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px;
+      height: 100%;
+      object-fit: contain;
+      z-index: 0;
+      pointer-events: none;
+      border-radius: 12px;
+  }
+
+  .create-box { 
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    width: 600px;
+    height: 100%;
+    padding: 30px;
+    display: flex;
+    padding: 30px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border-radius: 12px;
+    box-sizing: border-box;
+    backdrop-filter: brightness(1.1);
+  }
+
+  .create-box h2 {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin: 30px;
+  }
+
+  .form-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .form-row.intro-row {
+    align-items: flex-start;
+  }
+
+  .form-row label {
+    width: 100px;
+    text-align: left;
+    font-weight: bold;
+  }
+
+  .form-row input,
+  .form-row textarea {
+    flex: 1;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 6px;
+    max-width: 300px;
+}
+
+.form-row input[type="file"] {
+  border: none;
+  border-radius: 0 !important;
+  padding: 0;
+  }
+
+  .submit-btn {
+    margin-top: 20px;
+    background-color: #A39F95;
+    color: black;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    cursor: pointer;
+  }
+
+  .submit-btn:hover {
+    background-color: #A39F95;
+  }
+</style>
+
 {% endblock %}

@@ -15,7 +15,7 @@ from django.utils.dateparse import parse_date
 from community.models import CommunityMember
 from collections import defaultdict
 from promise.models import Promise, PromiseResult
-from account.forms import CustomUserCreationForm, CustomAuthenticationForm
+from user_account.forms import CustomUserCreationForm, CustomAuthenticationForm
 from .forms import ProfileUpdateForm
 from .elasticsearch_utils import update_user_index, delete_user_index  # 유틸 함수 임포트
 from django.contrib.auth import login, get_user_model
@@ -28,16 +28,21 @@ from .forms import ProfileUpdateForm
 from django.contrib.auth import authenticate
 from .forms import PasswordCheckForm
 from django.contrib.auth import get_user_model, login
+from django.contrib.auth import get_backends
+from django.http import JsonResponse
+from django.contrib import messages
 
 
 User = get_user_model()
 # Create your views here.
 
+
+
 @login_required
 def mypage(request, username):
     me = request.user
 
-    # 📌 base_date GET 파라미터 처리
+    # base_date GET 파라미터 처리
     # 안전하게 파싱
     base_date_str = request.GET.get('base_date')
     if base_date_str:
@@ -53,7 +58,7 @@ def mypage(request, username):
     week_dates = [start_of_week + timedelta(days=i) for i in range(7)]
     weekday_labels = ['일', '월', '화', '수', '목', '금', '토']
 
-    # 📌 이전/다음 주 계산용
+    # 이전/다음 주 계산용
     prev_week = base_date - timedelta(days=7)
     next_week = base_date + timedelta(days=7)
 
@@ -63,13 +68,10 @@ def mypage(request, username):
     ).select_related('from_user')
 
     my_memberships = CommunityMember.objects.filter(member=me.username)
-    my_communities = [
-        CreateCommunity.objects.filter(
-            community_name=m.community_name,
-            create_user=m.create_user
-        ).first()
-        for m in my_memberships
-    ]
+
+    my_communities = [m.community_name for m in my_memberships]
+
+
     my_communities = [c for c in my_communities if c is not None]
     community_names = [c.community_name for c in my_communities]
 
@@ -117,18 +119,28 @@ def create_community(request, username):
     if request.method == 'POST':
         form = CreateCommunityFrom(request.POST, request.FILES)
         if form.is_valid():
+            # 폼에서 추출만 (아직 저장은 안 함)
+            temp_community_name = form.cleaned_data['community_name']
+            temp_create_user = request.user.username
+
             community = form.save(commit=False)
-            community.create_user = request.user.username
+            community.create_user = temp_create_user
             community.save()
 
-            # ✅ 생성자 본인을 멤버로 자동 추가
+        
+
             CommunityMember.objects.create(
-                community_name=community.community_name,
+                community_name=community,
                 create_user=community.create_user,
-                member=request.user.username
+                member=request.user
             )
 
             return redirect('mypage:mypage', username=username)
+        else: 
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{error}")
+            return render(request, 'create_community.html', {'form': form})
     else:
         form = CreateCommunityFrom()
     
@@ -137,12 +149,13 @@ def create_community(request, username):
 
 from .models import FriendRequest
 
+@login_required
 def search_friends(request, username):
     query = request.GET.get('q', '').strip()
+    popup_open = request.GET.get('popup_open', 'false') == 'true' 
+    is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
     results = []
-    popup_open = request.GET.get('popup_open', 'false') == 'true'
 
-    # ✅ Elasticsearch 검색 결과
     if query:
         response = settings.ES_CLIENT.search(
             index="user-index",
@@ -165,6 +178,8 @@ def search_friends(request, username):
 
             try:
                 to_user = User.objects.get(username=target_username)
+
+                # 친구인지 확인
                 is_friend = FriendRequest.objects.filter(
                     (
                         Q(from_user=request.user, to_user=to_user) |
@@ -189,7 +204,11 @@ def search_friends(request, username):
             except User.DoesNotExist:
                 continue
 
-    # ✅ 기존 mypage context 구성 추가
+    # ✅ Ajax 요청이면 JSON 응답
+    if is_ajax:
+        return JsonResponse(results, safe=False)
+
+    # 기존 mypage context 구성 추가
     me = request.user
 
     base_date_str = request.GET.get('base_date')
@@ -363,20 +382,18 @@ def respond_invite(request, username):
         invite = CommunityInvite.objects.get(id=invite_id)
 
         if action == "accept":
-            # 멤버로 추가
             CommunityMember.objects.create(
-                community_name=invite.community.community_name,
-                create_user = invite.community.create_user,
-                member = invite.to_user.username
+                community_name=invite.community,
+                create_user=invite.community.create_user,
+                member=invite.to_user  
             )
             invite.status = 'accepted'
-        
+
         elif action == 'reject':
             invite.status = 'rejected'
-        
+
         invite.save()
         return JsonResponse({'success': True})
-
 
     except CommunityInvite.DoesNotExist:
         return JsonResponse({'success': False, 'error': '초대 기록을 찾을 수 없습니다.'})
@@ -392,7 +409,6 @@ def myprofile(request, username):
     User = get_user_model()
     user = get_object_or_404(User, username=username)
 
-    # 🔒 로그인한 유저만 접근 가능
     if request.user != user:
         return redirect('mypage:mypage', username=request.user.username)
 
@@ -407,10 +423,15 @@ def myprofile(request, username):
 
             user.save()
             update_user_index(user)
-            login(request, user)
-            request.session.pop('password_verified', None)  # ✅ 인증 초기화
 
-            return redirect('mypage:myprofile', username=user.username)
+            # backend 설정 후 로그인
+            backend = get_backends()[0]
+            user.backend = f"{backend.__module__}.{backend.__class__.__name__}"
+            login(request, user)
+
+            request.session.pop('password_verified', None)
+
+            return redirect('mypage:mypage', username=user.username)
     else:
         form = ProfileUpdateForm(instance=user)
 

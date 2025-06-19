@@ -13,6 +13,8 @@
 
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    
+    {% load static %}
 
     {% block head %}{% endblock %}
 </head>
@@ -31,6 +33,26 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <style>
+        @font-face {
+            font-family: 'GowunDodum';
+            src: url("{% static 'index/fonts/GowunDodum-Regular.ttf' %}") format('truetype');
+        }
+        body {
+            {% block background_style %}
+            background-image: url("{% static 'index/images/white_background.jpg' %}");
+
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-attachment: fixed;
+            background-color: #e9e7e2;
+            {% endblock %}
+
+            font-family: 'GowunDodum', sans-serif;
+        }
+    </style>
 
     {% block scripts %}{% endblock %}
 </body>

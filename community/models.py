@@ -1,18 +1,17 @@
 from django.db import models
 from django.conf import settings
-from account.models import User
+from user_account.models import User
 from mypage.models import CreateCommunity
 from promise.models import Promise
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+import os
 
 # Create your models here.
 class CommunityMember(models.Model):
-    id = models.AutoField(primary_key=True)  # 기본 PK 필드
-    community_name = models.CharField(max_length=100)
+    community_name = models.ForeignKey(CreateCommunity, on_delete=models.CASCADE)
     create_user = models.CharField(max_length=100)
     member = models.CharField(max_length=100)
-
-    class Meta:
-        unique_together = ('community_name', 'member')
 
     def __str__(self):
         return f"{self.member} in {self.community_name} (created by {self.create_user})"
@@ -64,9 +63,6 @@ class PhotoComment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
-from django.db.models.signals import post_delete
-from django.dispatch import receiver
-import os
 
 @receiver(post_delete, sender=Photo)
 def delete_image_file(sender, instance, **kwargs):
@@ -77,3 +73,12 @@ def delete_image_file(sender, instance, **kwargs):
     except Exception as e:
         # 로그 출력 또는 무시할 수 있음
         print(f"이미지 삭제 중 오류 발생: {e}")
+
+
+# class CommunityColorSetting(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     community = models.ForeignKey(CreateCommunity, on_delete=models.CASCADE)
+#     color_hex = models.CharField(max_length=7, default="#A39F95")
+
+#     class Meta:
+#         unique_together = ('user', 'community') 

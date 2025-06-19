@@ -1,82 +1,87 @@
 {% extends 'base.html' %}
 
+{% load static %}
+
 {% block body %}
 <form method="POST" action="">
     {% csrf_token %}
     
-    <div class="container mt-4" style="max-width: 800px; margin: 0 auto;">
-        <div class="form-section mb-4 text-start" style="max-width: 800px; margin: 0 auto;">
-            
-            <!--약속명-->
-            <div class="mb-3 d-flex align-items-center">
-                <label class="form-label fw-bold me-2 fs-6">약속명 : </label>
-                <input type="text" class="form-control form-control-sm w-50 d-inline-block" name="promise_name" required>
-            </div>
-            
-            <!--시작일-->
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <span class="fw-bold fs-6">시작일 : </span>
-                
-                <!--시작 년도 선택-->
-                <select id="start-year" name="start-year" class="form-select form-select-sm w-auto">
-                    <option value="" selected disabled>선택</option>
-                    {% for year in years %}
-                    <option value="{{ year }}">{{ year }}</option>
-                    {% endfor %}
-                </select>
-                <span>년</span>
-                
-                <!--시작 월 선택-->
-                <select id="start-month" name="start-month" class="form-select form-select-sm w-auto">
-                    <option value="" selected disabled>선택</option>
-                    {% for month in months %}
-                    <option value="{{ month }}">{{ month }}</option>
-                    {% endfor %}
-                </select>
-                <span>월</span>
-                
-                <!--시작 일 선택-->
-                <select id="start-day" name="start-day" class="form-select form-select-sm w-auto">
-                    <option value="" selected disabled>선택</option>
-                    {% for day in days %}
-                    <option value="{{ day }}">{{ day }}</option>
-                    {% endfor %}
-                </select>
-                <span>일</span>
-            </div>
-                
-            <!--종료일-->
-            <div class="d-flex align-items-center gap-2">
-                <span class="fw-bold fs-6">종료일 : </span>
-                
-                <!--종료 년도 선택-->
-                <select id="end-year" name="end-year" class="form-select form-select-sm w-auto">
-                    <option value="" selected disabled>선택</option>
-                    {% for year in years %}
-                    <option value="{{ year }}">{{ year }}</option>
-                    {% endfor %}
-                </select>
-                <span>년</span>
-                
-                <!--종료 월 선택-->
-                <select id="end-month" name="end-month" class="form-select form-select-sm w-auto">
-                    <option value="" selected disabled>선택</option>
-                    {% for month in months %}
-                    <option value="{{ month }}">{{ month }}</option>
-                    {% endfor %}
-                </select>
-                <span>월</span>
-                
-                <!--종료 일 선택-->
-                <select id="end-day" name="end-day" class="form-select form-select-sm w-auto">
-                    <option value="" selected disabled>선택</option>
-                    {% for day in days %}
-                    <option value="{{ day }}">{{ day }}</option>
-                    {% endfor %}
-                </select>
-                <span>일</span>
-            </div>
+    <div class="container mt-4" style="max-width: 800px; margin: 0 auto; background-color: white; padding: 30px;">
+        <img src="{%static 'index/images/masking_tape.png' %}" alt="마스킹 테이프" class="masking_tape">
+        <div class="text-center mb-5">
+            <h2><strong>언제 만날래?</strong></h2>
         </div>
+
+        {% if message %}
+            <div style="white-space: pre-line; color: red; font-weight: bold; text-align: center; margin-bottom: 20px;">
+                {{ message }}
+            </div>
+        {% endif %}
+        
+        <div class="row mb-3 align-items-center">
+            <label class="col-2 col-form-label text-end fw-bold">약속명 :</label>
+                <div class="col-10">
+                    <input type="text" class="form-control w-50" name="promise_name" required>
+                </div>
+            </div>
+
+            <div class="row mb-3 align-items-center">
+                <label class="col-2 col-form-label text-end fw-bold">시작일 :</label>
+            <div class="col-10 d-flex align-items-center gap-2">
+                <select id="start-year" name="start-year" class="form-select w-auto" >
+                    <option disabled selected>선택</option>
+                        {% for year in years %}
+                            <option value="{{ year }}">{{ year }}</option>
+                        {% endfor %}
+                </select>
+                <span>년</span>
+
+                <select id="start-month" name="start-month" class="form-select w-auto">
+                    <option disabled selected>선택</option>
+                        {% for month in months %}
+                            <option value="{{ month }}">{{ month }}</option>
+                        {% endfor %}
+                </select>
+                <span>월</span>
+
+                <select id="start-day" name="start-day" class="form-select w-auto">
+                    <option disabled selected>선택</option>
+                        {% for day in days %}
+                            <option value="{{ day }}">{{ day }}</option>
+                        {% endfor %}
+                </select>
+                <span>일</span>
+            </div>
+            </div>
+
+            <div class="row mb-3 align-items-center">
+                <label class="col-2 col-form-label text-end fw-bold">종료일 :</label>
+            <div class="col-10 d-flex align-items-center gap-2">
+                    <select id="end-year" name="end-year" class="form-select w-auto">
+                    <option disabled selected>선택</option>
+                        {% for year in years %}
+                            <option value="{{ year }}">{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                <span>년</span>
+
+                <select id="end-month" name="end-month" class="form-select w-auto">
+                    <option disabled selected>선택</option>
+                        {% for month in months %}
+                            <option value="{{ month }}">{{ month }}</option>
+                        {% endfor %}
+                </select>
+                <span>월</span>
+
+                <select id="end-day" name="end-day" class="form-select w-auto">
+                    <option disabled selected>선택</option>
+                        {% for day in days %}
+                            <option value="{{ day }}">{{ day }}</option>
+                        {% endfor %}
+                </select>
+                <span>일</span>
+            </div>
+            </div>
         
         <!--달력 FullCalendar 사용-->
         <div id="calendar" class="my-4 mx-auto" style="max-width: 800px; margin: 0 auto;"></div>
@@ -88,91 +93,368 @@
     </div>
 </form>
     
-    <style>
-        .fc-toolbar-promise_name {
-            font-size: 1.5rem;
-            font-weight: bold;
-            text-align: center;
-        }
+<style>
+    .masking_tape {
+        position: absolute;
+        top: -45px;
+        left: 50%;
+        transform: translateX(-50%) rotate(10deg);
+        width: 50px;
+        height: auto;
+        z-index: 2;
+        pointer-events: none;
+  }
 
-        .fc-header-toolbar {
-            justify-content: center;
-            margin-bottom: 10px;
-        }
+    .form-control,
+    .form-select {
+        border-radius: 6px;
+    }
 
-        /* 요일 헤더 스타일 */
-        .fc-col-header-cell-cushion {
-            font-size: 16px;
-            font-weight: bold;
-            text-decoration: none;
-        }
+    /* FullCalendar 버튼 공통 스타일 초기화 */
+    .fc .fc-button {
+        background-color: white;
+        border: 2px solid #A39F95;
+        border-radius: 6px;
+        color: black;
+        font-weight: bold;
+        font-size: 16px;
+        box-shadow: none;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
 
-        /* 평일 색 지정 */
-        .fc-col-header-cell:nth-child(2) .fc-col-header-cell-cushion,
-        .fc-col-header-cell:nth-child(3) .fc-col-header-cell-cushion,
-        .fc-col-header-cell:nth-child(4) .fc-col-header-cell-cushion,
-        .fc-col-header-cell:nth-child(5) .fc-col-header-cell-cushion,
-        .fc-col-header-cell:nth-child(6) .fc-col-header-cell-cushion,
-        .fc-day-mon .fc-daygrid-day-number,
-        .fc-day-tue .fc-daygrid-day-number,
-        .fc-day-wed .fc-daygrid-day-number,
-        .fc-day-thu .fc-daygrid-day-number,
-        .fc-day-fri .fc-daygrid-day-number {color: black;}
+    /* 버튼 정렬 및 스타일 */
+    .fc-toolbar-chunk {
+        display: flex;
+        align-items: center;
+        gap: 10px;  /* 버튼 간격 */
+    }
 
-        /* 토요일 색 지정 */
-        .fc-col-header-cell:nth-child(7) .fc-col-header-cell-cushion,
-        .fc-day-sat .fc-daygrid-day-number {color: blue;}
-        
-        /* 일요일 색 지정*/
-        .fc-col-header-cell:nth-child(1) .fc-col-header-cell-cushion,
-        .fc-day-sun .fc-daygrid-day-number {color: red;}
+    /* 오늘 버튼 */
+    .fc .fc-today-button {
+        background-color: white !important;      
+        color: black !important;
+        border: 1px solid #A39F95 !important;   
+        border-radius: 6px !important;
+        font-weight: bold;
+        font-size: 15px;
+    }
+
+    .fc .fc-today-button:hover {
+        background-color: #A39F95 !important;    
+        color: black !important;
+    }
+
+
+    /* 이전/다음 버튼 공통 스타일 */
+    .fc .fc-prev-button,
+    .fc .fc-next-button {
+        background-color: white !important;   
+        border: none;
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: none;
+    }
+
+    /* 기존 텍스트 아이콘 숨김 */
+    .fc .fc-prev-button .fc-icon,
+    .fc .fc-next-button .fc-icon {
+        display: none;
+    }
+
+    /* 화살표 (삼각형) */
+    .fc .fc-prev-button::before {
+        content: "";
+        width: 0;
+        height: 0;
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+        border-right: 12px solid #A39F95;
+    }
+
+    .fc .fc-next-button::before {
+        content: "";
+        width: 0;
+        height: 0;
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+        border-left: 12px solid #A39F95;
+    }
+
+    /* hover 시 배경 유지 + 화살표 색상만 변경 */
+    .fc .fc-prev-button:hover,
+    .fc .fc-next-button:hover {
+        background-color: white !important;
+    }
+
+    .fc .fc-prev-button:hover::before {
+        border-right-color: #A39F95;
+    }
+
+    .fc .fc-next-button:hover::before {
+        border-left-color: #A39F95;
+    }
+
+    /* 아이콘 사이즈 */
+    .fc .fc-prev-button .fc-icon,
+    .fc .fc-next-button .fc-icon {
+        font-size: 1.2rem;
+    }
+
+    /* 버튼 그룹 깨기 (중첩 배경 방지) */
+    .fc .fc-button-group {
+        display: flex;
+        gap: 10px;
+    }
+
+    /* 툴바 정렬 */
+    .fc-header-toolbar {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+    }
+    .fc-toolbar-promise_name {
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .fc-header-toolbar {
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+
+    .fc .fc-scrollgrid,
+    .fc .fc-scrollgrid > tbody,
+    .fc .fc-scrollgrid > tbody > tr,
+    .fc .fc-scrollgrid > tbody > tr > td {
+        overflow: hidden;
+    }
     
-        .fc-daygrid-day-frame {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 80px;
-        }
+    .fc .fc-view-harness {
+        border: 1px solid black;       /* 검정 테두리 */
+        overflow: hidden;                /* 내부 넘침 방지 */
+        box-sizing: border-box;          /* 테두리 포함 레이아웃 */
+        padding: 30px;               /* 테두리와 내용 사이 여백 */
+    }
 
-        .form-section select,
-        .form-section input {
-            vertical-align: middle;
-        }
+    /* 가장 안쪽 테이블의 테두리 없애기 (테두리 잘림 방지) */
+    .fc .fc-scrollgrid {
+        border-radius: 0; 
+        border: none;
+        border-collapse: collapse;
+        border-spacing: 0;
+        margin-bottom: 3px !important;
+    }
+    
+    /* 요일 헤더 스타일 */
+    .fc-col-header-cell-cushion {
+        font-size: 16px;
+        font-weight: bold;
+        text-decoration: none;
+    }
 
-        .form-section {
-            display: inline-block;
-            width: auto;
-            margin-right: 4px;
-            font-size: 1.2rem;
-        }
+    /* 평일 색 지정 */
+    .fc-col-header-cell:nth-child(2) .fc-col-header-cell-cushion,
+    .fc-col-header-cell:nth-child(3) .fc-col-header-cell-cushion,
+    .fc-col-header-cell:nth-child(4) .fc-col-header-cell-cushion,
+    .fc-col-header-cell:nth-child(5) .fc-col-header-cell-cushion,
+    .fc-col-header-cell:nth-child(6) .fc-col-header-cell-cushion,
+    .fc-day-mon .fc-daygrid-day-number,
+    .fc-day-tue .fc-daygrid-day-number,
+    .fc-day-wed .fc-daygrid-day-number,
+    .fc-day-thu .fc-daygrid-day-number,
+    .fc-day-fri .fc-daygrid-day-number {color: black;}
 
-        .form-section label {
-            min-width: 80px;
-            display: inline-block;
-        }
+    /* 토요일 색 지정 */
+    .fc-col-header-cell:nth-child(7) .fc-col-header-cell-cushion,
+    .fc-day-sat .fc-daygrid-day-number {color: blue;}
+    
+    /* 일요일 색 지정*/
+    .fc-col-header-cell:nth-child(1) .fc-col-header-cell-cushion,
+    .fc-day-sun .fc-daygrid-day-number {color: red;}
+ 
+    
 
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
+    /* 날짜 셀 칸 테두리 제거 */
+    .fc .fc-daygrid-day,
+    .fc .fc-scrollgrid td,
+    .fc .fc-scrollgrid th {
+        border: none !important;
+    }
+    .fc .fc-col-header {
+        border-bottom: 1px solid #000000 !important;  /* 원하는 색으로 조절 가능 */
+    }
+    
+    .fc .fc-daygrid-day-frame {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 80px;  
+        padding: 0;
+    }
 
-        /* 폼 전체 스타일 정돈 */
-        .container label {
-            font-weight: bold;
-        }
+    /* 날짜 클릭 시 생기는 파란 outline 및 배경 제거 */
+    .fc-daygrid-day-frame:focus-within {
+        outline: none !important;
+        background: none !important;
+        box-shadow: none !important;
+    }
 
-        .mb-3 {
-            width: 100%;
-            max-width: 600px;
-        }
+    /* 마우스 드래그 시 생기는 배경 제거 */
+    .fc-highlight {
+        background: none !important;
+    }
 
-        .fc-event {
-            pointer-events: none !important;
-        }
-        .fc-bg-event {
-            z-index: 0 !important;
-        }
-    </style>
+    .fc .fc-daygrid-day-number {
+        position: relative !important;  /* 기존 absolute 제거 */
+        font-weight: bold;
+        font-size: 14px;
+        z-index: 2;  /* 박스보다 위에 */
+    }
+
+    .form-section select,
+    .form-section input {
+        vertical-align: middle;
+    }
+
+    .form-section {
+        display: inline-block;
+        width: auto;
+        margin-right: 4px;
+        font-size: 1.2rem;
+    }
+
+    .form-section label {
+        min-width: 80px;
+        display: inline-block;
+    }
+
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    /* 폼 전체 스타일 정돈 */
+    .container label {
+        font-weight: bold;
+    }
+
+    .mb-3 {
+        width: 100%;
+        max-width: 600px;
+    }
+
+    .fc-event {
+        pointer-events: none !important;
+    }
+    .fc-bg-event {
+        z-index: 0 !important;
+    }
+
+    .fc .selected-day {
+        background: none !important;
+    }
+ 
+    .fc-daygrid-event-harness {
+        background-color: transparent !important;
+        border: none !important;
+    }
+
+    .fc-event.selected-day {
+        background-color: rgba(255, 184, 255, 0.5) !important;
+        border: none;
+        pointer-events: none;
+        border-radius: 0 !important;
+        height: 28px;
+        display: block;
+        position: absolute;
+        top: 36px; /* 중앙 아래 위치 조정 */
+        left: 0;
+        right: 0;
+        z-index: 1;
+    }
+
+    .fc-event.selected-day-start {
+        background-color: rgba(163, 159, 149, 0.5) !important;
+        border-radius: 50px 0 0 50px !important;
+        height: 28px;
+        width: calc(100% + 25px); /* 셀보다 살짝 길게 */
+        position: absolute;
+        top: 10px;
+        left: -27px;                /* 반 셀 크기만큼 왼쪽으로 이동 */
+        z-index: 1;
+    }
+
+    .fc-event.selected-day-middle {
+        background-color: rgba(163, 159, 149, 0.5) !important;
+        border-radius: 0 !important;
+        height: 28px;
+        width: calc(100% + 25px);
+        position: absolute;
+        top: 10px;
+        left: -27px;
+        z-index: 1;
+    }
+
+    .fc-event.selected-day-end {
+        background-color: rgba(163, 159, 149, 0.5) !important;
+        border-radius: 0 50px 50px 0 !important;
+        height: 28px;
+        width: calc(100% + 25px);
+        position: absolute;
+        top: 10px;
+        left: -27px;
+        z-index: 1;
+    }
+    
+    .fc-event.selected-day-single {
+        background-color: rgba(163, 159, 149, 0.5) !important;
+        border-radius: 50% !important;
+        width: 28px;
+        height: 28px;
+        position: absolute;
+        top: 10px;              /* 날짜 숫자 위치 기준 수직 조정 */
+        left: -14px;
+        transform: translateX(-50%);
+        z-index: 1;
+    }
+
+    .fc-event-start.selected-day {
+        border-top-left-radius: 20px !important;
+        border-bottom-left-radius: 20px !important;
+    }
+
+    .fc-event-end.selected-day {
+        border-top-right-radius: 20px !important;
+        border-bottom-right-radius: 20px !important;
+    }
+
+    /* 오늘 날짜의 하이라이트 배경 제거 */
+    .fc .fc-day-today {
+        background: none !important;
+    }
+
+    /* 날짜 셀 전체 배경 제거 */
+    .fc .fc-daygrid-day-frame {
+        background: none !important;
+    }
+    .btn-outline-dark.px-4.py-2 {
+        background-color: #A39F95;
+        border: none;
+        border-radius: 6px;
+        color: black;
+        font-size: 16px;
+        transition: all 0.2s ease;
+    }
+
+</style>
 {% endblock %}
 
 {% block scripts %}
@@ -201,17 +483,51 @@
                     start: todayStr // 오늘 이후부터 선택 가능
                 },
                 events: [],
+                dayCellContent: function(arg) {
+                    return { html: String(arg.date.getDate()) };  // 숫자만 출력
+                },
+                dayCellDidMount: function(info) {
+                    const dateStr = info.date.toISOString().split('T')[0]; // yyyy-mm-dd 형태로
+                    const events = calendar.getEvents().filter(e =>
+                        e.classNames.includes('selected-day') &&
+                        e.startStr === dateStr
+                    );
+
+                    if (events.length > 0) {
+                        info.el.classList.add('selected-day');
+                    } else {
+                        info.el.classList.remove('selected-day');
+                    }
+                },
+                eventDidMount: function (info) {
+                    const start = info.event.start;
+                    const end = info.event.end;
+
+                    const startStr = start.toISOString().split('T')[0];
+                    const endStr = end ? new Date(end.getTime() - 1).toISOString().split('T')[0] : null;
+
+                    if (!end || startStr === endStr) {
+                        info.el.classList.add('selected-day-single');
+                    } else {
+                        // FullCalendar는 각 셀마다 event div를 넣어줌 → className으로 구분
+                        if (info.el.classList.contains('fc-event-start')) {
+                            info.el.classList.add('selected-day-start');
+                        } else if (info.el.classList.contains('fc-event-end')) {
+                            info.el.classList.add('selected-day-end');
+                        } else {
+                            info.el.classList.add('selected-day-middle');
+                        }
+                    }
+                },
                 dateClick: function (info) {
                     clickCount += 1;
 
                     if (clickCount === 1) {
                         startDate = new Date(info.date.getFullYear(), info.date.getMonth(), info.date.getDate());
-                        // calendar.getEvents().forEach(e => e.remove());
                         calendar.addEvent({
-                            title: '시작',
                             start: startDate,
-                            display: 'background',
-                            color: '#c6f6d5'
+                            allDay: true,
+                            classNames: ['selected-day']
                         });
                     } else if (clickCount === 2) {
                         const endDate = new Date(info.date.getFullYear(), info.date.getMonth(), info.date.getDate());
@@ -219,20 +535,18 @@
 
                         let realStart = startDate < endDate ? startDate : endDate;
                         let realEnd = startDate > endDate ? startDate : endDate;
-                        // fullcalendar는 end를 다음날로 줘야 포함됨
+                        // fullCalendar는 end날짜를 포함하지 않으므로 하루 더함
                         const realEndMidnight = new Date(realEnd.getFullYear(), realEnd.getMonth(), realEnd.getDate());
                         const inclusiveEnd = new Date(realEndMidnight.getTime() + 24 * 60 * 60 * 1000);
 
                         const realStartStr = `${realStart.getFullYear()}-${String(realStart.getMonth() + 1).padStart(2, '0')}-${String(realStart.getDate()).padStart(2, '0')}`;
                         const inclusiveEndStr = `${inclusiveEnd.getFullYear()}-${String(inclusiveEnd.getMonth() + 1).padStart(2, '0')}-${String(inclusiveEnd.getDate()).padStart(2, '0')}`;
 
-
                         calendar.addEvent({
                             start: realStartStr,
                             end: inclusiveEndStr,
                             allDay: true,
-                            display: 'background',
-                            color: '#bee3f8'
+                            classNames: ['selected-day']
                         });
                         
                         
@@ -283,11 +597,10 @@
     
                 // 새 이벤트 추가
                 calendar.addEvent({
-                    start: startStr,
-                    end: startStr,
+                    start: realStartStr,
+                    end: inclusiveEndStr,
                     allDay: true,
-                    display: 'background',
-                    color: '#bee3f8'
+                    classNames: ['selected-day']
                 });
             }
 
@@ -359,12 +672,11 @@
 
                 // 새로운 이벤트 추가
                 calendar.addEvent({
-                    start: realStartStr,
-                    end: inclusiveEndStr,
-                    allDay:  true,
-                    display: 'background',
-                    color: '#bee3f8'
-                });
+                start: realStartStr,
+                end: inclusiveEndStr,
+                allDay: true,
+                classNames: ['selected-day']
+            });
 
 
             }
@@ -545,4 +857,5 @@
             })
         });
     </script>
+
 {% endblock%}

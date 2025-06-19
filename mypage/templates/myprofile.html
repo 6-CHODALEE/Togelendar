@@ -1,85 +1,269 @@
 {% extends 'base.html' %}
 
+{% load static%}
+
 {% block body %}
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    <h3 class="mb-4">기본 프로필 수정</h3>
+<div class="profile-wrapper">
+  <div class="viewfinder">
+    <img src="{% static 'index/images/rec_frame_3.png' %}" alt="프레임" class="rec-frame">
+    <div class="profile-box">
 
-    <!-- 프로필 이미지 -->
-    <div class="mb-3">
-        <img src="{{ me.profile_image.url }}" class="rounded-circle mb-2"
-             style="width: 170px; height: 170px; object-fit: cover;" alt="프로필 이미지">
-        <div>
-            <label for="id_profile_image" class="btn btn-outline-secondary mt-2">프로필 이미지 변경하기</label>
-            <input type="file" name="profile_image" id="id_profile_image" style="display:none;">
+      <form method="post" enctype="multipart/form-data" class="profile-edit-form">
+        {% csrf_token %}
+        <h3 class="form-title">프로필 수정</h3>
+        
+        <div class="form-content d-flex align-items-start">
+          <!-- 왼쪽: 이미지 -->
+          <div class="image-section text-center">
+            <img src="{{ me.profile_image.url }}" alt="프로필 이미지" class="profile-image">
+            <label for="id_profile_image" class="btn-image-change">이미지 변경하기</label>
+            <input type="file" name="profile_image" id="id_profile_image" style="display: none;">
+          </div>
+          
+          <!-- 오른쪽: 정보 입력 -->
+          <div class="info-section">
+            <div class="form-group d-flex align-items-center mb-3">
+              <label for="{{ form.username.id_for_label }}">아이디</label>
+              {{ form.username }}
+            </div>
+            <div class="form-group d-flex align-items-center mb-3">
+              <label for="{{ form.email.id_for_label }}">이메일</label>
+              {{ form.email }}
+            </div>
+            <div class="form-group d-flex align-items-center mb-3 zipcode-group">
+              <label for="{{ form.postcode.id_for_label }}">우편번호</label>
+              <div class="zipcode-input-wrapper">
+                {{ form.postcode }}
+                <button type="button" class="btn-zipcode" onclick="execDaumPostcode()">우편번호 찾기</button>
+              </div>
+            </div>
+            <div class="form-group d-flex align-items-center mb-3">
+              <label for="{{ form.address.id_for_label }}">주소</label>
+              {{ form.address }}
+            </div>
+            <div class="form-group d-flex align-items-center mb-3">
+              <label for="{{ form.password1.id_for_label }}">새 비밀번호</label>
+              {{ form.password1 }}
+            </div>
+            <div class="form-group d-flex align-items-center mb-3">
+              <label for="{{ form.password2.id_for_label }}">비밀번호 확인</label>
+              {{ form.password2 }}
+            </div>
+          </div>
         </div>
-    </div>
-
-    <!-- 사용자 이름 -->
-    <div class="mb-3">
-        <label for="{{ form.username.id_for_label }}">사용자 이름</label>
-        {{ form.username }}
-    </div>
-
-    <!-- 이메일 -->
-    <div class="mb-3">
-        <label for="{{ form.email.id_for_label }}">이메일</label>
-        {{ form.email }}
-    </div>
-
-    <!-- 우편번호/주소: 사용자용 보이는 필드 + Django 필드 -->
-    <div class="mb-3 row">
-        <div class="col">
-            <label for="visible_postcode" class="form-label">우편번호</label>
-            <input type="text" id="visible_postcode" class="form-control" readonly>
+        
+        <!-- 중앙 정렬 버튼 -->
+        <div class="btn-submit-wrapper">
+          <button type="submit" class="btn-submit">변경하기</button>
         </div>
-        <div class="col-auto align-self-end">
-            <button type="button" onclick="execDaumPostcode()" class="btn btn-outline-secondary">
-                우편번호 찾기
-            </button>
-        </div>
+      </form>
     </div>
-
-    <div class="mb-3">
-        <label for="visible_address" class="form-label">주소</label>
-        <input type="text" id="visible_address" class="form-control" readonly>
-    </div>
-
-    <!-- 실제 Django form 필드 (숨김 처리 X, 값만 자동 입력됨) -->
-    {{ form.postcode }}
-    {{ form.address }}
-
-    <!-- 비밀번호 변경 -->
-    <div class="mb-3">
-        <label for="{{ form.password1.id_for_label }}">새 비밀번호</label>
-        {{ form.password1 }}
-    </div>
-    <div class="mb-3">
-        <label for="{{ form.password2.id_for_label }}">비밀번호 확인</label>
-        {{ form.password2 }}
-    </div>
-
-    <button type="submit" class="btn btn-primary">수정 완료</button>
-</form>
-
-<!-- 📌 Daum 주소 API 스크립트 -->
-<script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
-<script>
+  </div>
+</div>
+  
+  <!-- Daum 주소 API -->
+  <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+  <script>
 function execDaumPostcode() {
     new daum.Postcode({
         oncomplete: function(data) {
             const zonecode = data.zonecode;
             const address = data.roadAddress ? data.roadAddress : data.jibunAddress;
-
-            // 사용자에게 보이는 input
-            document.getElementById('visible_postcode').value = zonecode;
-            document.getElementById('visible_address').value = address;
-
-            // Django 폼 필드
             document.getElementById('id_postcode').value = zonecode;
             document.getElementById('id_address').value = address;
         }
     }).open();
 }
+</script>
+
+<style>
+.profile-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.viewfinder {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  aspect-ratio: 3/4;
+  padding: 30px;
+}
+
+.rec-frame {
+  position: absolute;
+  top: 24%;
+  left: 0;
+  width: 100%;
+  height: 500px;
+  object-fit: contain;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.profile-box {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  max-width: 900px;
+  height: 600px;
+  padding: 30px;
+  border-radius: 12px;
+  z-index: 1;
+  backdrop-filter: brightness(1.1);
+}
+
+.profile-edit-form {
+  position: static;
+  margin-top: 35px;
+  width: 100%;
+}
+
+.form-title {
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.8rem;
+  margin-bottom: 30px;
+}
+
+.form-content {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  gap: 0px;
+}
+
+.image-section {
+  flex: 0 0 35%;
+  width: 350px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-image {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+.btn-image-change {
+  display: inline-block;
+  padding: 6px 18px;
+  margin-top: 10px;
+  border: 1px solid black;
+  border-radius: 6px;
+  background-color: white;
+  color: black;
+}
+
+.btn-image-change:hover {
+  background-color: #ffffff;
+  color: black;
+}
+
+.info-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.form-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 15px;
+}
+
+.form-group label {
+  width: 100px;
+  font-weight: bold;
+  text-align: left;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  flex: 1;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  min-width: 300px;
+}
+
+.btn-submit-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.btn-submit {
+  background-color: #A39F95;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 24px;
+  color: black;
+  font-weight: bold;
+}
+
+.zipcode-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.zipcode-input-wrapper {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.zipcode-input-wrapper input {
+  flex: 1;
+  min-width: 120px;
+}
+
+.btn-zipcode {
+  padding: 4px 5px;
+  white-space: nowrap;
+  border: 1px solid black;
+  border-radius: 6px;
+  background-color: white;
+  color: black;
+}
+
+.btn-zipcode:hover {
+  background-color: #A39F95;
+  color: black;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const fileInput = document.getElementById("id_profile_image");
+    const previewImage = document.querySelector(".profile-image");
+
+    fileInput.addEventListener("change", function () {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                previewImage.src = e.target.result;
+            };
+
+            reader.readAsDataURL(file);
+        }
+    });
+});
 </script>
 {% endblock %}

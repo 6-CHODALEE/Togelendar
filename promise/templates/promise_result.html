@@ -1,12 +1,15 @@
 {% extends 'base.html' %}
 
+{% load static %}
+
 {% block body %}
-<div class="container my-5">
-    <div class="text-center mb-5">
+<div class="container mt-4" style="max-width: 800px; margin: 0 auto; background-color: white; padding: 30px;">
+    <img src="{% static 'index/images/masking_tape.png' %}" alt="마스킹 테이프" class="masking_tape">
+    <div class="text-center mb-5" style="padding: 10px;">
         {% if all_voted %}
             <h2><strong>{{promise.promise_name}}</strong>의 약속 날짜가 정해졌어요!</h2>
         {% else %}
-            <h2>아직 <strong>{{promise.promise_name}}</strong>의 약속 날짜 투표가 진행중이에요!</h2>
+            <h2><strong>아직 투표가 진행중이에요!</strong></h2>
         {% endif %}
     </div>
 
@@ -16,28 +19,48 @@
     <div id="map" style="height: 400px; max-width: 800px; margin: 20px auto 0 auto;"></div>
 
     <div class="mt-4" style="max-width: 800px; margin: 0 auto;">
-        <h4 class="mb-3">중간지점 주변 장소 추천 (반경 500m)</h4>
+        <h4 class="mb-4 fw-bold text-center">중간지점 주변 장소 추천 (반경 500m)</h4>
 
         <!-- 카테고리 버튼들 -->
         <div class="mb-3 text-center" id="category-buttons">
-            <button data-type="all" class="btn btn-sm me-2 btn-dark">전체</button>
-            <button data-type="cafe" class="btn btn-sm me-2 btn-outline-primary">카페</button>
-            <button data-type="restaurant" class="btn btn-sm me-2 btn-outline-danger">음식점</button>
-            <button data-type="convenience_store" class="btn btn-sm me-2 btn-outline-success">편의점</button>
-            <button data-type="subway_station" class="btn btn-sm me-2 btn-outline-info">지하철</button>
+            <button data-type="all" class="btn btn-sm me-2 btn-outline-dark" style="border-radius: 0;">전체</button>
+            <button data-type="cafe" class="btn btn-sm me-2 btn-outline-primary" style="border-radius: 0;">카페</button>
+            <button data-type="restaurant" class="btn btn-sm me-2 btn-outline-danger" style="border-radius: 0;">음식점</button>
+            <button data-type="convenience_store" class="btn btn-sm me-2 btn-outline-success" style="border-radius: 0;">편의점</button>
+            <button data-type="subway_station" class="btn btn-sm me-2 btn-outline-info" style="border-radius: 0;">지하철</button>
         </div>
 
         {% if places and places|length > 0 %}
-        <ul class="list-group" id="place-list">
+        <div id="place-list" class="row gy-3">
             {% for place in places %}
-            <li class="list-group-item place-item" data-type="{{ place.type }}" data-name="{{ place.name }}">
-                <strong>{{ place.name }}</strong>
-                <span class="badge bg-secondary">{{ place.type }}</span><br>
-                {{ place.address }}<br>
-                {% if place.rating %} 평점: {{ place.rating }} {% endif %}
-            </li>
+            <div class="col-12 place-item" data-type="{{ place.type }}" data-name="{{ place.name }}">
+                <div class="card shadow-sm border-0 rounded-3">
+                    <div class="card-body">
+                        <h5 class="card-title mb-1 fw-semibold">{{ place.name }} 
+                            <span class="badge 
+                                {% if place.type == 'cafe' %}bg-primary
+                                {% elif place.type == 'restaurant' %}bg-danger
+                                {% elif place.type == 'convenience_store' %}bg-success
+                                {% elif place.type == 'subway_station' %}bg-info
+                                {% else %}bg-secondary{% endif %}
+                                text-uppercase ms-2">
+                                {{ place.type }}
+                            </span>
+                        </h5>
+                        <p class="mb-1 text-muted small">{{ place.address }}</p>
+                        {% if place.rating %}<p class="mb-0 small">⭐ 평점: {{ place.rating }}</p>{% endif %}
+                    </div>
+                </div>
+            </div>
             {% endfor %}
-        </ul>
+        </div>
+
+        <!-- ✅ 페이지네이션 컨트롤 추가 -->
+        <div class="pagination-controls mt-4 text-center">
+            <button id="prev-page" class="btn btn-outline-dark btn-sm me-2" style="border-radius: 0;">이전</button>
+            <span id="page-info" class="mx-2">1 / 13</span>
+            <button id="next-page" class="btn btn-outline-dark btn-sm" style="border-radius: 0;">다음</button>
+        </div>
         {% else %}
         <div class="text-center text-muted mt-2">
             <p>선택한 카테고리에 해당하는 장소가 없습니다.</p>
@@ -45,22 +68,22 @@
         {% endif %}
     </div>
     {% else %}
-    <div style="text-align: center; margin: 20px auto; color: gray;">
-        <p>아직 장소가 정해지지 않았습니다.</p>
-    </div>
+        <div style="text-align: center; margin: 20px auto; color: gray;">
+            <p>아직 장소가 정해지지 않았습니다.</p>
+        </div>
     {% endif %}
 
     <div style="max-width: 800px; margin: 10px auto 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
         <!-- 왼쪽: 약속 취소 -->
         <div>
-            <a href="#" class="btn btn-outline-danger btn-sm" id="promise_delete-button">
+            <a href="#" class="btn btn-outline-danger btn-sm" id="promise_delete-button" style="border-radius: 6px;">
                 약속 취소하기
             </a>
         </div>
 
         <!-- 오른쪽: 커뮤니티 / 장소 -->
         <div style="display: flex; gap: 10px;">
-            <a href="{% url 'community:community_detail' community.id %}" class="btn btn-outline-secondary btn-sm">
+            <a href="{% url 'community:community_detail' community.id %}" class="btn btn-outline-secondary btn-sm" style="border-radius: 0; border: 1px solid #A39F95;">
                 커뮤니티로 이동하기
             </a>
             <a href="#" class="btn btn-outline-secondary btn-sm" id="location-button">
@@ -71,6 +94,171 @@
 </div>
 
 <style>
+    .container {
+        position: relative;
+    }
+
+    .masking_tape {
+        position: absolute;
+        top: -45px;
+        left: 50%;
+        transform: translateX(-50%) rotate(10deg);
+        width: 50px;
+        height: auto;
+        z-index: 2;
+        pointer-events: none;
+  }
+
+    /* FullCalendar 버튼 공통 스타일 초기화 */
+    .fc .fc-button {
+        background-color: white;
+        border: 2px solid #A39F95;
+        color: black;
+        font-weight: bold;
+        font-size: 16px;
+        box-shadow: none;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    /* 🔧 버튼 정렬 및 스타일 */
+    .fc-toolbar-chunk {
+        display: flex;
+        align-items: center;
+        gap: 10px;  /* 버튼 간격 */
+    }
+
+    /* 오늘 버튼 */
+    .fc .fc-today-button {
+        background-color: white !important;      
+        color: black !important;                
+        border: 2px solid #A39F95 !important;   
+        border-radius: 6px !important;
+        padding: 6px 20px !important;
+        font-weight: bold !important;
+        font-size: 15px !important;
+    }
+
+    .fc .fc-today-button:hover {
+        background-color: white !important;    
+        color: black !important;
+    }
+
+
+    /* 이전/다음 버튼 공통 스타일 */
+    .fc .fc-prev-button,
+    .fc .fc-next-button {
+        background-color: white !important;   
+        border: none !important;              
+        border-radius: 0;                 
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: none;
+    }
+
+    /* 기존 텍스트 아이콘 숨김 */
+    .fc .fc-prev-button .fc-icon,
+    .fc .fc-next-button .fc-icon {
+        display: none;
+    }
+
+    /* 화살표 (삼각형) */
+    .fc .fc-prev-button::before {
+        content: "";
+        width: 0;
+        height: 0;
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+        border-right: 12px solid #A39F95;
+    }
+
+    .fc .fc-next-button::before {
+        content: "";
+        width: 0;
+        height: 0;
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+        border-left: 12px solid #A39F95;
+    }
+
+    /* hover 시 배경 유지 + 화살표 색상만 변경 */
+    .fc .fc-prev-button:hover,
+    .fc .fc-next-button:hover {
+        background-color: white !important;
+    }
+
+    .fc .fc-prev-button:hover::before {
+        border-right-color: #A39F95;
+    }
+
+    .fc .fc-next-button:hover::before {
+        border-left-color: #A39F95;
+    }
+
+    /* 아이콘 사이즈 */
+    .fc .fc-prev-button .fc-icon,
+    .fc .fc-next-button .fc-icon {
+        font-size: 1.2rem;
+    }
+
+    /* 버튼 그룹 깨기 (중첩 배경 방지) */
+    .fc .fc-button-group {
+        display: flex;
+        gap: 10px;
+    }
+
+    /* 툴바 정렬 */
+    .fc-header-toolbar {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+    }
+    .fc-toolbar-promise_name {
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .fc-header-toolbar {
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+
+    .fc .fc-scrollgrid,
+    .fc .fc-scrollgrid > tbody,
+    .fc .fc-scrollgrid > tbody > tr,
+    .fc .fc-scrollgrid > tbody > tr > td {
+        
+        overflow: hidden;
+    }
+    
+    .fc .fc-view-harness {
+        border: 1px solid #000000;       /* 검정 테두리 */
+        overflow: hidden;                /* 내부 넘침 방지 */
+        box-sizing: border-box;          /* 테두리 포함 레이아웃 */
+        padding: 16px;               /* 테두리와 내용 사이 여백 */
+        background-color: white;
+    }
+
+    /* 가장 안쪽 테이블의 테두리 없애기 (테두리 잘림 방지) */
+    .fc .fc-scrollgrid {
+        border: 1px solid black;
+        border-collapse: separate !important;
+        border-spacing: 16px;  /* 테두리와 셀 간격 */
+        background-color: white;
+    }
+    
+    /* 요일 헤더 스타일 */
+    .fc-col-header-cell-cushion {
+        font-size: 16px;
+        font-weight: bold;
+        text-decoration: none;
+    }
+
     .fc-day-today { background-color: transparent !important; }
     .fc-daygrid-day-frame { position: relative; }
     .fc-vote-count {
@@ -78,21 +266,126 @@
         position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
         width: 100%;
     }
-    .fc-col-header-cell:nth-child(1) .fc-col-header-cell-cushion,
-    .fc-day-sun .fc-daygrid-day-number { color: red; }
-    .fc-col-header-cell:nth-child(7) .fc-col-header-cell-cushion,
-    .fc-day-sat .fc-daygrid-day-number { color: blue; }
+    /* 평일 색 지정 */
+    .fc-col-header-cell:nth-child(2) .fc-col-header-cell-cushion,
+    .fc-col-header-cell:nth-child(3) .fc-col-header-cell-cushion,
+    .fc-col-header-cell:nth-child(4) .fc-col-header-cell-cushion,
+    .fc-col-header-cell:nth-child(5) .fc-col-header-cell-cushion,
+    .fc-col-header-cell:nth-child(6) .fc-col-header-cell-cushion,
     .fc-day-mon .fc-daygrid-day-number,
     .fc-day-tue .fc-daygrid-day-number,
     .fc-day-wed .fc-daygrid-day-number,
     .fc-day-thu .fc-daygrid-day-number,
-    .fc-day-fri .fc-daygrid-day-number { color: black; }
+    .fc-day-fri .fc-daygrid-day-number {color: black;}
+
+    /* 토요일 색 지정 */
+    .fc-col-header-cell:nth-child(7) .fc-col-header-cell-cushion,
+    .fc-day-sat .fc-daygrid-day-number {color: blue;}
+    
+    /* 일요일 색 지정*/
+    .fc-col-header-cell:nth-child(1) .fc-col-header-cell-cushion,
+    .fc-day-sun .fc-daygrid-day-number {color: red;}
+    /* 날짜 셀 칸 테두리 제거 */
+    .fc .fc-daygrid-day,
+    .fc .fc-scrollgrid td,
+    .fc .fc-scrollgrid th {
+        border: none !important;
+    }
+    .fc .fc-col-header {
+        border-bottom: 1px solid #000000 !important;  /* 원하는 색으로 조절 가능 */
+    }
+    
+    .fc .fc-daygrid-day-frame {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 80px;  
+        padding: 0;
+    }
+
+    .fc .fc-daygrid-day-number {
+        position: relative !important;  /* 기존 absolute 제거 */
+        font-weight: bold;
+        font-size: 14px;
+        z-index: 2;  /* 박스보다 위에 */
+    }
+
+    .fc-event.vote-dot {
+        background-color: rgba(163, 159, 149, 0.5);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        position: absolute;
+        top: -5px;
+        left: -20px;
+        transform: translateX(-50%);
+        z-index: 1;
+        border: none;
+        pointer-events: none;
+    }
+
+    #location-button {
+        background-color: #A39F95;
+        border: none;
+        border-radius: 6px;
+        color: black;
+        padding: 6px 14px;
+    }
+
+    .btn-outline-secondary {
+        background-color: #ffffff;
+        border-color: #A39F95;
+        border-radius: 6px !important;
+        color: black;
+        padding: 6px 14px;
+    }
 </style>
 {% endblock %}
 
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('#category-buttons button').forEach(button => {
+        button.addEventListener('click', function () {
+            const selectedType = this.dataset.type;
+
+            // ✅ 모든 버튼 스타일 초기화
+            document.querySelectorAll('#category-buttons button').forEach(btn => {
+                btn.classList.remove(
+                    'btn-dark', 'btn-primary', 'btn-danger', 'btn-success', 'btn-info',
+                    'btn-outline-dark', 'btn-outline-primary', 'btn-outline-danger',
+                    'btn-outline-success', 'btn-outline-info',
+                    'text-white'
+                );
+                // ✅ outline 스타일 복원
+                const type = btn.dataset.type;
+                if (type === 'all') btn.classList.add('btn-outline-dark');
+                if (type === 'cafe') btn.classList.add('btn-outline-primary');
+                if (type === 'restaurant') btn.classList.add('btn-outline-danger');
+                if (type === 'convenience_store') btn.classList.add('btn-outline-success');
+                if (type === 'subway_station') btn.classList.add('btn-outline-info');
+            });
+
+            // ✅ 클릭한 버튼만 filled 스타일로 변경
+            if (selectedType === 'all') {
+                this.classList.remove('btn-outline-dark');
+                this.classList.add('btn-dark', 'text-white');
+            } else if (selectedType === 'cafe') {
+                this.classList.remove('btn-outline-primary');
+                this.classList.add('btn-primary', 'text-white');
+            } else if (selectedType === 'restaurant') {
+                this.classList.remove('btn-outline-danger');
+                this.classList.add('btn-danger', 'text-white');
+            } else if (selectedType === 'convenience_store') {
+                this.classList.remove('btn-outline-success');
+                this.classList.add('btn-success', 'text-white');
+            } else if (selectedType === 'subway_station') {
+                this.classList.remove('btn-outline-info');
+                this.classList.add('btn-info', 'text-white');
+            }
+        });
+    });
     const calendarEl = document.getElementById('calendar');
     const allVotes = JSON.parse('{{ all_vote_data|safe }}');
     const totalMembers = parseInt(`{{ total_members|default:1 }}`);
@@ -105,8 +398,7 @@ document.addEventListener('DOMContentLoaded', function () {
             start: item.date,
             end: item.date,
             allDay: true,
-            display: 'background',
-            color: `rgba(251, 211, 141, ${item.intensity})`,
+            classNames: ['vote-dot'],
             extendedProps: { count: item.count }
         })),
         eventDidMount: function(info) {
@@ -122,6 +414,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
     calendar.render();
+
+    setTimeout(() => {
+        document.querySelectorAll('.fc-scroller').forEach(el => {
+            el.style.overflow = 'hidden';
+        });
+    }, 100);
 
     {% if is_location_decided %}
     const map = L.map('map').setView([
@@ -144,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const typeColors = {
         cafe: 'blue', restaurant: 'red',
         convenience_store: 'green', supermarket: 'orange',
-        subway_station: 'purple'
+        subway_station: 'lightblue'
     };
 
     const allMarkers = [];
@@ -159,44 +457,66 @@ document.addEventListener('DOMContentLoaded', function () {
         }).addTo(map).bindPopup(`${place.name}<br><small>${place.address}</small>`);
 
         marker.type = place.type;
-        marker.name = place.name;
         allMarkers.push(marker);
     });
 
-    document.querySelectorAll('#category-buttons button').forEach(button => {
-        button.addEventListener('click', function (e) {
-            e.preventDefault();
-            const type = this.dataset.type;
+    const itemsPerPage = 5;
+    let currentPage = 1;
+    let currentFilter = "all";
+    const allItems = Array.from(document.querySelectorAll("#place-list .place-item"));
+    const pageInfo = document.getElementById("page-info");
+    const prevBtn = document.getElementById("prev-page");
+    const nextBtn = document.getElementById("next-page");
+    const filterButtons = document.querySelectorAll("#category-buttons button");
 
-            // 마커 필터링
+    function updatePagination() {
+        const filteredItems = allItems.filter(item => currentFilter === "all" || item.dataset.type === currentFilter);
+        const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+
+        allItems.forEach(item => item.style.display = "none");
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = currentPage * itemsPerPage;
+        filteredItems.slice(start, end).forEach(item => item.style.display = "block");
+
+        pageInfo.textContent = `${currentPage} / ${Math.max(totalPages, 1)}`;
+        prevBtn.disabled = currentPage <= 1;
+        nextBtn.disabled = currentPage >= totalPages;
+    }
+
+    filterButtons.forEach(button => {
+        button.addEventListener("click", function () {
+            currentFilter = this.dataset.type;
+            currentPage = 1;
+
             allMarkers.forEach(marker => {
-                if (type === 'all' || marker.type === type) {
+                if (currentFilter === 'all' || marker.type === currentFilter) {
                     marker.addTo(map);
                 } else {
                     map.removeLayer(marker);
                 }
             });
 
-            // 리스트 필터링
-            document.querySelectorAll('#place-list .place-item').forEach(item => {
-                const itemType = item.dataset.type;
-                item.style.display = (type === 'all' || itemType === type) ? 'block' : 'none';
-            });
-
-            // 버튼 UI 갱신
-            document.querySelectorAll('#category-buttons button').forEach(btn => {
-                btn.classList.remove('btn-dark', 'btn-primary', 'btn-danger', 'btn-success', 'btn-info', 'text-white');
-                btn.classList.add('btn-outline-dark', 'btn-outline-primary', 'btn-outline-danger', 'btn-outline-success', 'btn-outline-info');
-            });
-
-            if (type === 'all') this.classList.replace('btn-outline-dark', 'btn-dark');
-            if (type === 'cafe') this.classList.replace('btn-outline-primary', 'btn-primary');
-            if (type === 'restaurant') this.classList.replace('btn-outline-danger', 'btn-danger');
-            if (type === 'convenience_store') this.classList.replace('btn-outline-success', 'btn-success');
-            if (type === 'subway_station') this.classList.replace('btn-outline-info', 'btn-info');
-            this.classList.add('text-white');
+            updatePagination();
         });
     });
+
+    prevBtn.addEventListener("click", () => {
+        if (currentPage > 1) {
+            currentPage--;
+            updatePagination();
+        }
+    });
+
+    nextBtn.addEventListener("click", () => {
+        const filteredItems = allItems.filter(item => currentFilter === "all" || item.dataset.type === currentFilter);
+        const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            updatePagination();
+        }
+    });
+
+    updatePagination();
     {% endif %}
 
     const locationBtn = document.getElementById('location-button');
@@ -218,32 +538,37 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(() => alert('서버 오류가 발생했습니다. 다시 시도해주세요.'));
         });
     }
-    document.getElementById("promise_delete-button").addEventListener("click", function (e) {
-        e.preventDefault();
-        if (!confirm("정말로 이 약속을 삭제하시겠습니까?")) return;
 
-        fetch(`/community/{{ community.id }}/promise/{{ promise.id }}/delete/`, {
-            method: "POST",
-            headers: {
-                "X-CSRFToken": "{{ csrf_token }}",
-                "Content-Type": "application/json",
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert("약속이 삭제되었습니다.");
-                window.location.href = "{% url 'community:community_detail' community.id %}";
-            } else {
-                alert("삭제에 실패했습니다.");
-            }
-        })
-        .catch(err => {
-            console.error("삭제 요청 오류", err);
-            alert("서버 오류 발생");
+    const deleteBtn = document.getElementById("promise_delete-button");
+    if (deleteBtn) {
+        deleteBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            if (!confirm("정말로 이 약속을 삭제하시겠습니까?")) return;
+
+            fetch(`/community/{{ community.id }}/promise/{{ promise.id }}/delete/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/json",
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("약속이 삭제되었습니다.");
+                    window.location.href = "{% url 'community:community_detail' community.id %}";
+                } else {
+                    alert("삭제에 실패했습니다.");
+                }
+            })
+            .catch(err => {
+                console.error("삭제 요청 오류", err);
+                alert("서버 오류 발생");
+            });
         });
-    });
+    }
 });
+
 </script>
 
 {% if messages %}

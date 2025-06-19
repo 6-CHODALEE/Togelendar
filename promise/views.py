@@ -8,7 +8,7 @@ import json
 from django.urls import reverse
 from community.models import CreateCommunity, CommunityMember
 from collections import Counter
-from account.models import User  # ⭐ account.User import 추가
+from user_account.models import User
 from django.shortcuts import get_object_or_404
 from collections import defaultdict
 
@@ -17,8 +17,13 @@ from collections import defaultdict
 @login_required
 def create_promise(request, community_id):
     community = CreateCommunity.objects.get(id=community_id)
+    community_members = CommunityMember.objects.filter(community_name=community).values_list('member', flat=True)
+
+    if str(request.user) not in community_members:
+            return render(request, '403.html', status=403)
 
     current_year = datetime.now().year
+
     
     years = list(range(current_year, current_year + 6))
     months = list(range(1,13))
@@ -41,23 +46,36 @@ def create_promise(request, community_id):
         post_data = request.POST.copy()
         post_data['start_date'] = start_date
         post_data['end_date'] = end_date
-        post_data['pormise_name'] = request.POST.get('promise_name', '')
+        post_data['promise_name'] = request.POST.get('promise_name', '')
 
         form = PromiseForm(post_data)
 
         # 모든 값이 입력되었는지 확인 후 날짜 조합
         if form.is_valid():
-            promise = form.save(commit=False)
-            promise.community = community
-            promise.promise_creator = request.user.username
-            promise.save()
+            temp_promise_name = form.cleaned_data['promise_name']
+            if Promise.objects.filter(promise_name = temp_promise_name, community_id = community_id).exists():
+                message = '같은 이름의 약속이 존재 합니다. 다른 이름을 지어주세요!'
+                context = {
+                    'message': message,
+                    'form': form,
+                    'years': years,
+                    'months': months,
+                    'days': days
+                }
+                return render(request, 'create_promise.html', context)
+            
+            else:
+                promise = form.save(commit=False)
+                promise.community = community
+                promise.promise_creator = request.user.username
+                promise.save()
 
-            # 저장 후 이동할 페이지
-            return redirect('community:promise:promise_vote', community_id=community.id, promise_id=promise.id)
+                # 저장 후 이동할 페이지
+                return redirect('community:promise:promise_vote', community_id=community.id, promise_id=promise.id)
 
     else:
         form = PromiseForm()
-        # print("form 오류")
+
 
     # GET 요청일 경우 템플릿 렌더링
     context = {
@@ -71,6 +89,10 @@ def create_promise(request, community_id):
 @login_required
 def promise_vote(request, community_id, promise_id):
     community = CreateCommunity.objects.get(id=community_id)
+    community_members = CommunityMember.objects.filter(community_name=community).values_list('member', flat=True)
+
+    if str(request.user) not in community_members:
+            return render(request, '403.html', status=403)
     promise = Promise.objects.get(id=promise_id, community=community)
  
     inclusive_end = promise.end_date + timedelta(days=1)
@@ -110,6 +132,10 @@ def promise_vote(request, community_id, promise_id):
 def promise_result(request, community_id, promise_id):
 
     community = get_object_or_404(CreateCommunity, id=community_id)
+    community_members = CommunityMember.objects.filter(community_name=community).values_list('member', flat=True)
+
+    if str(request.user) not in community_members:
+            return render(request, '403.html', status=403)
     promise = get_object_or_404(Promise, id=promise_id, community=community)
 
     votes = PromiseVote.objects.filter(promise=promise)
@@ -138,7 +164,7 @@ def promise_result(request, community_id, promise_id):
         selected_list = [d.strftime('%Y-%m-%d') for d in selected_list]
 
     total_members = CommunityMember.objects.filter(
-        community_name=community.community_name,
+        community_name=community,
         create_user=community.create_user
     ).count()
     responded_members = PromiseVote.objects.filter(promise=promise).values('username').distinct().count()
@@ -265,6 +291,7 @@ from django.shortcuts import get_object_or_404
 from .models import Promise
 
 @require_POST
+@login_required
 def delete_promise(request, community_id, promise_id):
     promise = get_object_or_404(Promise, id=promise_id, community_id=community_id)
 

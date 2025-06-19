@@ -12,11 +12,21 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from .models import Photo
 from django.http import JsonResponse, Http404
+from django.utils import timezone
+from user_account.models import User
 
 # Create your views here.
+
 @login_required
 def community_detail(request, community_id):
+
     community = CreateCommunity.objects.get(id=community_id)
+    community_members = CommunityMember.objects.filter(community_name=community).values_list('member', flat=True)
+
+    if str(request.user) not in community_members:
+            return render(request, '403.html', status=403)
+
+
     promises = Promise.objects.filter(community=community)
 
     # 앨범 대표사진
@@ -36,13 +46,13 @@ def community_detail(request, community_id):
     friend_users = []
     for fr in friend_list:
         friend = fr.to_user if fr.from_user == request.user else fr.from_user
-
         # 이미 멤버인지 체크
         is_member = CommunityMember.objects.filter(
-            community_name = community.community_name,
+            community_name = community_id,
             create_user = community.create_user,
             member = friend.username
-        ).exists()
+        )
+
 
         # 초대 했는지 체크
         has_invite = CommunityInvite.objects.filter(
@@ -60,9 +70,25 @@ def community_detail(request, community_id):
 
     # 커뮤니티 멤버 가져오기
     members = CommunityMember.objects.filter(
-        community_name = community.community_name,
+        community_name = community_id,
         create_user = community.create_user,
     )
+
+
+    member_users = []
+    for m in members:
+        username = m.member
+        try:
+            user = User.objects.get(username=username)
+            member_users.append({
+                'username': user.username,
+                'profile_image': user.profile_image.url if user.profile_image else None
+            })
+        except User.DoesNotExist:
+            member_users.append({
+                'username': username,
+                'profile_image': None
+            })
     
     # 현재 유저가 투표한 약속 id들
     voted_ids = PromiseVote.objects.filter(username=request.user).values_list('promise_id', flat=True)
@@ -70,6 +96,7 @@ def community_detail(request, community_id):
     context = {
         'community': community,
         'members': members,
+        'member_users': member_users,
         'promises': promises,
         'voted_ids': list(voted_ids),
         'friend_users': friend_users,
@@ -141,6 +168,21 @@ def album_detail(request, community_id, album_name):
     promise = Promise.objects.get(community_id=community_id, promise_name=album_name)
     photos = Photo.objects.filter(promise=promise)
     main_photo = photos.filter(is_main=True).first()
+    members = CommunityMember.objects.filter(
+        community_name = community,
+        create_user = community.create_user,
+    )
+    member_users = []
+
+
+    for m in members:
+        user = m.member
+        temp_user = User.objects.get(username = user)
+
+        member_users.append({
+            'username': user,
+            'profile_image': temp_user.profile_image.url if temp_user.profile_image else None
+        })
 
     # 내 기분
     user_mood = None
@@ -155,6 +197,8 @@ def album_detail(request, community_id, album_name):
         votes = MoodVote.objects.filter(promise=promise).select_related('user')
         mood_votes = [{'username': vote.user.username, 'mood': vote.mood} for vote in votes]
 
+    other_votes = [vote for vote in mood_votes if vote['username'] != request.user.username]
+
     context = {
         'community': community,
         'community_id': community_id,
@@ -164,6 +208,9 @@ def album_detail(request, community_id, album_name):
         'user_mood': user_mood,
         'mood_votes': mood_votes,
         'main_photo': main_photo,
+        'other_votes': other_votes,
+        'members': members,
+        'member_users': member_users,
     }
     return render(request, 'album_detail.html', context)
 
@@ -178,7 +225,7 @@ def upload_photo(request, community_id, album_name):
         photo = Photo.objects.create(
             image=image,
             promise=promise,
-            uploaded_by=request.user  # ✅ 업로드한 사용자 설정
+            uploaded_by=request.user  # 업로드한 사용자 설정
         )
 
         return JsonResponse({
@@ -218,14 +265,17 @@ def photo_comment(request, community_id, album_name, photo_id):
                 comment_content = data.get('content')
 
                 comment = PhotoComment.objects.create(photo=photo, user=request.user, content=comment_content)
+                
+                profile_image_url = request.user.profile_image.url
 
                 return JsonResponse({
                     'success': True, 
                     'comment': {
-                        'id': comment.id,  # ✅ 댓글 ID 포함
+                        'id': comment.id,  # 댓글 ID 포함
                         'user': request.user.username,
                         'content': comment.content,
                         'created_at': comment.created_at.strftime("%Y-%m-%d %H:%M"),
+                        'profile_image': profile_image_url,
                     }
                 })
             except Exception as e:
@@ -236,6 +286,7 @@ def photo_comment(request, community_id, album_name, photo_id):
             comment_list = [{
                 'id': comment.id,
                 'user': comment.user.username,
+                'profile_image': comment.user.profile_image.url if hasattr(comment.user, 'profile_image') and comment.user.profile_image else '/static/default-profile.png',
                 'content': comment.content,
                 'created_at': comment.created_at.strftime("%Y-%m-%d %H:%M")
             } for comment in comments]
@@ -306,6 +357,7 @@ def delete_community(request, community_id):
 
 
 @require_POST
+@login_required
 def delete_photo(request, community_id, album_name, photo_id):
     photo = get_object_or_404(Photo, id=photo_id)
 
@@ -353,6 +405,7 @@ def comment_edit(request, community_id, album_name, photo_id, comment_id):
 
         if new_content:
             comment.content = new_content
+            comment.created_at = timezone.now()
             comment.save()
             return JsonResponse({
                 'success': True,

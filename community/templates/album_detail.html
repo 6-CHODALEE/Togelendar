@@ -1,8 +1,12 @@
 {% extends 'base.html' %}
 
+{% load static %}
+
 {% block body %}
 <div class="container mt-4">
-    <h3 class="fw-bold mb-4">{{album_name}}</h3>
+    <div style="border-bottom: 2px solid black;">
+        <h3 class="fw-bold mb-4">{{album_name}}</h3>
+    </div>
     <!--사진 + 댓글 영역-->
     <div class="d-flex mt-4">
         <div style="flex: 2;">
@@ -15,21 +19,20 @@
             <!--대표사진 설정 버튼-->
             <div class="d-flex justify-content-end gap-2 mt-2">
                 <button
+                    id="PhotoDelBtn" 
+                    class="photo-delete-btn btn btn-outline-danger btn-sm">
+                    사진 삭제
+                </button>
+                <button
                     id="albumMainPhotoBtn" 
-                    class="btn btn-sm btn-outline-secondary"
+                    class="main-photo-btn btn btn-sm btn-outline-secondary"
                     style="display: none;">
                     대표사진으로 설정
                 </button>
                 
-                <button
-                    id="PhotoDelBtn" 
-                    class="btn btn-sm btn-outline-danger"
-                    style="display: none;">
-                    사진 삭제
-                </button>
             </div>
 
-            <div id="gallery" class="d-flex flex-wrap gap-3 mt-3" style="flex: 2;">
+            <div id="gallery" class="d-flex flex-wrap mt-5" style="flex: 2; gap: 1.2rem;">
                 <!--filepond 업로드 input-->
                 <div style="width: 150px; height: 150px;">
                     <input type="file" class="filepond" name="file" multiple data-max-files="10">
@@ -37,22 +40,28 @@
                 
                 <!--좌측 : 업로드된 사진 썸네일 목록-->
                 {% for photo in photos %}
+                <div class="thumbnail-wrapper">
+                    <img src="{% static 'index/images/masking_tape_check.png' %}" alt="체크무늬 마스킹 테이프" class="masking-tape-check">
+
                     <img src="{{ photo.image.url }}"
-                        class="album-image rounded"
-                        data-photo-id="{{ photo.id }}"
-                        data-uploaded-by="{{ photo.uploaded_by }}"
-                        style="width: 150px; height: 150px; object-fit: cover; cursor: pointer;">
+                    class="album-image rounded"
+                    data-photo-id="{{ photo.id }}"
+                    data-uploaded-by="{{ photo.uploaded_by }}"
+                    style="width: 150px; height: 150px; object-fit: cover; cursor: pointer;">
+                </div>
                 {% endfor %}
             </div>
         </div>
         
         <!--우측 : 댓글창(사진 클릭 시 열림)-->
         <div style="flex: 1; margin-left: 30px;">
-            <div class="card mb-3">
+            <div class="mood-box card mb-3">
                 <div class="card-body">
-                    <h5 class="card-title">오늘 어땠어?</h5>
+                    <div class="mb-2">
+                        <h6 class="card-title fw-bold">오늘 어땠어?</h6>
+                    </div>
                     
-                    <form id="moodForm">
+                    <form id="moodForm" style="border-bottom: 1px solid black;">
                         <!--약속이 어땠는지-->
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="mood" value="😊 좋았어" id="mood1"
@@ -69,7 +78,9 @@
                                 {% if user_mood == "😞 별로였어" %}checked{% endif %}>
                             <label class="form-check-label" for="mood3">😞 별로였어</label>
                         </div>
-                        <button type="submit" class="btn btn-outline-primary btn-sm">선택</button>
+                        <div class="text-end mb-2">
+                            <button type="submit" class="my-feel-btn btn btn-sm btn-outline-secondary">선택</button>
+                        </div>
                     </form>
                         
                     <!--약속이 어땠는지 결과-->
@@ -78,10 +89,10 @@
                             <p><strong>내 기분</strong> - {{user_mood}}</p>
                         {% endif %}
 
-                        {% if mood_votes %}
-                            <p class="mt-2"><strong>멤버들이 선택한 기분</strong></p>
+                        <p class="mt-2"><strong>멤버들이 선택한 기분</strong></p>
+                        {% if other_votes %}
                             <ul class="mb-0">
-                                {% for vote in mood_votes %}
+                                {% for vote in other_votes %}
                                     {% if vote.username != request.user.username %}
                                         <li><strong>{{vote.username}}</strong> - {{vote.mood}}</li>
                                     {% endif %}
@@ -95,29 +106,38 @@
             </div>
             
             <!--댓글창(사진 클릭 시 나타남)-->
-            <div id="commentBox" class="card" {% if not selected_photo %}style="display: none;"{% endif %}>
+            <div id="commentBox" class="comment-box card" {% if not selected_photo %}style="display: none;"{% endif %}>
                 <div class="card-body">
-                    <h5 class="card-title">댓글 남기기</h5>
+                    <div class="mb-2">
+                        <h6 class="card-title fw-bold">댓글 남기기</h6>
+                    </div>
                         <form id="commentForm">
                             <textarea id="commentInput" class="form-control mb-2" placeholder="댓글을 입력하세요" rows="2"></textarea>
-                            <button type="submit" class="btn btn-outline-primary btn-sm">댓글</button>
+                            <div class="text-end">
+                                <button type="submit" class="add-comment btn btn-sm ">댓글 달기</button>
+                            </div>
                         </form>
                     <div id="commentList" class="mt-3">
                         {% if selected_photo %}
                             {% for comment in comments %}
-                            <div class="photo-comment mb-2"
+                            <div class="photo-comment mb-2 position-relative"
                                 data-comment-id="{{ comment.id }}"
                                 data-username="{{ comment.user.username }}">
                                 
-                                <strong>{{ comment.user.username }}</strong>: {{ comment.content }}
-                                <br><small>{{ comment.created_at|date:"Y-m-d H:i" }}</small>
-
-                                {% if comment.user.username == request.user.username %}
-                                    <div class="mt-1">
-                                        <button class="btn btn-sm btn-link text-danger delete-comment-btn">삭제</button>
-                                        <button class="btn btn-sm btn-link text-primary edit-comment-btn">수정</button>
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="comment-text pe-5" style="word-break: break-word;">
+                                        <strong>{{ comment.user.username }}</strong>: <span class="comment-content">{{ comment.content }}</span>
                                     </div>
-                                {% endif %}
+                                    
+                                    {% if comment.user.username == request.user.username %}
+                                    <div class="comment-buttons">
+                                        <button class="btn btn-sm btn-link edit-comment-btn">수정</button>
+                                        <button class="btn btn-sm btn-link delete-comment-btn btn-outline-danger">삭제</button>
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <small class="text-muted">{{ comment.created_at|date:"Y-m-d H:i" }}</small>
                             </div>
                             {% empty %}
                                 <p>아직 댓글이 없습니다.</p>
@@ -129,7 +149,7 @@
         </div>
     </div>
     <div class="text-center mt-4">
-        <a href="{% url 'community:community_detail' community_id %}" class="btn btn-outline-dark" style="position: absolute; right: 130px;">
+        <a href="{% url 'community:community_detail' community_id %}" class="btn btn-outline-dark" style="position: absolute; right: 130px; background-color: white; border: 1px solid #A39F95; border-radius: 6px; color: black;">
             커뮤니티로 이동하기
         </a>
     </div>
@@ -140,7 +160,6 @@
     width: 150px;
     height: 150px;
     border: 2px dashed #ccc;
-    border-radius: 8px;
     position: relative;
     overflow: hidden;
 }
@@ -149,10 +168,86 @@
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    color: #aaa !important;
+    /* color: #aaa !important; */
     height: 100% !important;
     width: 100% !important;
     padding: 0 !important;
+    border-radius: 10px;
+}
+
+.thumbnail-wrapper {
+    position: relative;
+    width: 150px;
+    height: 150px;
+}
+
+.masking-tape-check {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%) rotate(10deg);
+    width: 50px;
+    height: auto;
+    pointer-events: none;
+    z-index: 2;
+}
+
+
+.my-feel-btn,
+.main-photo-btn,
+.card-body button,
+.edit-comment-btn{        
+    background-color: white;
+    text-align: center;
+    color: black;
+    font-weight: bold;
+    text-decoration: none;
+    border: 1px solid #A39F95;
+    border-radius: 6px;
+}
+
+.add-comment {        
+    background-color: #A39F95 !important;
+    text-align: center;
+    color: black;
+    font-weight: bold;
+    text-decoration: none;
+    border: none !important ;
+    border-radius: 6px;
+}
+
+.photo-delete-btn{        
+    background-color: white;
+    text-align: center;
+    color: red;
+    font-weight: bold;
+    text-decoration: none;
+    border: 1px solid red;
+    border-radius: 6px;
+    display: none;
+}
+
+.delete-comment-btn:hover {
+  color: white !important;
+  text-decoration: none !important;
+}
+
+.mood-box,
+.comment-box {
+    min-height: 100px;
+    position: relative;
+    background: white;
+    border-radius: 0;
+}
+
+.comment-buttons {
+    display: flex;
+    gap: 0.3rem;
+    position: absolute;
+    top: 0;
+    right: 0;
+    white-space: nowrap;
+    border-radius: 0;
 }
 
 
@@ -204,6 +299,10 @@
                     if (thumbnail) thumbnail.remove();
 
                     selectedPhotoId = null;
+
+                    // 삭제 후 앨범 URL로 이동
+                    const encodedAlbumName = encodeURIComponent("{{ album_name }}");
+                    window.location.href = `/community/{{ community_id }}/album/${encodedAlbumName}/`;
                 } else {
                     alert('삭제 중 오류가 발생했습니다.');
                 }
@@ -237,21 +336,46 @@
                         if (request.status >= 200 && request.status < 300) {
                             const res = JSON.parse(request.responseText);
                             load(res.id);
-                            
-                            // 업로드된 이미지 폴더에 추가
+
+                            // wrapper 및 구성 요소 생성
+                            const wrapper = document.createElement('div');
+                            wrapper.className = 'thumbnail-wrapper';
+                            wrapper.style.position = 'relative';
+                            wrapper.style.width = '150px';
+                            wrapper.style.height = '150px';
+
+                            const tape = document.createElement('img');
+                            tape.src = '/static/index/images/masking_tape_check.png';
+                            tape.className = 'masking-tape-check';
+
                             const img = document.createElement('img');
                             img.src = res.filename;
                             img.className = 'album-image rounded';
                             img.dataset.photoId = res.id;
+                            img.dataset.uploadedBy = currentUsername; 
                             img.style.width = '150px';
                             img.style.height = '150px';
                             img.style.objectFit = 'cover';
                             img.style.cursor = 'pointer';
-                            
-                            document.getElementById('gallery').appendChild(img);
+
+                            // 이미지 클릭 시 삭제 버튼 표시
+                            img.addEventListener('click', function () {
+                                selectedPhotoId = res.id;
+
+                                document.getElementById('mainPhoto').src = res.filename;
+                                document.getElementById('mainPhoto').style.display = 'block';
+                                document.getElementById('PhotoDelBtn').style.display = 'block';
+                                document.getElementById('albumMainPhotoBtn').style.display = 'block';
+                                document.getElementById('commentBox').style.display = 'block';
+                            });
+
+                            // 조립 후 바로 삽입
+                            wrapper.appendChild(tape);
+                            wrapper.appendChild(img);
+                            document.getElementById('gallery').appendChild(wrapper);
                         } else {
                             console.error('업로드 실패:', request.status, request.responseText);
-                            error('업로드 실패' + request.responseText);
+                            error('업로드 실패: ' + request.responseText);
                         }
                     };
                     request.onerror = () => error('서버 오류'); console.error('서버 연결 실패');
@@ -308,22 +432,47 @@
                 if (data.success) {
                     commentList.innerHTML = '';
                     data.comments.forEach(comment => {
-                        const item = document.createElement("div");
-                        item.classList.add("photo-comment", "mb-2");  // ✅ 이거 추가
+                        const commentDiv = document.createElement("div");
+                        commentDiv.classList.add("photo-comment", "mb-2", "position-relative");
+                        commentDiv.dataset.commentId = comment.id;
+                        commentDiv.dataset.username = comment.user;
+                        commentDiv.dataset.profileImage = comment.profile_image;
 
-                        item.dataset.commentId = comment.id;
-                        item.dataset.username = comment.user;
+                        const commentText = document.createElement("div");
+                        commentText.className = "d-flex align-items-start pe-5";
 
-                        item.innerHTML = `<strong>${comment.user}</strong>: ${comment.content} <br><small>${comment.created_at}</small>`;
-                        if (comment.user === currentUsername) {
-                            item.innerHTML += `
-                                <div class="mt-1">
-                                    <button class="btn btn-sm btn-link text-danger delete-comment-btn">삭제</button>
-                                    <button class="btn btn-sm btn-link text-primary edit-comment-btn">수정</button>
+                        commentText.innerHTML = `
+                            <img src="${comment.profile_image}"
+                                class="rounded-circle me-2" 
+                                style="width: 32px; height: 32px; object-fit: cover;">
+                            <div>
+                                <div class="comment-text pe-5">
+                                    <strong>${comment.user}</strong>: <span class="comment-content">${comment.content}</span>
+                                    <br><small class="text-muted">${comment.created_at}</small>
                                 </div>
-                            `;
+                            </div>
+                        `;
+
+                        commentDiv.appendChild(commentText);
+
+                        if (comment.user === currentUsername) {
+                            const btnGroup = document.createElement("div");
+                            btnGroup.className = "comment-buttons position-absolute top-0 end-0";
+
+                            const editBtn = document.createElement("button");
+                            editBtn.className = "btn btn-sm btn-link edit-comment-btn";
+                            editBtn.textContent = "수정";
+
+                            const deleteBtn = document.createElement("button");
+                            deleteBtn.className = "btn btn-sm btn-link delete-comment-btn btn-outline-danger";
+                            deleteBtn.textContent = "삭제";
+
+                            btnGroup.appendChild(editBtn);
+                            btnGroup.appendChild(deleteBtn);
+                            commentDiv.appendChild(btnGroup);
                         }
-                        commentList.appendChild(item);
+
+                        commentList.appendChild(commentDiv);
                     });
                 }
             });
@@ -397,49 +546,49 @@
                 .then(data => {
                     if (data.success) {
                         const comment = data.comment;
-                        const item = document.createElement("div");
-                        item.classList.add("photo-comment", "mb-2");
-                        item.dataset.commentId = comment.id;
-                        item.dataset.username = comment.user;
+                        const commentDiv = document.createElement("div");
+                        commentDiv.classList.add("photo-comment", "mb-2", "position-relative");
+                        commentDiv.dataset.commentId = comment.id;
+                        commentDiv.dataset.username = comment.user;
+                        commentDiv.dataset.profileImage = comment.profile_image;
 
-                        // 작성자
-                        const strong = document.createElement("strong");
-                        strong.textContent = comment.user;
+                        // commentText: 프로필 + 텍스트
+                        const commentText = document.createElement("div");
+                        commentText.className = "d-flex align-items-start";
 
-                        // 내용
-                        const contentText = document.createTextNode(`: ${comment.content}`);
+                        commentText.innerHTML = `
+                            <img src="${comment.profile_image}"
+                                class="rounded-circle me-2"
+                                style="width: 32px; height: 32px; object-fit: cover;">
+                            <div>
+                                <div class="comment-text pe-5">
+                                    <strong>${comment.user}</strong>: <span class="comment-content">${comment.content}</span>
+                                    <br><small class="text-muted">${comment.created_at}</small>
+                                </div>
+                            </div>
+                        `;
 
-                        // 날짜
-                        const small = document.createElement("small");
-                        small.textContent = comment.created_at;
-                        small.style.display = "block";
-
-                        // 추가
-                        item.appendChild(strong);
-                        item.appendChild(contentText);
-                        item.appendChild(document.createElement("br"));
-                        item.appendChild(small);
+                        commentDiv.appendChild(commentText);
 
                         // 작성자일 경우에만 삭제/수정 버튼
                         if (comment.user === currentUsername) {
                             const btnGroup = document.createElement("div");
-                            btnGroup.classList.add("mt-1");
-
-                            const deleteBtn = document.createElement("button");
-                            deleteBtn.textContent = "삭제";
-                            deleteBtn.className = "btn btn-sm btn-link text-danger delete-comment-btn";
+                            btnGroup.className = "comment-buttons position-absolute top-0 end-0";
 
                             const editBtn = document.createElement("button");
+                            editBtn.className = "btn btn-sm btn-link edit-comment-btn";
                             editBtn.textContent = "수정";
-                            editBtn.className = "btn btn-sm btn-link text-primary edit-comment-btn";
+                            
+                            const deleteBtn = document.createElement("button");
+                            deleteBtn.className = "btn btn-sm btn-link delete-comment-btn btn-outline-danger";
+                            deleteBtn.textContent = "삭제";
 
-                            btnGroup.appendChild(deleteBtn);
                             btnGroup.appendChild(editBtn);
-                            item.appendChild(btnGroup);
+                            btnGroup.appendChild(deleteBtn);
+                            commentDiv.appendChild(btnGroup);
                         }
 
-                        commentList.appendChild(item);
-                        addDeleteCommentEventListeners();
+                        commentList.appendChild(commentDiv);
                         commentInput.value = '';
                     } else {
                         alert("댓글 저장 실패: " + data.message);
@@ -517,19 +666,37 @@
             }
         });
         commentList.addEventListener("click", function (e) {
-            // ✅ 댓글 수정 버튼 클릭
+            // 댓글 수정 버튼 클릭
             if (e.target.classList.contains("edit-comment-btn")) {
                 const commentDiv = e.target.closest(".photo-comment");
-                const contentSpan = commentDiv.querySelector("strong + text"); // 내용 영역
-                const oldContent = commentDiv.childNodes[1].textContent.trim().replace(/^:\s*/, "");
+                const username = commentDiv.dataset.username;
+                const commentId = commentDiv.dataset.commentId;
+                const profileImage = commentDiv.dataset.profileImage;
 
-                // 기존 댓글 삭제
+                const contentElement = commentDiv.querySelector(".comment-content");
+                const oldContent = contentElement ? contentElement.textContent.trim() : '';
+
+                // 댓글 전체 내용 비우기
                 commentDiv.innerHTML = '';
+                commentDiv.dataset.commentId = commentId;
+                commentDiv.dataset.username = username;
+                commentDiv.dataset.profileImage = profileImage;
 
-                // 수정 폼 입력창 생성
-                const textarea = document.createElement("textarea");
-                textarea.className = "form-control form-control-sm mb-1";
-                textarea.value = oldContent;
+                // form 구성
+                const editWrapper = document.createElement("div");
+                editWrapper.className = "d-flex align-items-start";
+
+                editWrapper.innerHTML = `
+                    <img src="${profileImage}" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                    <div style="flex: 1;">
+                        <strong>${username}</strong>:
+                        <textarea class="form-control form-control-sm mt-1">${oldContent}</textarea>
+                    </div>
+                `
+
+                // 저장/취소버튼 그룹
+                const btnWrap = document.createElement("div");
+                btnWrap.className = "text-end mt-2"
 
                 const saveBtn = document.createElement("button");
                 saveBtn.className = "btn btn-sm btn-outline-primary me-1";
@@ -539,14 +706,15 @@
                 cancelBtn.className = "btn btn-sm btn-outline-secondary";
                 cancelBtn.textContent = "취소";
 
-                commentDiv.appendChild(textarea);
-                commentDiv.appendChild(saveBtn);
-                commentDiv.appendChild(cancelBtn);
+                btnWrap.appendChild(saveBtn);
+                btnWrap.appendChild(cancelBtn);
+
+                commentDiv.appendChild(editWrapper);
+                commentDiv.appendChild(btnWrap);
 
                 // 저장 버튼 클릭
                 saveBtn.addEventListener("click", () => {
-                    const newContent = textarea.value.trim();
-                    const commentId = commentDiv.dataset.commentId;
+                    const newContent = editWrapper.querySelector("textarea").value.trim();
 
                     if (!newContent) {
                         alert("내용이 비어있습니다.");
@@ -564,14 +732,55 @@
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {
-                            commentDiv.innerHTML = `
-                                <strong>${currentUsername}</strong>: ${data.updated_content}
-                                <br><small>${data.updated_at}</small>
-                                <div class="mt-1">
-                                    <button class="btn btn-sm btn-link text-danger delete-comment-btn">삭제</button>
-                                    <button class="btn btn-sm btn-link text-primary edit-comment-btn">수정</button>
+                            commentDiv.innerHTML = '';
+                            
+                            // 댓글 정보 저장
+                            commentDiv.dataset.username = username;
+                            commentDiv.dataset.profileImage = profileImage;
+                            commentDiv.dataset.content = data.updated_content;
+
+                            // 댓글 내용 div
+                            const commentText = document.createElement("div");
+                            commentText.className = "comment-text pe-5";
+                            commentText.innerHTML = `
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <img src="${profileImage}" 
+                                            class="rounded-circle me-2" 
+                                            style="width: 32px; height: 32px; object-fit: cover;">
+                                    </div> 
+                                    <div class="comment-text pe-5">
+                                        <strong>${username}</strong>: <span class="comment-content">${data.updated_content}</span><br>
+                                        <small class="text-muted">${data.updated_at}</small>
+                                    </div>
                                 </div>
                             `;
+                        
+                            // 수정/삭제 버튼
+                            const btnGroup = document.createElement("div");
+                            btnGroup.className = "comment-buttons position-absolute top-0 end-0";
+                            
+                            const deleteBtn = document.createElement("button");
+                            deleteBtn.className = "btn btn-sm btn-link delete-comment-btn me-1 btn-outline-danger";
+                            deleteBtn.textContent = "삭제";
+
+                            const editBtn = document.createElement("button");
+                            editBtn.className = "btn btn-sm btn-link edit-comment-btn";
+                            editBtn.textContent = "수정";
+
+                            btnGroup.appendChild(editBtn);
+                            btnGroup.appendChild(deleteBtn);
+
+                            // wrapper에 commentText와 버튼 넣기
+                            const wrapper = document.createElement("div");
+                            wrapper.className = "d-flex justify-dontent-between align-items-start";
+                            wrapper.appendChild(commentText);
+                            wrapper.appendChild(btnGroup);
+
+                            // 최종 렌더링
+                            commentDiv.appendChild(wrapper);
+
+
                         } else {
                             alert(data.message || "수정 실패");
                         }
@@ -581,11 +790,20 @@
                 // 취소 버튼 클릭
                 cancelBtn.addEventListener("click", () => {
                     commentDiv.innerHTML = `
-                        <strong>${currentUsername}</strong>: ${oldContent}
-                        <br><small>방금 전</small>
-                        <div class="mt-1">
-                            <button class="btn btn-sm btn-link text-danger delete-comment-btn">삭제</button>
-                            <button class="btn btn-sm btn-link text-primary edit-comment-btn">수정</button>
+                        <div class="d-flex align-items-start">
+                            <div>
+                                <img src="${profileImage}" 
+                                class="rounded-circle me-2" 
+                                style="width: 32px; height: 32px; object-fit: cover;">
+                            </div>
+                            <div class="comment-text pe-5">
+                                <strong>${username}</strong>: <span class="comment-content">${oldContent}</span>
+                                <br><small class="text-muted">방금 전</small>
+                            </div>
+                            <div class="comment-buttons position-absolute top-0 end-0">
+                                <button class="btn btn-sm btn-link edit-comment-btn">수정</button>
+                                <button class="btn btn-sm btn-link delete-comment-btn">삭제</button>
+                            </div>
                         </div>
                     `;
                 });
