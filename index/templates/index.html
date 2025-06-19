@@ -71,9 +71,20 @@
         /* align-items: flex-start; */
         text-align: center;
         position: relative;
-        top: 130px;
+        top: 115px;
     }
     
+    @keyframes fadeInUp {
+        0% {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
     .home-text {
         max-width: 540px;
         font-size: 1.4rem;
@@ -81,6 +92,10 @@
         color: #000;
         position: relative;     /* z-index 작동시키기 위해 필수 */
         z-index: 10;            /* 사진보다 위에 오게 */
+
+        /* 애니메이션 효과 */
+        opacity: 0;
+        animation: fadeInUp 1.2s ease-out 0.2s forwards;
     }
 
     .home-text strong {
