@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% load static %}
+{% load custom_tags %}
 
 {% block body %}
 <div class="container mt-2">
@@ -78,9 +79,10 @@
                                     <a href="{% url 'community:album_detail' community.id promise.promise_name %}" class="text-decoration-none">
                                         <div class=" card album-box-inner">
                                             {% if promise.main_photo %}
-                                            <img src="{{promise.main_photo.image.url}}" class="album-box-img">
+                                                <img src="{{promise.main_photo.image.url}}" class="album-box-img">
                                             {% else %}
-                                            <img src="{% static 'index/images/camera_character.png' %}" class="album-box-img">
+                                                {% random_album_image as random_image %}
+                                                <img src="{{ random_image }}" class="album-box-img">
                                             {% endif %}
                                         </div>
                                         <div class="album-box-title">{{promise.promise_name}}</div>

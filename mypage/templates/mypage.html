@@ -91,7 +91,7 @@
                                             {% for result in weekly_promises|get_item:date %}
                                                 <a href="{% url 'community:promise:promise_result' community_id=result.promise.community.id promise_id=result.promise.id %}"
                                                 class="calendar-promise"
-                                                title="{{ result.promise_name }}" style="color: rgb(1, 1, 1);">
+                                                title="{{ result.promise_name }}" style="color: rgb(1, 1, 1); text-decoration: none;">
                                                     {{ result.promise_name }}
                                                 </a>
                                             {% empty %}

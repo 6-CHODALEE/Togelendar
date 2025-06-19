@@ -16,6 +16,7 @@ from django.utils import timezone
 from user_account.models import User
 
 # Create your views here.
+
 @login_required
 def community_detail(request, community_id):
 
