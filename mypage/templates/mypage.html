@@ -27,7 +27,7 @@
 
                 </div>
                 <!-- 이름 -->
-                <p class="fw-bold mb-2">{{ me.username }}</p>
+                <h4 class="fw-bold mb-2">{{ me.username }}</h4>
 
                 <!-- 버튼 2개 수평 정렬 -->
                 <div class="d-flex justify-content-center gap-2">
@@ -171,7 +171,7 @@
     <!-- 커뮤니티 상단 바 -->
     <div class="container">
     <div class="d-flex justify-content-between align-items-center community-header-bar mt-4">
-        <h5 class="mb-0">{{ me }}의 하뮤니티 리스트</h5>
+        <h5 class="fw-bold mb-0">{{ me }}의 하뮤니티 리스트</h5>
         <div class="d-flex gap-2">
         {% if invite_requests %}
             <a href="#" id="showInvitePopover" class="btn btn-outline-request btn-sm" style="border-radius: 0;">
@@ -208,7 +208,7 @@
         {% if communities %}
             {% for community in communities %}
             <div class="d-flex justify-content-between align-items-center community-card">
-                <div>{{ community.community_name }}</div>
+                <div class="fw-bold">{{ community.community_name }}</div>
                 <a href="{% url 'community:community_detail' community.id %}" class="btn btn-enter btn-sm">입장하기</a>
             </div>
             {% endfor %}
@@ -231,7 +231,7 @@
   color: black;
   font-weight: bold;
   border: none;
-  border-radius: 0;           /* 라운드 제거 */
+  border-radius: 6px;
   padding: 6px 16px;
   /* transition: background-color 0.2s ease-in-out; */
 }
@@ -256,6 +256,7 @@
 /* 가입 요청 버튼 */
 .btn-outline-request {
   border: 2px solid #A39F95;
+  border-radius: 6px !important;
   background-color: white;
   color: black;
   padding: 6px 14px;
