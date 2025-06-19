@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 import os
 import dotenv
 import requests
+from django.contrib import messages
 
 
 # .env 파일에서 환경변수 로드

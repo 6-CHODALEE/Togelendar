@@ -9,36 +9,76 @@
             <form action="" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="signup-title"><h2>회원가입</h2></div>
-                
+
                 {% for field in form %}
-                {% if field.name == 'postcode' or field.name == 'address' %}
-                {{ field.as_hidden }}
-                {% elif field.name == 'profile_image' %}
-                <div class="form-group">
-                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    <div>{{ field }}</div>
-                </div>
-                {% else %}
-                <div class="form-group">
-                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    {{ field }}
-                </div>
-                {% endif %}
+                    {% if field.name == 'postcode' or field.name == 'address' %}
+                        {{ field.as_hidden }}
+
+                    {% elif field.name == 'password1' %}
+                        <div class="form-group position-relative">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            <div style="flex: 1; position: relative;">
+                                {{ field.as_widget }}
+
+                                <!-- ❗ 툴팁 아이콘 -->
+                                <span
+                                    class="position-absolute custom-tooltip"
+                                    style="top: 50%; right: -25px; transform: translateY(-50%); cursor: pointer; color: red;"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="right"
+                                    data-bs-html="true"
+                                    title="• 다른 개인 정보와 유사한 비밀번호는 사용할 수 없습니다.<br>
+                                        • 최소 8자 이상이어야 합니다.<br>
+                                        • 자주 사용되는 비밀번호는 사용할 수 없습니다.<br>
+                                        • 숫자만으로 이루어진 비밀번호는 사용할 수 없습니다.">
+                                    ❗
+                                </span>
+
+                                {% if field.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in field.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                    {% else %}
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            <div style="flex: 1;">
+                                {{ field.as_widget }}
+
+                                {% if field.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in field.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+
+                                {% if not field.errors and field.help_text %}
+                                    <small class="form-text text-muted">{{ field.help_text|safe }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
                 {% endfor %}
-                
+
                 <!-- 우편번호 -->
                 <div class="zipcode-group">
                     <label for="visible_postcode">우편번호</label>
                     <input type="text" id="visible_postcode" readonly>
                     <button type="button" onclick="execDaumPostcode()">우편번호 찾기</button>
                 </div>
-                
-                <!-- 주소 (라벨 위, 입력창 아래로 정렬) -->
+
+                <!-- 주소 -->
                 <div class="address-group">
                     <label for="visible_address">주소</label>
                     <input type="text" id="visible_address" readonly>
                 </div>
-                
+
                 <button type="submit" class="custom-btn">회원가입</button>
             </form>
         </div>
@@ -48,6 +88,37 @@
 
 
 <style>
+
+    .signup-content form {
+        width: 100%;
+        max-width: 450px;  /* ← 원하는 너비로 조절 (예: 480~520px 추천) */
+        margin: 0 auto;
+    }
+    .signup-content input[type="text"],
+    .signup-content input[type="email"],
+    .signup-content input[type="password"],
+    .signup-content input[type="file"],
+    .signup-content select {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px 10px;
+        border-radius: 6px;
+        border: none;
+    }
+
+    .form-group > div {
+        flex: 1;
+    }
+
+    .tooltip .tooltip-inner {
+        max-width: 350px !important;
+        white-space: normal !important;
+        text-align: left !important;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+
     .signup-wrapper {
         display: flex;
         justify-content: center;
@@ -98,7 +169,7 @@
         font-weight: bold;
     }
     
-    .form-group,
+
     .zipcode-group,
     .address-group {
         display: flex;
@@ -108,7 +179,7 @@
         width: 100%;
     }
     
-    .form-group label,
+
     .zipcode-group label,
     .address-group label {
         width: 120px;
@@ -116,6 +187,22 @@
         margin-bottom: 5px;
         white-space: nowrap;
         align-self: center;
+    }
+
+    .form-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 15px;
+        width: 100%;
+    }
+
+    .form-group label {
+        width: 120px;
+        font-weight: bold;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
     }
     
     .form-group input,
@@ -179,5 +266,12 @@
             }
         }).open();
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+            new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    });
 </script>
 {% endblock %}
