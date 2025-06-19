@@ -169,12 +169,12 @@
                                     {% if promise.id in voted_ids %}
                                         <!--투표 완료한 경우-->
                                         <a href="{% url 'community:promise:promise_result' community.id promise.id %}">
-                                            📅{{promise.promise_name}}
+                                            📅 {{promise.promise_name}}
                                         </a>
                                     {% else %}
                                         <!--투표하지 않은 경우-->
                                         <a href="{% url 'community:promise:promise_vote' community.id promise.id %}">
-                                            📅{{promise.promise_name}}
+                                            📅 {{promise.promise_name}}
                                         </a>
                                     {% endif %}
                                 </li>

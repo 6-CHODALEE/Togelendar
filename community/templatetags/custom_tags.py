@@ -8,6 +8,6 @@ def random_album_image():
     choices = [
         'profile/diary_character.png',
         'profile/pink_diary_character.png',
-        'profile/camera_character.png',
+        'profile/polaroid_character.png',
     ]
     return '/media/' + random.choice(choices)
