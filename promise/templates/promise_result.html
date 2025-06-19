@@ -23,7 +23,7 @@
 
         <!-- 카테고리 버튼들 -->
         <div class="mb-3 text-center" id="category-buttons">
-            <button data-type="all" class="btn btn-sm me-2 btn-dark" style="border-radius: 0;">전체</button>
+            <button data-type="all" class="btn btn-sm me-2 btn-outline-dark" style="border-radius: 0;">전체</button>
             <button data-type="cafe" class="btn btn-sm me-2 btn-outline-primary" style="border-radius: 0;">카페</button>
             <button data-type="restaurant" class="btn btn-sm me-2 btn-outline-danger" style="border-radius: 0;">음식점</button>
             <button data-type="convenience_store" class="btn btn-sm me-2 btn-outline-success" style="border-radius: 0;">편의점</button>
@@ -36,7 +36,17 @@
             <div class="col-12 place-item" data-type="{{ place.type }}" data-name="{{ place.name }}">
                 <div class="card shadow-sm border-0 rounded-3">
                     <div class="card-body">
-                        <h5 class="card-title mb-1 fw-semibold">{{ place.name }} <span class="badge bg-secondary text-uppercase ms-2">{{ place.type }}</span></h5>
+                        <h5 class="card-title mb-1 fw-semibold">{{ place.name }} 
+                            <span class="badge 
+                                {% if place.type == 'cafe' %}bg-primary
+                                {% elif place.type == 'restaurant' %}bg-danger
+                                {% elif place.type == 'convenience_store' %}bg-success
+                                {% elif place.type == 'subway_station' %}bg-info
+                                {% else %}bg-secondary{% endif %}
+                                text-uppercase ms-2">
+                                {{ place.type }}
+                            </span>
+                        </h5>
                         <p class="mb-1 text-muted small">{{ place.address }}</p>
                         {% if place.rating %}<p class="mb-0 small">⭐ 평점: {{ place.rating }}</p>{% endif %}
                     </div>
@@ -336,6 +346,46 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('#category-buttons button').forEach(button => {
+        button.addEventListener('click', function () {
+            const selectedType = this.dataset.type;
+
+            // ✅ 모든 버튼 스타일 초기화
+            document.querySelectorAll('#category-buttons button').forEach(btn => {
+                btn.classList.remove(
+                    'btn-dark', 'btn-primary', 'btn-danger', 'btn-success', 'btn-info',
+                    'btn-outline-dark', 'btn-outline-primary', 'btn-outline-danger',
+                    'btn-outline-success', 'btn-outline-info',
+                    'text-white'
+                );
+                // ✅ outline 스타일 복원
+                const type = btn.dataset.type;
+                if (type === 'all') btn.classList.add('btn-outline-dark');
+                if (type === 'cafe') btn.classList.add('btn-outline-primary');
+                if (type === 'restaurant') btn.classList.add('btn-outline-danger');
+                if (type === 'convenience_store') btn.classList.add('btn-outline-success');
+                if (type === 'subway_station') btn.classList.add('btn-outline-info');
+            });
+
+            // ✅ 클릭한 버튼만 filled 스타일로 변경
+            if (selectedType === 'all') {
+                this.classList.remove('btn-outline-dark');
+                this.classList.add('btn-dark', 'text-white');
+            } else if (selectedType === 'cafe') {
+                this.classList.remove('btn-outline-primary');
+                this.classList.add('btn-primary', 'text-white');
+            } else if (selectedType === 'restaurant') {
+                this.classList.remove('btn-outline-danger');
+                this.classList.add('btn-danger', 'text-white');
+            } else if (selectedType === 'convenience_store') {
+                this.classList.remove('btn-outline-success');
+                this.classList.add('btn-success', 'text-white');
+            } else if (selectedType === 'subway_station') {
+                this.classList.remove('btn-outline-info');
+                this.classList.add('btn-info', 'text-white');
+            }
+        });
+    });
     const calendarEl = document.getElementById('calendar');
     const allVotes = JSON.parse('{{ all_vote_data|safe }}');
     const totalMembers = parseInt(`{{ total_members|default:1 }}`);
@@ -348,7 +398,7 @@ document.addEventListener('DOMContentLoaded', function () {
             start: item.date,
             end: item.date,
             allDay: true,
-            classNames: ['vote-dot'],  // ✅ 원형 표시용 클래스
+            classNames: ['vote-dot'],
             extendedProps: { count: item.count }
         })),
         eventDidMount: function(info) {
@@ -365,10 +415,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     calendar.render();
 
-    // 스크롤바 제거
     setTimeout(() => {
-        const scrollers = document.querySelectorAll('.fc-scroller');
-        scrollers.forEach(el => {
+        document.querySelectorAll('.fc-scroller').forEach(el => {
             el.style.overflow = 'hidden';
         });
     }, 100);
@@ -394,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const typeColors = {
         cafe: 'blue', restaurant: 'red',
         convenience_store: 'green', supermarket: 'orange',
-        subway_station: 'purple'
+        subway_station: 'lightblue'
     };
 
     const allMarkers = [];
@@ -409,44 +457,66 @@ document.addEventListener('DOMContentLoaded', function () {
         }).addTo(map).bindPopup(`${place.name}<br><small>${place.address}</small>`);
 
         marker.type = place.type;
-        marker.name = place.name;
         allMarkers.push(marker);
     });
 
-    document.querySelectorAll('#category-buttons button').forEach(button => {
-        button.addEventListener('click', function (e) {
-            e.preventDefault();
-            const type = this.dataset.type;
+    const itemsPerPage = 5;
+    let currentPage = 1;
+    let currentFilter = "all";
+    const allItems = Array.from(document.querySelectorAll("#place-list .place-item"));
+    const pageInfo = document.getElementById("page-info");
+    const prevBtn = document.getElementById("prev-page");
+    const nextBtn = document.getElementById("next-page");
+    const filterButtons = document.querySelectorAll("#category-buttons button");
 
-            // 마커 필터링
+    function updatePagination() {
+        const filteredItems = allItems.filter(item => currentFilter === "all" || item.dataset.type === currentFilter);
+        const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+
+        allItems.forEach(item => item.style.display = "none");
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = currentPage * itemsPerPage;
+        filteredItems.slice(start, end).forEach(item => item.style.display = "block");
+
+        pageInfo.textContent = `${currentPage} / ${Math.max(totalPages, 1)}`;
+        prevBtn.disabled = currentPage <= 1;
+        nextBtn.disabled = currentPage >= totalPages;
+    }
+
+    filterButtons.forEach(button => {
+        button.addEventListener("click", function () {
+            currentFilter = this.dataset.type;
+            currentPage = 1;
+
             allMarkers.forEach(marker => {
-                if (type === 'all' || marker.type === type) {
+                if (currentFilter === 'all' || marker.type === currentFilter) {
                     marker.addTo(map);
                 } else {
                     map.removeLayer(marker);
                 }
             });
 
-            // 리스트 필터링
-            document.querySelectorAll('#place-list .place-item').forEach(item => {
-                const itemType = item.dataset.type;
-                item.style.display = (type === 'all' || itemType === type) ? 'block' : 'none';
-            });
-
-            // 버튼 UI 갱신
-            document.querySelectorAll('#category-buttons button').forEach(btn => {
-                btn.classList.remove('btn-dark', 'btn-primary', 'btn-danger', 'btn-success', 'btn-info', 'text-white');
-                btn.classList.add('btn-outline-dark', 'btn-outline-primary', 'btn-outline-danger', 'btn-outline-success', 'btn-outline-info');
-            });
-
-            if (type === 'all') this.classList.replace('btn-outline-dark', 'btn-dark');
-            if (type === 'cafe') this.classList.replace('btn-outline-primary', 'btn-primary');
-            if (type === 'restaurant') this.classList.replace('btn-outline-danger', 'btn-danger');
-            if (type === 'convenience_store') this.classList.replace('btn-outline-success', 'btn-success');
-            if (type === 'subway_station') this.classList.replace('btn-outline-info', 'btn-info');
-            this.classList.add('text-white');
+            updatePagination();
         });
     });
+
+    prevBtn.addEventListener("click", () => {
+        if (currentPage > 1) {
+            currentPage--;
+            updatePagination();
+        }
+    });
+
+    nextBtn.addEventListener("click", () => {
+        const filteredItems = allItems.filter(item => currentFilter === "all" || item.dataset.type === currentFilter);
+        const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            updatePagination();
+        }
+    });
+
+    updatePagination();
     {% endif %}
 
     const locationBtn = document.getElementById('location-button');
@@ -468,106 +538,37 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(() => alert('서버 오류가 발생했습니다. 다시 시도해주세요.'));
         });
     }
-    document.getElementById("promise_delete-button").addEventListener("click", function (e) {
-        e.preventDefault();
-        if (!confirm("정말로 이 약속을 삭제하시겠습니까?")) return;
 
-        fetch(`/community/{{ community.id }}/promise/{{ promise.id }}/delete/`, {
-            method: "POST",
-            headers: {
-                "X-CSRFToken": "{{ csrf_token }}",
-                "Content-Type": "application/json",
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert("약속이 삭제되었습니다.");
-                window.location.href = "{% url 'community:community_detail' community.id %}";
-            } else {
-                alert("삭제에 실패했습니다.");
-            }
-        })
-        .catch(err => {
-            console.error("삭제 요청 오류", err);
-            alert("서버 오류 발생");
-        });
-    });
-});
+    const deleteBtn = document.getElementById("promise_delete-button");
+    if (deleteBtn) {
+        deleteBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            if (!confirm("정말로 이 약속을 삭제하시겠습니까?")) return;
 
-
-document.addEventListener("DOMContentLoaded", function () {
-    const itemsPerPage = 5;
-    let currentPage = 1;
-    let currentFilter = "all";  // 필터 상태 저장
-
-    const allItems = Array.from(document.querySelectorAll("#place-list .place-item"));
-    const pageInfo = document.getElementById("page-info");
-    const prevBtn = document.getElementById("prev-page");
-    const nextBtn = document.getElementById("next-page");
-    const filterButtons = document.querySelectorAll("#category-buttons button");
-
-    // 필터된 항목만 반환
-    function getFilteredItems() {
-        return allItems.filter(item => {
-            return currentFilter === "all" || item.dataset.type === currentFilter;
+            fetch(`/community/{{ community.id }}/promise/{{ promise.id }}/delete/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/json",
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("약속이 삭제되었습니다.");
+                    window.location.href = "{% url 'community:community_detail' community.id %}";
+                } else {
+                    alert("삭제에 실패했습니다.");
+                }
+            })
+            .catch(err => {
+                console.error("삭제 요청 오류", err);
+                alert("서버 오류 발생");
+            });
         });
     }
-
-    function updatePagination() {
-        const filteredItems = getFilteredItems();
-        const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-
-        // 모든 항목 숨김
-        allItems.forEach(item => item.style.display = "none");
-
-        // 현재 페이지에 해당하는 항목만 표시
-        const start = (currentPage - 1) * itemsPerPage;
-        const end = currentPage * itemsPerPage;
-        filteredItems.slice(start, end).forEach(item => item.style.display = "block");
-
-        // 페이지 정보 갱신
-        pageInfo.textContent = `${currentPage} / ${Math.max(totalPages, 1)}`;
-
-        // 버튼 활성/비활성
-        prevBtn.disabled = currentPage <= 1;
-        nextBtn.disabled = currentPage >= totalPages;
-    }
-
-    // 필터 버튼 클릭 이벤트
-    filterButtons.forEach(button => {
-        button.addEventListener("click", () => {
-            currentFilter = button.dataset.type;
-            currentPage = 1;
-            updatePagination();
-
-            // 버튼 스타일 갱신 (선택된 버튼 강조)
-            filterButtons.forEach(btn => btn.classList.remove("btn-dark"));
-            button.classList.add("btn-dark");
-        });
-    });
-
-    // 이전 버튼
-    prevBtn.addEventListener("click", () => {
-        if (currentPage > 1) {
-            currentPage--;
-            updatePagination();
-        }
-    });
-
-    // 다음 버튼
-    nextBtn.addEventListener("click", () => {
-        const filteredItems = getFilteredItems();
-        const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-        if (currentPage < totalPages) {
-            currentPage++;
-            updatePagination();
-        }
-    });
-
-    // 초기 로딩 시
-    updatePagination();
 });
+
 </script>
 
 {% if messages %}
