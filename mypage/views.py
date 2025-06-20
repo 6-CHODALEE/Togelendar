@@ -157,52 +157,30 @@ def search_friends(request, username):
     results = []
 
     if query:
-        response = settings.ES_CLIENT.search(
-            index="user-index",
-            body={
-                "query": {
-                    "match": {
-                        "username": query
-                    }
-                }
-            }
-        )
-        hits = response['hits']['hits']
+        users = User.objects.filter(username__icontains=query).exclude(username=request.user.username)
 
-        for hit in hits:
-            user_data = hit['_source']
-            target_username = user_data['username']
+        for to_user in users:
+            # 친구인지 확인
+            is_friend = FriendRequest.objects.filter(
+                (
+                    Q(from_user=request.user, to_user=to_user) |
+                    Q(from_user=to_user, to_user=request.user)
+                ),
+                status='accepted'
+            ).exists()
 
-            if target_username == request.user.username:
+            if is_friend:
                 continue
 
-            try:
-                to_user = User.objects.get(username=target_username)
+            request_status = None
+            if FriendRequest.objects.filter(from_user=request.user, to_user=to_user).exists():
+                request_status = 'pending'
 
-                # 친구인지 확인
-                is_friend = FriendRequest.objects.filter(
-                    (
-                        Q(from_user=request.user, to_user=to_user) |
-                        Q(from_user=to_user, to_user=request.user)
-                    ),
-                    status='accepted'
-                ).exists()
-
-                if is_friend:
-                    continue
-
-                request_status = None
-                if FriendRequest.objects.filter(from_user=request.user, to_user=to_user).exists():
-                    request_status = 'pending'
-
-                results.append({
-                    'username': target_username,
-                    'email': user_data.get('email', ''),
-                    'request_status': request_status,
-                })
-
-            except User.DoesNotExist:
-                continue
+            results.append({
+                'username': to_user.username,
+                'email': to_user.email,
+                'request_status': request_status,
+            })
 
     # ✅ Ajax 요청이면 JSON 응답
     if is_ajax:

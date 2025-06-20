@@ -50,13 +50,13 @@ def signup(request):
 
             user.save()  # 최종 저장
 
-            # Elasticsearch 색인
-            es = settings.ES_CLIENT
-            es.index(index='user-index', id=user.username, body={
-                'username': user.username,
-                'email': user.email,
-                'address': user.address,  # user.address는 모델 필드임
-            })
+            # # Elasticsearch 색인
+            # es = settings.ES_CLIENT
+            # es.index(index='user-index', id=user.username, body={
+            #     'username': user.username,
+            #     'email': user.email,
+            #     'address': user.address,  # user.address는 모델 필드임
+            # })
 
             return redirect('account:login')
 
