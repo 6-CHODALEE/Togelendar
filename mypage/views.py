@@ -17,12 +17,12 @@ from collections import defaultdict
 from promise.models import Promise, PromiseResult
 from user_account.forms import CustomUserCreationForm, CustomAuthenticationForm
 from .forms import ProfileUpdateForm
-from .elasticsearch_utils import update_user_index, delete_user_index  # 유틸 함수 임포트
+# from .elasticsearch_utils import update_user_index, delete_user_index  # 유틸 함수 임포트
 from django.contrib.auth import login, get_user_model
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import ProfileUpdateForm
-from mypage.elasticsearch_utils import update_user_index, delete_user_index
+
 from django.utils import timezone
 from .forms import ProfileUpdateForm
 from django.contrib.auth import authenticate
@@ -400,7 +400,7 @@ def myprofile(request, username):
                 user.set_password(password)
 
             user.save()
-            update_user_index(user)
+            # update_user_index(user)
 
             # backend 설정 후 로그인
             backend = get_backends()[0]
