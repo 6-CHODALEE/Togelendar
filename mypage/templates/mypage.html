@@ -90,8 +90,9 @@
                                         <div class="calendar-promises-wrapper">
                                             {% for result in weekly_promises|get_item:date %}
                                                 <a href="{% url 'community:promise:promise_result' community_id=result.promise.community.id promise_id=result.promise.id %}"
-                                                class="calendar-promise"
-                                                title="{{ result.promise_name }}" style="color: rgb(1, 1, 1); text-decoration: none;">
+                                                    class="calendar-promise"
+                                                    title="{{ result.promise_name }}"
+                                                    style="background-color: {{ result.bg_color }}; color: black; text-decoration: none; padding: 4px 8px; border-radius: 6px; display: inline-block;">
                                                     {{ result.promise_name }}
                                                 </a>
                                             {% empty %}
@@ -205,18 +206,48 @@
 
     <!-- 커뮤니티 리스트 -->
     <div class="container mt-4">
-        {% if communities %}
-            {% for community in communities %}
-            <div class="d-flex justify-content-between align-items-center community-card">
-                <div class="fw-bold">{{ community.community_name }}</div>
-                <a href="{% url 'community:community_detail' community.id %}" class="btn btn-enter btn-sm">입장하기</a>
+    {% if communities %}
+        {% for community in communities %}
+        <div class="d-flex justify-content-between align-items-center community-card px-3 py-2 position-relative" style="border: 2px solid {{ community.bg_color }}; border-radius: 8px;">
+            <div class="fw-bold">{{ community.community_name }}</div>
+
+            <div class="d-flex align-items-center">
+                <!-- 붓 버튼 -->
+                <button onclick="toggleColorPopup({{ community.id }})"
+                        style="background: none; border: none; padding: 0; margin-right: 10px;">
+                <img src="{% static 'index/images/brush.png' %}" alt="색상 선택" style="width: 20px;">
+                </button>
+
+                <!-- 입장 버튼 -->
+                <a href="{% url 'community:community_detail' community.id %}"
+                    class="btn btn-enter btn-sm"
+                    style="background-color: {{ community.bg_color }}; color: black; border: none;">
+                    입장하기
+                </a>
             </div>
-            {% endfor %}
-        {% else %}
-            <div class="no-community-message">
-            참여 중인 커뮤니티가 없습니다.
+
+            <!-- 팝업 색상 선택기 -->
+            <div id="color-popup-{{ community.id }}" class="color-popup" style="display: none;">
+                <div class="d-flex align-items-center gap-2">
+                <!-- 색상 입력 필드 -->
+                <input type="color" id="color-value-{{ community.id }}"
+                        value="#FFB8FF"
+                        style="width: 40px; height: 32px; border: none; padding: 0; cursor: pointer;" />
+
+                <!-- 저장 버튼 -->
+                <button onclick="saveColorFromPopup({{ community.id }})"
+                        class="btn btn-sm btn-outline-secondary">
+                    저장
+                </button>
+                </div>
             </div>
-        {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="no-community-message">
+        참여 중인 커뮤니티가 없습니다.
+        </div>
+    {% endif %}
     </div>
 </div>
 
@@ -225,6 +256,19 @@
 
 <!-- 팝업 스타일 -->
 <style>
+
+.color-popup {
+  position: absolute;
+  top: 100%;
+  right: 60px;  /* 입장하기 버튼 기준 */
+  margin-top: 4px;
+  background: white;
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  z-index: 999;
+}
 
 .custom-search-btn {
   background-color: #A39F95;  
@@ -970,5 +1014,63 @@ searchInput.addEventListener('input', function () {
         console.error("검색 실패:", error);
     });
 });
+
+function toggleColorPopup(communityId) {
+  const popup = document.getElementById(`color-popup-${communityId}`);
+  popup.style.display = popup.style.display === 'none' ? 'block' : 'none';
+}
+
+// 자동 닫기 기능: 색 선택 시 저장 후 닫힘
+function saveColor(communityId, colorValue) {
+  fetch(`/community/${communityId}/set_color/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token }}',
+    },
+    body: JSON.stringify({ color: colorValue })
+  }).then(response => {
+    if (response.ok) {
+      document.getElementById(`color-popup-${communityId}`).style.display = 'none';
+      location.reload();  // 또는 선택한 색상을 동적으로 반영
+    } else {
+      alert("색상 저장 실패");
+    }
+  });
+}
+
+document.addEventListener('click', function (e) {
+  document.querySelectorAll('.color-popup').forEach(popup => {
+    if (!popup.contains(e.target) && !e.target.closest('button')) {
+      popup.style.display = 'none';
+    }
+  });
+});
+
+
+function toggleColorPopup(communityId) {
+  const popup = document.getElementById(`color-popup-${communityId}`);
+  popup.style.display = popup.style.display === 'none' ? 'block' : 'none';
+}
+
+function saveColorFromPopup(communityId) {
+  const colorValue = document.getElementById(`color-value-${communityId}`).value;
+
+  fetch(`/mypage/{{ request.user.username }}/set_color/${communityId}/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token }}',
+    },
+    body: JSON.stringify({ color: colorValue })
+  }).then(response => {
+    if (response.ok) {
+      document.getElementById(`color-popup-${communityId}`).style.display = 'none';
+      location.reload();
+    } else {
+      alert("색상 저장 실패");
+    }
+  });
+}
 </script>
 {% endblock %}

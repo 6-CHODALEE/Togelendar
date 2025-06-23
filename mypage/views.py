@@ -22,7 +22,7 @@ from django.contrib.auth import login, get_user_model
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import ProfileUpdateForm
-
+from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from .forms import ProfileUpdateForm
 from django.contrib.auth import authenticate
@@ -31,7 +31,8 @@ from django.contrib.auth import get_user_model, login
 from django.contrib.auth import get_backends
 from django.http import JsonResponse
 from django.contrib import messages
-
+from .models import CreateCommunity  
+from django.apps import apps
 
 User = get_user_model()
 # Create your views here.
@@ -42,8 +43,7 @@ User = get_user_model()
 def mypage(request, username):
     me = request.user
 
-    # base_date GET 파라미터 처리
-    # 안전하게 파싱
+    # base_date 처리
     base_date_str = request.GET.get('base_date')
     if base_date_str:
         try:
@@ -58,27 +58,24 @@ def mypage(request, username):
     week_dates = [start_of_week + timedelta(days=i) for i in range(7)]
     weekday_labels = ['일', '월', '화', '수', '목', '금', '토']
 
-    # 이전/다음 주 계산용
     prev_week = base_date - timedelta(days=7)
     next_week = base_date + timedelta(days=7)
 
-    # --- 이하 기존 코드 그대로 유지 ---
+    # 친구 요청
     received_requests = FriendRequest.objects.filter(
         to_user=me, status='pending'
     ).select_related('from_user')
 
+    # 내가 가입한 커뮤니티
     my_memberships = CommunityMember.objects.filter(member=me.username)
-
-    my_communities = [m.community_name for m in my_memberships]
-
-
-    my_communities = [c for c in my_communities if c is not None]
+    my_communities = [m.community_name for m in my_memberships if m.community_name is not None]
     community_names = [c.community_name for c in my_communities]
 
+    # 약속 정보 가져오기
     promises = Promise.objects.filter(community__community_name__in=community_names)
     results = PromiseResult.objects.filter(promise__in=promises)
 
-    from collections import defaultdict
+    # 주간 약속 매핑
     weekly_promises = defaultdict(list)
     for result in results:
         current_date = result.start_date
@@ -87,6 +84,24 @@ def mypage(request, username):
                 weekly_promises[current_date].append(result)
             current_date += timedelta(days=1)
 
+    # ✅ 커뮤니티별 사용자 색상 불러오기
+    CommunityColor = apps.get_model('mypage', 'CommunityColor')
+    user_colors = {
+        cc.community_id: cc.custom_color
+        for cc in CommunityColor.objects.filter(user=me)
+    }
+
+    # result에 색상 부여
+    for result_list in weekly_promises.values():
+        for result in result_list:
+            community_id = result.promise.community.id
+            result.bg_color = user_colors.get(community_id, "#FFB8FF")
+
+    # community에도 색상 부여 (입장 버튼용)
+    for c in my_communities:
+        c.bg_color = user_colors.get(c.id, "#FFB8FF")
+
+    # 친구 목록 및 초대 목록
     friend_list = FriendRequest.objects.filter(
         Q(from_user=me) | Q(to_user=me), status='accepted'
     )
@@ -96,6 +111,7 @@ def mypage(request, username):
         to_user=me, status='pending'
     )
 
+    # context 전달
     context = {
         'me': me,
         'received_requests': received_requests,
@@ -107,8 +123,8 @@ def mypage(request, username):
         'weekday_labels': weekday_labels,
         'weekly_promises': weekly_promises,
         'base_date': base_date,
-        'prev_week': prev_week.isoformat(),  
-        'next_week': next_week.isoformat(),  
+        'prev_week': prev_week.isoformat(),
+        'next_week': next_week.isoformat(),
         'today': date.today(),
     }
     return render(request, 'mypage.html', context)
@@ -438,3 +454,35 @@ def verify_password(request, username):
         form = PasswordCheckForm()
 
     return render(request, 'verify_password.html', {'form': form})
+
+@login_required
+@csrf_exempt
+def set_user_community_color(request, username, community_id):
+    if request.method == 'POST' and request.user.is_authenticated:
+        if request.user.username != username:
+            return JsonResponse({"status": "forbidden"}, status=403)
+
+        try:
+            data = json.loads(request.body)
+            color = data.get("color")
+            community = CreateCommunity.objects.get(id=community_id)
+
+            # ✅ 여기만 'mypage'로 수정!
+            CommunityColor = apps.get_model('mypage', 'CommunityColor')
+
+            color_obj, created = CommunityColor.objects.get_or_create(
+                user=request.user,
+                community=community,
+                defaults={'custom_color': color}
+            )
+
+            if not created:
+                color_obj.custom_color = color
+                color_obj.save()
+
+            return JsonResponse({"status": "ok"})
+
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+    return JsonResponse({"status": "unauthorized"}, status=403)

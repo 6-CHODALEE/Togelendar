@@ -2,6 +2,8 @@ from django.db import models
 from django_resized import ResizedImageField
 from django.conf import settings
 from user_account.models import User
+
+from django.apps import apps
 # 커뮤니티 생성 정보 저장 모델
 class CreateCommunity(models.Model):
     id = models.AutoField(primary_key=True)
@@ -48,3 +50,13 @@ class FriendRequest(models.Model):
 
     def __str__(self):
         return f"{self.from_user} → {self.to_user} ({self.status})"
+
+
+
+class CommunityColor(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    community = models.ForeignKey('mypage.CreateCommunity', on_delete=models.CASCADE)
+    custom_color = models.CharField(max_length=7, default="#FFB8FF")
+
+    class Meta:
+        unique_together = ('user', 'community')

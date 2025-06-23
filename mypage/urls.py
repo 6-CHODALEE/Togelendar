@@ -19,5 +19,6 @@ urlpatterns = [
     path('<str:username>/friend/reject/', views.send_friend_reject, name='send_friend_reject'),
 
     path('<str:username>/respond_invite/', views.respond_invite, name='respond_invite'),
+    path('<str:username>/set_color/<int:community_id>/', views.set_user_community_color, name='set_community_color'),
 
 ]
