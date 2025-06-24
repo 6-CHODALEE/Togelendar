@@ -22,5 +22,10 @@ urlpatterns = [
     path('<int:community_id>/album/<str:album_name>/<int:photo_id>/delete/', views.delete_photo, name='delete_photo'),
     path('<int:community_id>/album/<str:album_name>/<int:photo_id>/comment/<int:comment_id>/delete/', views.comment_delete, name='comment_delete'),
     path('<int:community_id>/album/<str:album_name>/<int:photo_id>/comment/<int:comment_id>/edit/', views.comment_edit, name='comment_edit'),
+    
 
+    path('<int:community_id>/memo/add/', views.add_memo, name='add_memo'),
+    path('<int:community_id>/memo/<int:memo_id>/toggle/', views.toggle_memo, name='toggle_memo'),
+    path('<int:community_id>/memo/<int:memo_id>/edit/', views.edit_memo, name='edit_memo'),
+    path('<int:community_id>/memo/<int:memo_id>/delete/', views.delete_memo, name='delete_memo'),
     ]

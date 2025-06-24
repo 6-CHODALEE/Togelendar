@@ -82,3 +82,11 @@ def delete_image_file(sender, instance, **kwargs):
 
 #     class Meta:
 #         unique_together = ('user', 'community') 
+
+class CommunityMemo(models.Model):
+    community = models.ForeignKey(CreateCommunity, on_delete=models.CASCADE)
+    content = models.TextField()
+    is_done = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    
