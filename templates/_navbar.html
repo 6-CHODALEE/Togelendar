@@ -3,6 +3,20 @@
     <a class="logo" href="{% url 'index:index' %}">Togelendar</a>
     <div class="nav-links">
         {% if user.is_authenticated %}
+          <div class="notification-wrapper">
+            <a id="notification-icon" href="#" onclick="toggleNotificationPopup()">🔔</a>
+            <span id="notification-badge" class="badge">0</span>
+
+            <div id="notification-popup" class="notification-popup hidden">
+              <div class="notification-bubble">  
+                <div id="notification-list">
+                  <p>알림을 불러오는 중...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
           <a href="{% url 'mypage:mypage' request.user.username %}" class="auth-link">{{user}}</a>
           <a href="{% url 'account:logout' %}" class="auth-logout">로그아웃</a>
           {% else %}
@@ -17,7 +31,6 @@
   .custom-navbar {
     width: 100%;
     padding: 20px 40px;
-    /* background-color: rgba(255, 195, 255, 0.3); */
     position: relative;
     z-index: 10;
   }
@@ -41,6 +54,91 @@
     align-items: center;
   }
   
+  .notification-wrapper {
+    position: relative;
+  }
+
+  #notification-icon {
+    position: relative;
+    font-size: 1.3rem;
+    cursor: pointer;
+    text-decoration: none;
+    color: black;
+  }
+
+  .badge {
+    background-color: red;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 5px;
+    border-radius: 10px;
+    position: absolute;
+    top: -5px;
+    right: -10px;
+    display: none;
+  }
+
+  .notification-popup {
+    position: absolute;
+    top: 40px;
+    right: 0;
+    z-index: 999;
+  }
+
+  .notification-bubble {
+    position: relative;
+    width: 350px;
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: white;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    color: black;
+  }
+
+  .notification-popup.hidden {
+    display: none;
+  }
+
+  .notification-item {
+    font-size: 0.95rem;
+  }
+  
+  .notification-item a {
+    display: block;
+    padding: 10px;
+    font-size: inherit;
+    color: black;
+    text-decoration: none;
+  }
+
+  .notification-item a:hover {
+    text-decoration: underline;
+  }
+
+  .notification-item.unread {
+    background-color: white;
+  }
+  
+  .notification-item.unread a {
+    color: black;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 10px;
+  }
+
+  .notification-item a strong {
+    font-weight: bold;
+    color: inherit;
+  }
+
+  .notification-separator {
+    margin: 8px 0;
+    border-bottom: 1px solid #ccc;
+  }
+
   .auth-link {
     color: black;
     text-decoration: none;
@@ -57,7 +155,6 @@
     color: black;
     border: none;
     border-radius: 6px;
-    font-weight: bold;
   }
 
   .auth-logout {
@@ -69,7 +166,6 @@
     color: black;
     border: none;
     border-radius: 6px;
-    font-weight: bold;
   }
 
   .auth-button:hover,
@@ -77,3 +173,110 @@
     opacity: 0.7;
   }
 </style>
+
+<script>
+  let popupOpen = false;
+  let notificationPage = 1;
+  let isLoading = false;
+  let hasMoreNotifications = true;
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function toggleNotificationPopup() {
+    event.preventDefault(); // 기본 이동 방지
+    const popup = document.getElementById('notification-popup');
+    popup.classList.toggle('hidden');
+
+    // 팝업 열기
+    if (!popupOpen) {
+      popup.classList.remove('hidden');
+      popupOpen = true;
+      notificationPage = 1;
+      hasMoreNotifications = true;
+      fetchNotifications(notificationPage, true); // 페이지 1로 리셋해서 다시 로딩
+    }
+    // 팝업 닫기
+    else {
+      popup.classList.add('hidden');
+      popupOpen = false;
+
+      // 닫을 때 읽음 처리
+      fetch('/api/notifications/mark_all_read/', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      }).then(() => {
+        setTimeout(() => fetchNotifications(1, true), 500); // 읽음 처리 후 재로딩
+      });
+    }
+  }
+
+  async function fetchNotifications(page = 1, reset = false) {
+    if (isLoading || !hasMoreNotifications) return;
+    isLoading = true;
+
+    const res = await fetch(`/api/notifications/?page=${page}`);
+    const data = await res.json();
+
+    const list = document.getElementById('notification-list');
+    const badge = document.getElementById('notification-badge');
+
+    if (reset) list.innerHTML = '';
+
+    let unreadCount = 0;
+
+    // const unreadItems = [];
+    // const readItems = [];
+
+    data.results.forEach(n => {
+      const item = document.createElement('div');
+      item.className = 'notification-item' + (n.is_read ? '' : ' unread');
+      item.innerHTML = `<a href="${n.url}">${n.message}</a>`;
+      list.appendChild(item);
+
+      if (!n.is_read) unreadCount++;
+    });
+
+    // 렌더링 순서 : 안읽은 알림 -> 구분선 -> 읽은 알림
+    // unreadItems.forEach(item => list.appendChild(item));
+
+    // if (unreadItems.length && readItems.length) {
+    //   const hr = document.createElement('div');
+    //   hr.className = 'notification-separator';
+    //   list.appendChild(hr);
+    // }
+
+    // readItems.forEach(item => list.appendChild(item));
+
+    badge.textContent = unreadCount;
+    badge.style.display = unreadCount > 0 ? 'inline-block': 'none';
+  }
+
+  // 페이지 로드시 알림 가져오기, 무한 스크롤 감지
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchNotifications();
+
+    const list = document.getElementById('notification-list');
+    list.addEventListener('scroll', function () {
+      if (this.scrollTop + this.clientHeight >= this.scrollHeight - 20) {
+        notificationPage++;
+        fetchNotifications(notificationPage);
+      }
+    });
+  });
+</script>

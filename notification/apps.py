@@ -1,9 +1,9 @@
 from django.apps import AppConfig
 
 
-class PromiseConfig(AppConfig):
+class NotificationConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'promise'
+    name = 'notification'
 
     def ready(self):
-        import promise.signals
+        import notification.signals

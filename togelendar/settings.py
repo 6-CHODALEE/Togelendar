@@ -62,6 +62,8 @@ INSTALLED_APPS = [
     'mypage',
     'promiselocation',
     'django.contrib.sites',
+    'notification',
+    'rest_framework',
 ]
 
 SITE_ID = 1
@@ -170,4 +172,13 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 ACCOUNT_FORMS = {
     'login': 'user_account.forms.CustomAuthenticationForm'
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication', # 로그인 세션 기반 인증
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated', # 기본적으로 로그인 필요
+    ]
 }
