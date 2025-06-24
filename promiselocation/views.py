@@ -32,6 +32,7 @@ def get_nearby_places_all_types(lat, lng, api_key, radius=500):
                 "radius": radius,
                 "type": place_type,
                 "key": api_key,
+                "language": "ko",  
             }
 
             response = requests.get(url, params=params)

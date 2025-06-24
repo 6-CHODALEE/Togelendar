@@ -446,18 +446,36 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     const allMarkers = [];
+    const markerMap = {};
     const places = JSON.parse(`{{ places_json|safe }}`);
     places.forEach(place => {
         const color = typeColors[place.type] || 'gray';
-        const lat = place.location.lat;
-        const lng = place.location.lng;
+        const lat = parseFloat(place.location.lat);
+        const lng = parseFloat(place.location.lng);
+
+        const userName = "{{ user.address|escapejs }}";  // 출발지 주소
+        const encodedUserAddress = encodeURIComponent(userName);
+        const encodedDestAddress = encodeURIComponent(place.address);
+
+        const kakaoDirectionUrl = `https://map.kakao.com/?sName=${encodedUserAddress}&eName=${encodedDestAddress}`;
 
         const marker = L.circleMarker([lat, lng], {
-            radius: 8, color: color, fillColor: color, fillOpacity: 0.8
-        }).addTo(map).bindPopup(`${place.name}<br><small>${place.address}</small>`);
+            radius: 8,
+            color: color,
+            fillColor: color,
+            fillOpacity: 0.8
+        }).addTo(map).bindPopup(`
+            <a href="${kakaoDirectionUrl}"
+            target="_blank"
+            style="display:inline-block; font-weight: bold; font-size: 14px; color: #007bff; text-decoration: none;">
+            ${place.name}
+            </a><br>
+            <small>${place.address}</small>
+        `);
 
         marker.type = place.type;
         allMarkers.push(marker);
+        markerMap[place.name] = marker;
     });
 
     const itemsPerPage = 5;
@@ -567,7 +585,18 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
+    document.querySelectorAll(".place-item").forEach(item => {
+        item.addEventListener("click", () => {
+            const name = item.dataset.name;
+            const marker = markerMap[name];
+            if (marker) {
+                map.setView(marker.getLatLng(), 16);  // 중심 이동
+                marker.openPopup();                  // ✅ 팝업 열기
+            }
+        });
+    });
 });
+
 
 </script>
 
