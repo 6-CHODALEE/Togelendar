@@ -74,11 +74,3 @@ def delete_image_file(sender, instance, **kwargs):
         # 로그 출력 또는 무시할 수 있음
         print(f"이미지 삭제 중 오류 발생: {e}")
 
-
-# class CommunityColorSetting(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     community = models.ForeignKey(CreateCommunity, on_delete=models.CASCADE)
-#     color_hex = models.CharField(max_length=7, default="#A39F95")
-
-#     class Meta:
-#         unique_together = ('user', 'community') 
