@@ -236,7 +236,7 @@ def promise_result(request, community_id, promise_id):
 
         places_json = json.dumps(places)
 
-    # ✅ is_location_decided 계산 (중복 제거 후)
+    # is_location_decided 계산 (중복 제거 후)
     is_location_decided = (
         promise_result is not None and
         (promise_result.center_latitude != 0 or promise_result.center_longitude != 0)
