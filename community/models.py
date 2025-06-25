@@ -74,3 +74,8 @@ def delete_image_file(sender, instance, **kwargs):
         # 로그 출력 또는 무시할 수 있음
         print(f"이미지 삭제 중 오류 발생: {e}")
 
+class CommunityMemo(models.Model):
+    community = models.ForeignKey(CreateCommunity, on_delete=models.CASCADE)
+    content = models.TextField()
+    is_done = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)

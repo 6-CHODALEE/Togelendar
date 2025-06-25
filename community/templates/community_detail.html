@@ -185,11 +185,67 @@
                     {% endif %}
                 </div>
             </div>
+            <div class="memo-section-box p-3 mb-4" style="background-color: white; border-radius: 10px;">
+                <h5 class="fw-bold mb-3">메모</h5>
+                <ul id="memo-list" style="list-style: none; padding-left: 0; margin-bottom: 0;">
+                    <li class="d-flex align-items-center gap-2 mb-2">
+                        <input type="checkbox" disabled>
+                        <div id="memo-editable"
+                            contenteditable="true"
+                            class="memo-text placeholder-active"
+                            style="min-width: 100px; outline: none;"
+                            data-placeholder="할 일을 입력하세요...">
+                            할 일을 입력하세요...
+                        </div>
+                    </li>
+
+                    {% for memo in memos %}
+                    <li class="d-flex align-items-center gap-2 mb-2" data-id="{{ memo.id }}">
+                        <input type="checkbox" class="memo-checkbox" {% if memo.is_done %}checked{% endif %}>
+                        <span class="memo-text {% if memo.is_done %}done{% endif %}" contenteditable="true">
+                            {{ memo.content }}
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
         </div>
     </div>
 </div>
 
 <style>
+    .memo-text.placeholder-active {
+        color: #999;
+        font-style: italic;
+    }
+    .memo-text {
+        outline: none;
+        display: inline-block;
+        min-width: 100px;
+    }
+
+    .memo-text.done {
+        text-decoration: line-through;
+        color: #888;
+    }
+
+    .memo-checkbox {
+        appearance: auto; /* 브라우저 기본 체크박스 유지 */
+        cursor: pointer;
+    }
+
+    #memo-list li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .todo-input-wrapper input {
+        border-radius: 10px;
+    }
+
+
     .html, body {
         height: 100%;
     }
@@ -395,17 +451,221 @@
         border-right: 10px solid transparent;
         border-bottom: 10px solid white;
     }
+
+    .memo-text[contenteditable="true"] {
+        border-bottom: 1px dashed lightgray;
+        padding: 4px;
+        min-height: 24px;
+        width: 100%;
+    }
+    .memo-text:focus {
+        outline: none;
+        border-bottom: 1px solid #888;
+    }
 </style>
 
 <script>
     const csrfToken = '{{ csrf_token }}';
-
 
     document.addEventListener("DOMContentLoaded", function () {
         const toggleBtn = document.getElementById("showMemberPopover");
         const popover = document.getElementById("memberPopover");
         const closeBtn = document.getElementById("closeMemberPopover");
         const deleteBtn = document.getElementById('deleteCommunityBtn');
+        const memoInput = document.getElementById("memo-editable");
+        const memoList = document.getElementById("memo-list");
+        
+        // 중복 요청 방지를 위한 플래그
+        let isSubmitting = false;
+
+        // 플레이스홀더 기능 구현
+        if (memoInput) {
+            // 포커스 시 플레이스홀더 제거
+            memoInput.addEventListener("focus", function () {
+                if (this.classList.contains("placeholder-active")) {
+                    this.textContent = "";
+                    this.classList.remove("placeholder-active");
+                }
+            });
+
+            // 포커스 아웃 시 내용이 비어있으면 플레이스홀더 복원
+            memoInput.addEventListener("blur", function () {
+                const content = this.textContent.trim();
+                if (!content) {
+                    this.textContent = this.getAttribute("data-placeholder") || "할 일을 입력하세요...";
+                    this.classList.add("placeholder-active");
+                }
+            });
+
+            // Enter 키 처리 - 중복 방지 로직 추가
+            memoInput.addEventListener("keydown", function (e) {
+                if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();  // 줄바꿈 방지
+                    e.stopPropagation(); // 이벤트 버블링 방지
+
+                    // 이미 요청 중이면 무시
+                    if (isSubmitting) {
+                        return;
+                    }
+
+                    // 플레이스홀더 상태면 무시
+                    if (this.classList.contains("placeholder-active")) {
+                        alert("메모 내용을 입력해주세요.");
+                        return;
+                    }
+
+                    const content = this.textContent.trim();
+                    if (!content) {
+                        alert("메모 내용을 입력해주세요.");
+                        return;
+                    }
+
+                    // 요청 시작 - 플래그 설정
+                    isSubmitting = true;
+
+                    fetch("{% url 'community:add_memo' community.id %}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": csrfToken
+                        },
+                        body: JSON.stringify({ content: content })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log("✅ 서버 응답 전체:", data);
+
+                        if (data.id) {
+                            const newMemo = document.createElement("li");
+                            newMemo.className = "d-flex align-items-center gap-2 mb-2";
+                            newMemo.setAttribute("data-id", data.id);
+
+                            const checkbox = document.createElement("input");
+                            checkbox.type = "checkbox";
+                            checkbox.className = "memo-checkbox";
+
+                            const newSpan = document.createElement("span");
+                            newSpan.className = "memo-text";
+                            newSpan.contentEditable = true;
+                            newSpan.textContent = data.content;
+
+                            newMemo.appendChild(checkbox);
+                            newMemo.appendChild(newSpan);
+
+                            memoList.appendChild(newMemo);
+                            
+                            // 입력창 초기화 (플레이스홀더 복원)
+                            this.textContent = this.getAttribute("data-placeholder") || "할 일을 입력하세요...";
+                            this.classList.add("placeholder-active");
+                            this.blur(); // 포커스 해제
+
+                            console.log("📌 새로 추가된 li HTML:", newMemo.outerHTML);
+                        } else {
+                            alert("메모 추가 실패: " + (data.error || "서버 오류"));
+                        }
+                    })
+                    .catch(err => {
+                        console.error("메모 추가 중 오류 발생:", err);
+                        alert("서버 통신 오류가 발생했습니다.");
+                    })
+                    .finally(() => {
+                        // 요청 완료 - 플래그 해제
+                        isSubmitting = false;
+                    });
+                }
+            });
+        }
+
+        // memoList의 keydown 이벤트는 그대로 유지
+        memoList.addEventListener("keydown", function (e) {
+            const span = e.target;
+
+            // 새 메모 입력창이면 return (중요!)
+            if (span.id === "memo-editable") return;
+
+            // memo-text 클래스가 아닌 경우 무시
+            if (!span.classList.contains("memo-text")) return;
+
+            const li = span.closest("li");
+            if (!li) return;
+
+            const memoId = li.dataset.id;
+            const content = span.textContent.trim();
+
+            // 삭제 처리
+            if (e.key === "Backspace" && !content) {
+                e.preventDefault();
+
+                if (!memoId) return;
+
+                if (confirm("내용이 비어 있습니다. 이 메모를 삭제하시겠습니까?")) {
+                    fetch(`/community/{{ community.id }}/memo/${memoId}/delete/`, {
+                        method: "POST",
+                        headers: {
+                            "X-CSRFToken": csrfToken
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === "ok" || data.success) {
+                            li.remove();
+                        } else {
+                            alert("삭제 실패: " + (data.error || "오류"));
+                        }
+                    })
+                    .catch(err => {
+                        console.error("삭제 실패:", err);
+                        alert("서버 오류가 발생했습니다.");
+                    });
+                }
+                return;
+            }
+
+            // 수정 처리
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+
+                if (!memoId || !content) {
+                    alert("메모 ID 또는 내용이 비어 있습니다.");
+                    return;
+                }
+
+                fetch(`/community/{{ community.id }}/memo/${memoId}/edit/`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken
+                    },
+                    body: JSON.stringify({ content: content })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === "ok") {
+                        span.blur();
+                    } else {
+                        alert("수정 실패: " + (data.error || "오류"));
+                    }
+                })
+                .catch(err => {
+                    console.error("수정 실패:", err);
+                    alert("서버 오류가 발생했습니다.");
+                });
+            }
+        });
+
+        // 체크박스 상태 변경 처리
+        memoList.addEventListener("change", function(e) {
+            if (e.target.classList.contains("memo-checkbox")) {
+                const li = e.target.closest("li");
+                const memoText = li.querySelector(".memo-text");
+                
+                if (e.target.checked) {
+                    memoText.classList.add("done");
+                } else {
+                    memoText.classList.remove("done");
+                }
+            }
+        });
 
         toggleBtn.addEventListener("click", function (e) {
             e.preventDefault();

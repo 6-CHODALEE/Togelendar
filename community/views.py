@@ -14,18 +14,18 @@ from .models import Photo
 from django.http import JsonResponse, Http404
 from django.utils import timezone
 from user_account.models import User
+from .models import CommunityMemo
+from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
 
 @login_required
 def community_detail(request, community_id):
-
     community = CreateCommunity.objects.get(id=community_id)
     community_members = CommunityMember.objects.filter(community_name=community).values_list('member', flat=True)
 
     if str(request.user) not in community_members:
-            return render(request, '403.html', status=403)
-
+        return render(request, '403.html', status=403)
 
     promises = Promise.objects.filter(community=community)
 
@@ -42,23 +42,20 @@ def community_detail(request, community_id):
         status='accepted'
     )
 
-    # 친구의 user정보 추출
     friend_users = []
     for fr in friend_list:
         friend = fr.to_user if fr.from_user == request.user else fr.from_user
-        # 이미 멤버인지 체크
+
         is_member = CommunityMember.objects.filter(
-            community_name = community_id,
-            create_user = community.create_user,
-            member = friend.username
-        )
+            community_name=community_id,
+            create_user=community.create_user,
+            member=friend.username
+        ).exists()
 
-
-        # 초대 했는지 체크
         has_invite = CommunityInvite.objects.filter(
-            community = community,
-            to_user = friend,
-            status = 'pending'
+            community=community,
+            to_user=friend,
+            status='pending'
         ).exists()
 
         friend_users.append({
@@ -68,12 +65,10 @@ def community_detail(request, community_id):
             'has_invite': has_invite,
         })
 
-    # 커뮤니티 멤버 가져오기
     members = CommunityMember.objects.filter(
-        community_name = community_id,
-        create_user = community.create_user,
+        community_name=community_id,
+        create_user=community.create_user,
     )
-
 
     member_users = []
     for m in members:
@@ -89,9 +84,11 @@ def community_detail(request, community_id):
                 'username': username,
                 'profile_image': None
             })
-    
-    # 현재 유저가 투표한 약속 id들
+
     voted_ids = PromiseVote.objects.filter(username=request.user).values_list('promise_id', flat=True)
+
+    
+    memos = CommunityMemo.objects.filter(community=community)
 
     context = {
         'community': community,
@@ -102,6 +99,7 @@ def community_detail(request, community_id):
         'friend_users': friend_users,
         'main_photos': main_photos,
         'username': request.user.username,
+        'memos': memos,
     }
     return render(request, 'community_detail.html', context)
 
@@ -417,3 +415,74 @@ def comment_edit(request, community_id, album_name, photo_id, comment_id):
 
     except PhotoComment.DoesNotExist:
         raise Http404("댓글을 찾을 수 없습니다.")
+    
+
+
+from django.http import JsonResponse
+import json
+
+
+
+# views.py
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+import json
+from .models import CommunityMemo, CreateCommunity  # ← 본인 모델명에 맞게 수정
+
+@require_POST
+@login_required
+def add_memo(request, community_id):
+    try:
+        data = json.loads(request.body)
+        content = data.get('content', '').strip()
+
+        if not content:
+            return JsonResponse({'error': '내용이 비어 있습니다.'}, status=400)
+
+        memo = CommunityMemo.objects.create(
+            community_id=community_id,
+            content=content,
+            is_done=False
+        )
+
+        return JsonResponse({'id': memo.id, 'content': memo.content})  # 이게 꼭 필요
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_POST
+@login_required
+def toggle_memo(request, memo_id):
+    memo = get_object_or_404(CommunityMemo, id=memo_id)
+    memo.is_done = not memo.is_done
+    memo.save()
+    return JsonResponse({'status': 'ok', 'is_done': memo.is_done})
+
+@csrf_exempt
+@login_required
+def edit_memo(request, community_id, memo_id):
+    try:
+        data = json.loads(request.body)
+        new_content = data.get('content', '').strip()
+
+        if not new_content:
+            return JsonResponse({'error': '내용이 비어 있음'}, status=400)
+
+        memo = get_object_or_404(CommunityMemo, id=memo_id, community_id=community_id)
+        memo.content = new_content
+        memo.save()
+
+        return JsonResponse({'status': 'ok', 'content': memo.content})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+        
+@require_POST
+@login_required
+def delete_memo(request, community_id, memo_id):
+    try:
+        memo = CommunityMemo.objects.get(id=memo_id, community_id=community_id)
+        memo.delete()
+        return JsonResponse({'status': 'ok'})  # ✅ 프론트 조건과 일치하게 수정
+    except CommunityMemo.DoesNotExist:
+        return JsonResponse({'status': 'error', 'error': '존재하지 않음'}, status=404)
