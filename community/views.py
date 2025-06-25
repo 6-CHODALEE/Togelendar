@@ -88,7 +88,7 @@ def community_detail(request, community_id):
     voted_ids = PromiseVote.objects.filter(username=request.user).values_list('promise_id', flat=True)
 
     
-    memos = CommunityMemo.objects.filter(community=community).order_by('-created_at')  # 메모 추가
+    memos = CommunityMemo.objects.filter(community=community)
 
     context = {
         'community': community,
@@ -99,7 +99,7 @@ def community_detail(request, community_id):
         'friend_users': friend_users,
         'main_photos': main_photos,
         'username': request.user.username,
-        'memos': memos,  # 추가!
+        'memos': memos,
     }
     return render(request, 'community_detail.html', context)
 
