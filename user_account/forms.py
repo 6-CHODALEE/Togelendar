@@ -5,7 +5,7 @@ from django import forms
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = User
-        fields = ['username', 'password1', 'password2', 'email', 'profile_image', 'postcode', 'address']
+        fields = ['username', 'password1', 'password2', 'profile_image', 'postcode', 'address']
         labels = {
             'username': '아이디',
             'email': '이메일',
