@@ -4,8 +4,10 @@
     <div class="nav-links">
         {% if user.is_authenticated %}
           <div class="notification-wrapper">
-            <a id="notification-icon" href="#" onclick="toggleNotificationPopup()">🔔</a>
-            <span id="notification-badge" class="badge">0</span>
+            <a id="notification-icon" href="#" onclick="toggleNotificationPopup()">
+              🔔
+              <span id="notification-badge" class="badge">0</span>
+            </a>
 
             <div id="notification-popup" class="notification-popup hidden">
               <div class="notification-bubble">  
@@ -179,6 +181,7 @@
   let notificationPage = 1;
   let isLoading = false;
   let hasMoreNotifications = true;
+  let firstRenderDone = false; // 처음 로딩인지 판단
 
   function getCookie(name) {
     let cookieValue = null;
@@ -221,6 +224,12 @@
           'X-CSRFToken': getCookie('csrftoken')
         }
       }).then(() => {
+
+        // 팝업 닫으면 뱃지 바로 제거
+        const badge = document.getElementById('notification-badge');
+        badge.textContent = '0';
+        badge.style.display = 'none';
+
         setTimeout(() => fetchNotifications(1, true), 500); // 읽음 처리 후 재로딩
       });
     }
@@ -236,33 +245,37 @@
     const list = document.getElementById('notification-list');
     const badge = document.getElementById('notification-badge');
 
-    if (reset) list.innerHTML = '';
+    list.innerHTML = ''; // 초기화
 
     let unreadCount = 0;
+    const unreadItems = [];
+    const readItems = [];
 
-    // const unreadItems = [];
-    // const readItems = [];
-
-    data.results.forEach(n => {
+    data.forEach(n => {
       const item = document.createElement('div');
       item.className = 'notification-item' + (n.is_read ? '' : ' unread');
-      item.innerHTML = `<a href="${n.url}">${n.message}</a>`;
-      list.appendChild(item);
+      item.innerHTML = `<a href="#" data-id="${n.id}" data-url="${n.url}" onclick="markAsReadAndGo(this)">${n.message}</a>`;
 
-      if (!n.is_read) unreadCount++;
+      if (!n.is_read) {
+        unreadItems.push(item);
+        unreadCount++;
+      } else {
+        readItems.push(item);
+      }
     });
 
     // 렌더링 순서 : 안읽은 알림 -> 구분선 -> 읽은 알림
-    // unreadItems.forEach(item => list.appendChild(item));
+    unreadItems.forEach(item => list.appendChild(item));
 
-    // if (unreadItems.length && readItems.length) {
-    //   const hr = document.createElement('div');
-    //   hr.className = 'notification-separator';
-    //   list.appendChild(hr);
-    // }
+    if (unreadItems.length && readItems.length) {
+      const hr = document.createElement('div');
+      hr.className = 'notification-separator';
+      list.appendChild(hr);
+    }
 
-    // readItems.forEach(item => list.appendChild(item));
-
+    readItems.forEach(item => list.appendChild(item));
+    
+    console.log("🔔 안읽은 알림 수:", unreadCount);
     badge.textContent = unreadCount;
     badge.style.display = unreadCount > 0 ? 'inline-block': 'none';
   }
@@ -270,13 +283,26 @@
   // 페이지 로드시 알림 가져오기, 무한 스크롤 감지
   document.addEventListener('DOMContentLoaded', () => {
     fetchNotifications();
-
-    const list = document.getElementById('notification-list');
-    list.addEventListener('scroll', function () {
-      if (this.scrollTop + this.clientHeight >= this.scrollHeight - 20) {
-        notificationPage++;
-        fetchNotifications(notificationPage);
-      }
-    });
   });
+
+  function markAsReadAndGo(anchor) {
+    event.preventDefault(); // 기본 링크 이동 방지
+
+    const notificationId = anchor.getAttribute('data-id');
+    const targetUrl = anchor.getAttribute('data-url');
+
+    fetch(`/api/notifications/mark_read/${notificationId}/`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken')
+      }
+    }).then(() => {
+      window.location.href = targetUrl;
+    }).catch(err => {
+      console.error('알림 읽음 처리 실패:', err);
+      //실퍃도 이동은 진행
+      window.location.href = targetUrl;
+    });
+  }
 </script>

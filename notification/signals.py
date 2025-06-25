@@ -6,6 +6,8 @@ from user_account.models import User
 from mypage.models import CreateCommunity
 from promise.models import Promise, PromiseVote, PromiseResult
 from community.models import PhotoComment
+from collections import Counter
+from datetime import datetime
 
 
 @receiver(post_save, sender=CommunityMember)
@@ -19,8 +21,6 @@ def notify_new_member(sender, instance, created, **kwargs):
         existing_members = CommunityMember.objects.filter(community_name=community).exclude(member=new_member_username)
 
         for member in existing_members:
-            if member.member == inviter_username:
-                continue # 초대한 사람은 제외
             
             try:
                 user = User.objects.get(username=member.member)
@@ -42,6 +42,9 @@ def notify_promise_create(sender, instance, created, **kwargs):
         community = instance.community
 
         for member in members:
+            if member.member == instance.promise_creator:
+                continue # 약속을 생성한 사람은 제외
+
             try:
                 user = User.objects.get(username=member.member)
                 Notification.objects.create(
@@ -56,7 +59,7 @@ def notify_promise_create(sender, instance, created, **kwargs):
                 continue
 
 @receiver(post_save, sender=PromiseVote)
-def notify_vote_completed(sender, instance, created, **kwargs):
+def notify_vote_complete(sender, instance, created, **kwargs):
     if not created:
         return # 새로 생성된게 아니면 무시
     
@@ -72,9 +75,10 @@ def notify_vote_completed(sender, instance, created, **kwargs):
 
     if len(voted_user_ids) == total_member_count:
         # 이미 알림이 전송된 적 있는지 확인(중복 방지)
-        if Notification.objects.filter(notification_type='vote_complete', promise=promise)/exists():
+        if Notification.objects.filter(notification_type='vote_complete', promise=promise).exists():
             return
 
+        # 알림 전송
         for member in community_members:
             try:
                 user = User.objects.get(username=member.member)
@@ -94,6 +98,10 @@ def notify_place_selected(sender, instance, created, **kwargs):
     if not created:
         return
     
+    # 장소가 아직 정해지지 않은 경우 (위도, 경도가 0이면 알림 보내지 않음)
+    if instance.center_latitude == 0 and instance.center_longitude == 0:
+        return
+
     promise = instance.promise
     community = promise.community
     members = CommunityMember.objects.filter(community_name=community)
