@@ -32,7 +32,7 @@
             <!--모임 소개-->
             <div class="d-flex align-items-center mb-3">
                 <h4 class="fw-bold mb-0 me-2">{{community.community_name}}</h4>
-                {% if username == community.create_user %}
+                {% if request.user == community.create_user %}
                 <a id="editInfoBtn" href="#" class="circle-button btn btn-outline-secondary btn-sm ms-2" title="하뮤니티 정보 수정">✎</a>
                 
                     <div class="editInfoOverlay modal-overlay" style="display: none;">
@@ -74,7 +74,7 @@
                         <img src="{% static 'index/images/brown_rope.png' %}" alt="줄" class="album-line">
                         <div class="d-flex flex-wrap justify-content-start">
                 {% endif %}
-                            <div class="album-gallery col-6 col-md-4 mb-3">
+                            <div class="album-gallery col-4 mb-3">
                                 <div class="album-box">
                                     <a href="{% url 'community:album_detail' community.id promise.promise_name %}" class="text-decoration-none">
                                         <div class=" card album-box-inner">
@@ -297,6 +297,8 @@
         z-index: 1;
         position: relative;
         margin-top: 20px;
+        flex: 0 0 33.33333%;
+        max-width: 33.33333%;
     }
 
     .album-box {
@@ -461,6 +463,83 @@
     .memo-text:focus {
         outline: none;
         border-bottom: 1px solid #888;
+    }
+
+    /* 모바일 */
+    @media (max-width: 768px) {
+        /* 커뮤니티 대표사진/정보 수정 팝업 공통 설정 */
+        .modal-overlay {
+            /* 전체 화면을 덮되, 스크롤 가능하게 */
+            position: absolute;
+            top: 0; left: 0;
+            width: 100vw;  
+            min-height: 100vh;  
+            overflow-y: auto;
+            display: none;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 1rem;
+        }
+
+        /* 대표사진 수정 팝업 */
+        #editImageModal {
+            position: relative !important;
+            width: 90% !important;
+            max-width: 360px !important;
+            margin: 0.5rem auto 1rem 12rem !important;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* 커뮤니티 정보 수정 팝업 */
+        #editInfoModal {
+            position: relative !important;
+            top: auto !important; left: auto !important;
+            width: 90% !important;
+            max-width: 360px !important;
+            margin: 30rem auto 1rem auto !important;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2) !important;
+        }
+
+        /* 앨범 박스 자체 패딩 -> 약간 줄여서 이미지 공간 더 확보 */
+        .album-box {
+            padding: 10px;
+        }
+
+        /* inner 컨테이너를 정사각형으로, margin-bottom으로 제목과 간격 확보 */
+        .album-box-inner {
+            aspect-ratio: 1 / 1;
+            margin-bottom: 6px;
+        }
+
+        /* img는 container 꽉 채우고 object-fit으로 잘림 없이 확대 */
+        .album-box-img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        /* 제목 폰트 사이즈 줄이기 */
+        .album-box-title {
+            font-size: 0.8rem !important;
+            margin-top: 4px;
+        }
+
+        /* 구분선 지우기 */
+        .col-md-4.ps-3 {
+            border-left: none !important;
+            padding: 12px;
+        }
+
+        /* 팝업창 크기 및 위치 조정 */
+        .popover-form {
+            width: 90% !important;
+            max-width: 300px !important;
+            right: auto !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            top: 60px !important;
+        }
     }
 </style>
 

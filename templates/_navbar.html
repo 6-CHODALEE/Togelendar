@@ -1,3 +1,5 @@
+{% load static %}
+
 <nav class="custom-navbar">
   <div class="navbar-container">
     <!-- 1) 햄버거 토글 버튼 추가 -->
@@ -7,7 +9,7 @@
       {% if user.is_authenticated %}
         <div class="notification-wrapper">
           <a id="notification-icon" href="#" onclick="toggleNotificationPopup()">
-            🔔
+            <img src="{% static 'index/images/bell.png' %}" alt="알림 아이콘" style="width: 30px;">
             <span id="notification-badge" class="badge">0</span>
           </a>
           <div id="notification-popup" class="notification-popup hidden">

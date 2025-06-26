@@ -18,11 +18,11 @@ class Command(BaseCommand):
     help = '테스트 사용자 5명 생성 + Elasticsearch 색인 + 친구 관계 + 커뮤니티 자동 생성'
 
     def handle(self, *args, **options):
-        es = Elasticsearch(
-            ['https://localhost:9200'],
-            basic_auth=('elastic', ES_PASSWORD),
-            verify_certs=False
-        )
+        # es = Elasticsearch(
+        #     ['https://localhost:9200'],
+        #     # basic_auth=('elastic', ES_PASSWORD),
+        #     verify_certs=False
+        # )
 
         dummy_users = [
             {
@@ -105,17 +105,17 @@ class Command(BaseCommand):
                 user = User.objects.get(username=user_data['username'])
                 self.stdout.write(self.style.WARNING(f"{user.username} 이미 존재함"))
 
-            es.index(
-                index='user-index',
-                id=user.username,
-                document={
-                    'username': user.username,
-                    'email': user.email,
-                    'address': user.address,
-                }
-            )
-            self.stdout.write(self.style.SUCCESS(f"{user.username} -> Elasticsearch 색인 완료"))
-            created_users[user.username] = user
+            # es.index(
+            #     index='user-index',
+            #     id=user.username,
+            #     document={
+            #         'username': user.username,
+            #         'email': user.email,
+            #         'address': user.address,
+            #     }
+            # )
+            # self.stdout.write(self.style.SUCCESS(f"{user.username} -> Elasticsearch 색인 완료"))
+            # created_users[user.username] = user
 
         for u1, u2 in combinations(created_users.values(), 2):
             fr, created = FriendRequest.objects.get_or_create(

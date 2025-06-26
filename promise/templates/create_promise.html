@@ -8,7 +8,7 @@
     
     <div class="container mt-4" style="max-width: 800px; margin: 0 auto; background-color: white; padding: 30px;">
         <img src="{%static 'index/images/masking_tape.png' %}" alt="마스킹 테이프" class="masking_tape">
-        <div class="text-center mb-5">
+        <div class="text-center my-4">
             <h2><strong>언제 만날래?</strong></h2>
         </div>
 
@@ -452,6 +452,67 @@
         color: black;
         font-size: 16px;
         transition: all 0.2s ease;
+    }
+
+
+    /* 모바일 버전 */
+    @media (max-width: 768px) {
+        /* 컨테이너 꽉 채우고 패딩 줄이기 */
+        .container {
+            max-width: 100% !important;
+            padding: 10px !important;
+        }
+
+        /* 마스킹 테이프 크기·위치 조정 */
+        .masking_tape {
+            width: 40px !important;
+            top: -35px !important;
+            left: 50% !important;
+            transform: translateX((-50%) rotate(10deg));
+        }
+
+        /* 각 row를 블록으로 바꿔서 세로 정렬 */
+        .row.mb-3.align-items-center {
+            display: flex !important;
+            align-items: center !important;
+            margin-bottom: 1rem !important;
+        }
+        
+        .row.mb-3.align-items-center > label {
+            flex: 0 0 25% !important;
+            text-align: right !important;
+            margin-bottom: 0 !important;
+            padding-right: .5rem;
+        }
+        
+        .row.mb-3.align-items-center > div {
+            flex: 1 1 75% !important;
+        }
+
+
+        /* 입력폭·셀렉트폭 100% */
+        .form-control.w-50,
+        .form-select.w-auto {
+            width: 100% !important;
+        }
+
+        /* 드롭다운 + 년·월·일 스팬을 세로로 */
+        .col-10.d-flex.row.align-items-center.gap-2 {
+            display: flex !important;
+            flex-direction: column !important;
+            /* align-items: flex-start !important; */
+            gap: .25rem !important;
+        }
+
+        /* 버튼영역 왼쪽 정렬 */
+        .text-end {
+            text-align: right !important;
+        }
+
+        /* fullcalendar도 가로 꽉 채우기 */
+        #calendar {
+            width: 100% !important;
+        }
     }
 
 </style>
