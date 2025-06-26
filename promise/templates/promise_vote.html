@@ -239,8 +239,8 @@
         width: 40px;
         height: 40px;
         position: absolute;
-        top: -5px;
-        left: -20px;
+        top: 3px;
+        left: -14px;
         transform: translateX(-50%);
         z-index: 1;
         border: none;
@@ -320,6 +320,9 @@
             validRange: {
                 start: start,
                 end: end
+            },
+            dayCellContent: function(arg) {
+                return { html: String(arg.date.getDate()) };
             },
             dateClick: function(info) {
                 const dateStr = info.dateStr;
