@@ -55,7 +55,7 @@
             {% endfor %}
         </div>
 
-        <!-- ✅ 페이지네이션 컨트롤 추가 -->
+        <!-- 페이지네이션 컨트롤 추가 -->
         <div class="pagination-controls mt-4 text-center">
             <button id="prev-page" class="btn btn-outline-dark btn-sm me-2" style="border-radius: 0;">이전</button>
             <span id="page-info" class="mx-2">1 / 13</span>
@@ -393,6 +393,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         locale: 'ko',
+        height: 'auto',
         initialDate: allVotes.length > 0 ? allVotes[0].date : undefined,
         events: allVotes.map(item => ({
             start: item.date,
