@@ -3,109 +3,164 @@
 {% load custom_filters %}
 
 {% block body %}
-    <div class="row align-items-start mb-4">
-        <!-- 왼쪽: 프로필 + 이름 -->
+    <div class="row align-items-center mb-4">
+        <!-- ① 프로필 영역: col-auto -->
         <div class="col-auto d-flex">
-            <!-- 프로필 이미지 -->
-            <!-- 중앙 정렬된 프로필 박스 -->
-            <div class="text-center mb-4">
-                <div class="profile-image-wrapper position-relative">
-                  {% if me.profile_image %}
-                      <img src="{{ me.profile_image.url }}"
-                          class="rounded-circle mb-3"
-                          style="width: 170px; height: 170px; object-fit: cover;"
-                          alt="프로필 이미지">
-                  {% else %}
-                      <img src="{% static 'index/images/camera_character.png' %}"
-                          class="rounded-circle mb-3"
-                          style="width: 170px; height: 170px; object-fit: cover;"
-                          alt="기본 이미지">
-                  {% endif %}
+            <div class="text-center mb-2">
+            <div class="profile-image-wrapper position-relative">
+                {% if me.profile_image %}
+                <img src="{{ me.profile_image.url }}"
+                    class="rounded-circle mb-3"
+                    style="width: 170px; height: 170px; object-fit: cover;"
+                    alt="프로필 이미지">
+                {% else %}
+                <img src="{% static 'index/images/camera_character.png' %}"
+                    class="rounded-circle mb-3"
+                    style="width: 170px; height: 170px; object-fit: cover;"
+                    alt="기본 이미지">
+                {% endif %}
+                <a href="{% url 'mypage:verify_password' me %}"
+                class="circle-button edit-profile-button">✎</a>
+            </div>
+            <h4 class="fw-bold mb-2">{{ me.username }}</h4>
+            <div class="d-flex justify-content-center align-items-center gap-2">
+                <p class="mb-0">
+                함친
+                <strong id="showFriendList" style="cursor:pointer;" class="fw-bold">
+                    {{ friend_count }}명
+                </strong>
+                </p>
+                <a href="#" id="togglePopover"
+                class="custom-dotted-btn btn btn-sm position-relative">
+                함친 추가
+                {% if received_requests %}
+                    <span class="badge-friend bg-danger text-white position-absolute top-0 start-100 translate-middle"
+                        id="friend_request_badge">
+                    {{ received_requests|length }}
+                    </span>
+                {% endif %}
+                </a>
+            </div>
+            </div>
+        </div>
 
-                  <!-- ✎ 버튼을 이미지 위에 위치시킴 -->
-                <a href="{% url 'mypage:verify_password' me %}" class="circle-button edit-profile-button">✎</a>
-
+        <!-- ② 달력 영역: col ms-4 -->
+        <div class="col ms-4">
+            <div class="mx-auto" style="width:100%; max-width:1400px;">
+                <!-- 데스크탑 전용: 992px 이상에서만 보이는 헤더 -->
+                <div class="desktop-nav d-none d-lg-flex justify-content-between align-items-center mb-1">
+                <!-- 왼쪽: 년·월 + 주 범위 -->
+                <div class="d-flex align-items-end gap-2">
+                    <h4 class="fw-bold mb-0">{{ week_dates.0|date:"Y년 n월" }}</h4>
+                    <span class="text-muted week-range" style="font-size:1rem; margin-bottom:2px;">
+                    {{ week_dates.0|date:"m/d" }} ~ {{ week_dates.6|date:"m/d" }}
+                    </span>
                 </div>
-                <!-- 이름 -->
-                <h4 class="fw-bold mb-2">{{ me.username }}</h4>
+                <!-- 오른쪽: 오늘로 가기 + 이전/다음 주 -->
+                <div class="d-flex align-items-center gap-3">
+                    <a href="?base_date={{ today|date:'Y-m-d' }}" class="go-today-btn">오늘로 가기</a>
+                    <a href="?base_date={{ prev_week }}" class="arrow-btn"><span class="arrow-left"></span></a>
+                    <a href="?base_date={{ next_week }}" class="arrow-btn"><span class="arrow-right"></span></a>
+                </div>
+                </div>
+            <div class="calendar-container calendar-desktop">
+                <table class="table calendar-table table-bordered text-center align-middle mb-0">
+                <thead style="border-bottom:1px solid #000 !important;">
+                    <tr>
+                        {% for label in weekday_labels %}
+                        <th class="fw-bold
+                            {% if label == '일' %}
+                                text-danger
+                            {% elif label == '토' %}
+                                text-primary
+                            {% endif %}
+                            ">
+                            {{ label }}
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                    {% for date in week_dates %}
+                        <td>
+                        <div class="calendar-date text-muted small fw-bold">
+                            {{ date|date:"j일" }}
+                        </div>
+                        <div class="calendar-promises-wrapper">
+                            {% for result in weekly_promises|get_item:date %}
+                            <a href="{% url 'community:promise:promise_result'
+                                        community_id=result.promise.community.id
+                                        promise_id=result.promise.id %}"
+                                class="calendar-promise"
+                                style="background-color:{{ result.bg_color }};">
+                                {{ result.promise.promise_name }}
+                            </a>
+                            {% empty %}
+                            <div class="small text-muted">약속 없음</div>
+                            {% endfor %}
+                        </div>
+                        </td>
+                    {% endfor %}
+                    </tr>
+                </tbody>
+                </table>
+            </div>
+            <div class="mobile-nav d-flex justify-content-between align-items-center mb-1 d-lg-none">
+                <a href="?base_date={{ prev_day }}" class="arrow-btn">
+                    <span class="arrow-left"></span>
+                </a>
 
-                <!-- 버튼 2개 수평 정렬 -->
-                <div class="d-flex justify-content-center align-items-center gap-2">
-                    <p class="mb-0">
-                        함친
-                        <strong id="showFriendList" style="cursor:pointer;" class="fw-bold">
-                            {{ friend_count }}명
-                        </strong>
-                    </p>
-                    <a href="#" id="togglePopover" class="custom-dotted-btn btn btn-sm position-relative">
-                        함친 추가
-                        {% if received_requests %}
-                            <span class="badge-friend bg-danger text-white position-absolute top-0 start-100 translate-middle" id="friend_request_badge">
-                                {{ received_requests|length }}
-                            </span>
+                <!-- 가운데: 이번 달 년·월 -->
+                <span class="fw-bold">{{ week_dates.0|date:"Y년 n월" }}</span>
+
+                <a href="?base_date={{ next_day }}" class="arrow-btn">
+                    <span class="arrow-right"></span>
+                </a>
+                </div>
+
+
+                <div class="mobile-weekday text-center mb-1 d-lg-none">
+                    {% for date in week_dates %}
+                        {% if date == base_date %}
+                        <span class="fw-bold" style="font-size:1.2rem;">
+                            {{ weekday_labels|get_item:forloop.counter0 }}
+                        </span>
                         {% endif %}
-                    </a>
+                    {% endfor %}
                 </div>
-            </div>
-            <div class="col ms-4">
-                <div class="mx-auto" style="width: 100%; max-width: 1400px; min-width: 1000px;">
-                    <!-- 상단: 월 표시 + 주간 이동 버튼 -->
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div class="d-flex align-items-end gap-2">
-                          <h4 class="fw-bold mb-0">{{ week_dates.0|date:"Y년 n월" }}</h4>
-                          <span class="text-muted" style="font-size: 1rem; margin-bottom: 2px;">
-                            {{ week_dates.0|date:"m/d" }} ~ {{ week_dates.6|date:"m/d" }}
-                          </span>
-                        </div>
-                        <div class="d-flex align-items-center gap-3">
-                          <a href="?base_date={{ today|date:'Y-m-d' }}" class="go-today-btn">오늘로 가기</a>
-                          <a href="?base_date={{ prev_week }}" class="arrow-btn">
-                            <span class="arrow-left"></span>
-                          </a>
-                          <a href="?base_date={{ next_week }}" class="arrow-btn">
-                            <span class="arrow-right"></span>
-                          </a>
-                        </div>
+            <!-- ▼ 모바일 전용 캘린더 시작 -->
+            <div class="calendar-mobile">
+
+            <!-- ② 모바일 그리드 -->
+            <div class="calendar-grid">
+                {% for date in week_dates %}
+                <div class="day-cell 
+                    {% if date == today %}today{% endif %}
+                    {% if date == base_date %}active{% endif %}"
+                data-date="{{ date|date:'Y-m-d' }}">
+                    <div class="calendar-date text-muted small fw-bold">
+                    {{ date|date:"j일" }}
                     </div>
-
-                    <!-- 캘린더 테이블 -->
-                    <table class="table calendar-table table-bordered text-center align-middle mb-0" >
-                        <thead style="border-bottom: 1px solid #000000 !important;" >
-                            <tr>
-                                {% for label in weekday_labels %}
-                                    <th class="fw-bold {% if label == '일' %}text-danger{% elif label == '토' %}text-primary{% endif %}">
-                                        {{ label }}
-                                    </th>
-                                {% endfor %}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                {% for date in week_dates %}
-                                    <td>
-                                        <div class="calendar-date text-muted small fw-bold">
-                                            {{ date|date:"j일" }}
-                                        </div>
-
-                                        <div class="calendar-promises-wrapper">
-                                            {% for result in weekly_promises|get_item:date %}
-                                                <a href="{% url 'community:promise:promise_result' community_id=result.promise.community.id promise_id=result.promise.id %}"
-                                                    class="calendar-promise"
-                                                    title="{{ result.promise_name }}"
-                                                    style="background-color: {{ result.bg_color }}; color: black; text-decoration: none; padding: 4px 8px; border-radius: 6px; display: inline-block;">
-                                                    {{ result.promise_name }}
-                                                </a>
-                                            {% empty %}
-                                                <div class="small text-muted">약속 없음</div>
-                                            {% endfor %}
-                                        </div>
-                                    </td>
-                                {% endfor %}
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="calendar-promises-wrapper">
+                    {% for result in weekly_promises|get_item:date %}
+                        <a href="{% url 'community:promise:promise_result'
+                                    community_id=result.promise.community.id
+                                    promise_id=result.promise.id %}"
+                        class="calendar-promise"
+                        style="background-color:{{ result.bg_color }};">
+                        {{ result.promise.promise_name }}
+                        </a>
+                    {% empty %}
+                        <div class="small text-muted">약속 없음</div>
+                    {% endfor %}
+                    </div>
                 </div>
+                {% endfor %}
             </div>
+            </div>
+            </div>
+        </div>
         </div>
 
             <!--친구 리스트 팝업-->
@@ -503,7 +558,7 @@ body {
 .calendar-promises-wrapper {
   margin-top: 24px;
   display: flex;
-  flex-direction: column;
+
   gap: 4px;
 }
 
@@ -561,6 +616,204 @@ body {
     justify-content: center;
     font-size: 0.75rem;
     border-radius: 50%;
+}
+
+/* 캘린더 테이블 반응형 감싸기 */
+.calendar-container {
+    overflow-x: auto;
+    width: 100%;
+}
+
+/* 모바일에서도 최소 너비 보장 */
+.calendar-table {
+    min-width: 700px;
+}
+
+/* ─── 기본 ─── */
+.calendar-mobile { display: none; }
+
+/* 플렉스 그리드 공통 */
+.calendar-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 -4px;  /* 간격 보정용 (optional) */
+}
+.day-cell {
+  flex: 1 1 calc(100%/7);
+  min-width: 80px;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  padding: 8px;
+  position: relative;
+  background: #fff;
+  height: 140px;
+}
+
+.calendar-table td,
+.calendar-mobile .day-cell {
+  position: relative;
+}
+
+.calendar-table td .calendar-promises-wrapper,
+.calendar-mobile .day-cell .calendar-promises-wrapper {
+  display: flex;              /* 이미 flex였을 수도 있지만, 명시적으로 */
+  flex-direction: column;
+  align-items: stretch;       /* 자식(promise)을 stretch */
+  gap: 4px;                   /* 기존 간격 */
+}
+
+/* 각 약속 항목을 블록으로 만들어 칸 폭만큼 늘리기 */
+.calendar-table td .calendar-promise,
+.calendar-mobile .day-cell .calendar-promise {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;     /* padding 포함해서 100% */
+  text-align: center;         /* 가운데 정렬(선택사항) */
+  white-space: normal;        /* 텍스트가 잘리면 줄바꿈 허용 */
+}
+
+
+/* ─── 반응형 스위칭 ─── */
+/* 반응형 스위치 */
+@media (max-width: 992px) {
+  /* 데스크탑 테이블 숨기기 */
+  .calendar-desktop { display: none !important; }
+  /* 모바일 그리드 보이기 */
+  .calendar-mobile { display: block !important; }
+
+  /* 일단 모든 day-cell을 숨깁니다 */
+  .calendar-mobile .day-cell {
+    display: none;
+  }
+
+    .calendar-mobile .day-cell.active {
+        display: block !important;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+  /* 오늘(today)인 셀만 블록으로 */
+  .calendar-mobile .day-cell.today:not(.active) {
+    display: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* 1열 구성 */
+  .day-cell { flex: 1 1 100%; }
+}
+
+/* date, promise 스타일은 그대로 재사용 */
+.calendar-date {  
+  position: absolute;
+  top: 6px; right: 10px;
+  font-size: .8rem;
+  font-weight: bold;
+  color: #888;
+}
+.calendar-promises-wrapper {
+  margin-top: 24px;
+  display: flex;
+
+  gap: 4px;
+}
+.calendar-promise {
+  font-size: .75rem;
+  padding: 4px 6px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: black;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+  /* 프로필 이미지 축소 */
+  .profile-image-wrapper img {
+    width: 100px !important;
+    height: 100px !important;
+  }
+  /* 편집(✎) 버튼 */
+  .edit-profile-button {
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 14px !important;
+  }
+  /* 유저 이름 글씨 크기 */
+  .text-center h4.fw-bold {
+    font-size: 1.2rem;
+  }
+
+  /* 함친 추가 버튼, 커뮤니티 생성/입장 버튼 등 전반적인 .btn-sm 조정 */
+  .btn-sm {
+    padding: 4px 8px !important;
+    font-size: 0.75rem !important;
+  }
+  /* 커스텀 버튼들 (today, go-today 등) */
+  .custom-dotted-btn,
+  .go-today-btn,
+  .btn-create,
+  .btn-enter,
+  .btn-outline-request {
+    padding: 4px 8px !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* 프로필 영역 간격도 살짝 줄이면 더 깔끔합니다 */
+  .profile-image-wrapper {
+    margin-bottom: 0.5rem;
+  }
+  .text-center .d-flex {
+    gap: 0.5rem;
+  }
+}
+
+
+
+@media (max-width: 992px) {
+  .desktop-nav { display: none !important; }
+  .mobile-nav  { display: flex !important; }
+}
+
+@media (max-width: 992px) {
+  /* 모바일에서 이번주 날짜 범위 숨기기 */
+  .week-range {
+    display: none !important;
+  }
+}
+
+/* ─── 기본: 모바일 네비 숨기기 ─── */
+.mobile-nav {
+  display: none;
+}
+
+/* ─── 모바일 전용: 992px 이하에서만 보이기 ─── */
+@media (max-width: 992px) {
+  .mobile-nav {
+    display: flex;
+  }
+}
+
+/* 데스크탑용 오늘 요일 */
+.calendar-weekday-single span {
+  font-size: 0.8rem !important;
+  line-height: 1.2 !important;
+}
+
+/* 모바일용 오늘 요일 */
+.mobile-weekday span {
+  font-size: 0.8rem !important;
+  line-height: 0.5 !important;
+}
+
+.mobile-nav {
+  margin-bottom: 0.1rem; /* 아래 여백을 4px 정도로 줄임 */
+}
+.mobile-weekday {
+  margin-top: 0.1rem;    /* 위쪽 여백도 줄이고 */
+  margin-bottom: 0.25rem;
 }
 </style>
 

@@ -53,6 +53,9 @@ def mypage(request, username):
     else:
         base_date = date.today()
 
+    prev_day = base_date - timedelta(days=1)
+    next_day = base_date + timedelta(days=1)
+
     days_since_sunday = (base_date.weekday() + 1) % 7
     start_of_week = base_date - timedelta(days=days_since_sunday)
     week_dates = [start_of_week + timedelta(days=i) for i in range(7)]
@@ -126,6 +129,8 @@ def mypage(request, username):
         'prev_week': prev_week.isoformat(),
         'next_week': next_week.isoformat(),
         'today': date.today(),
+        'prev_day': prev_day.isoformat(),
+        'next_day': next_day.isoformat(),
     }
     return render(request, 'mypage.html', context)
 
