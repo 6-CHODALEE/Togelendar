@@ -139,6 +139,56 @@
   .submit-btn:hover {
     background-color: #A39F95;
   }
+
+@media (max-width: 768px) {
+  .create-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 40px 0;
+    height: auto;
+  }
+
+  .viewfinder {
+    height: 100vh !important;  /* 너무 큰 높이 제한 */
+  }
+
+
+  .create-box {
+    top: 40% !important;  /* 👈 50% → 40%로 줄이기 */
+    transform: translate(-50%, -40%) !important;
+  }
+
+  .create-box h2 {
+    font-size: 20px;
+    margin: 20px 0;
+  }
+
+  .form-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .form-row label {
+    width: auto;
+    text-align: left;
+  }
+
+  .form-row input,
+  .form-row textarea {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .submit-btn {
+    width: 100%;
+    margin-top: 20px;
+  }
+  .rec-frame{
+    display: none;
+  }
+}
 </style>
 
 {% endblock %}

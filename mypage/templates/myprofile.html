@@ -3,6 +3,8 @@
 {% load static%}
 
 {% block body %}
+
+
 <div class="profile-wrapper">
   <div class="viewfinder">
     <img src="{% static 'index/images/rec_frame_3.png' %}" alt="프레임" class="rec-frame">
@@ -244,6 +246,100 @@ function execDaumPostcode() {
 .btn-zipcode:hover {
   background-color: #A39F95;
   color: black;
+}
+
+
+@media (max-width: 768px) {
+  .profile-box {
+    position: static; /* ✅ 고정된 위치 제거 */
+    transform: none;
+    top: auto;
+    left: auto;
+    height: auto;
+    margin-top: 90%;
+  }
+
+
+  .viewfinder {
+    padding: 20px;
+    aspect-ratio: unset;
+    height: auto;
+  }
+
+
+  .form-content {
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .image-section {
+    width: 100%;
+  }
+
+  .profile-image {
+    width: 140px;
+    height: 140px;
+  }
+
+  .info-section {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .form-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .form-group label {
+    width: auto;
+    text-align: left;
+  }
+
+  .zipcode-input-wrapper {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .btn-zipcode {
+    width: 100%;
+    padding: 6px;
+  }
+
+  .btn-submit-wrapper {
+    margin-top: 30px;
+  }
+
+  .btn-submit {
+    width: 100%;
+    max-width: 250px;
+    font-size: 1rem;
+  }
+
+  .rec-frame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;      /* 화면 세로 전체 */
+    object-fit: cover;  /* 이미지가 빈 공간 없이 꽉 차게 */
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .profile-box {
+    top: 40%; /* 모바일에서 너무 아래로 가는 거 방지 */
+    transform: translate(0%, 0%);
+  }
 }
 </style>
 
