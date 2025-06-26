@@ -8,7 +8,7 @@ from django.apps import apps
 class CreateCommunity(models.Model):
     id = models.AutoField(primary_key=True)
     community_name = models.CharField(max_length=100, unique=True)
-    create_user = models.CharField(max_length=100)
+    create_user = models.ForeignKey(User, to_field = 'username', on_delete = models.CASCADE)
     community_intro = models.TextField()
     community_image = ResizedImageField(
         size=[500, 500],

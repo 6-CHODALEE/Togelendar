@@ -2,50 +2,52 @@
 {% load static %}
 
 {% block body %}
-<div class="home-wrapper">
-    <div class="home-content">
-        <div class="home-text">
-            <p>서로의 바쁜 일상 속에서도,</p>
-            <p>우리의 만남은 잊히지 않도록</p>
-            <p><strong>Togelendar</strong>에서 약속을 쉽게 만들고,</p>
-            <p>소중히 간직하세요.</p>
+<div class="home-container">
+    <div class="home-wrapper">
+        <div class="home-content">
+            <div class="home-text">
+                <p>서로의 바쁜 일상 속에서도,</p>
+                <p>우리의 만남은 잊히지 않도록</p>
+                <p><strong>Togelendar</strong>에서 약속을 쉽게 만들고,</p>
+                <p>소중히 간직하세요.</p>
+            </div>
         </div>
-    </div>
-    <div class="photo-gallery">
-        <div class="photo" style="position: absolute; top: -450px; left: -20px; transform: rotate(15deg);">
-            <img class="tape" src="{% static 'index/images/masking_tape_universe.png' %}" style="position: absolute; top: -55px; left: 100px; transform: translateX(-50%) rotate(90deg); width: 70px; opacity: 0.6;">
-            <img src="{% static 'index/images/감성사진2.jpg' %}" alt="가평 여행">
-            <p>가평 여행</p>
-        </div>
-        <div class="photo" style="position: absolute; top: 100px; left: 50px; transform: rotate(-10deg);">
-            <img class="tape" src="{% static 'index/images/masking_tape_wave.png' %}" style="position: absolute; top: -55px; left: 90px; transform: translateX(-50%) rotate(90deg); width: 70px; opacity: 0.6;">
-            <img src="{% static 'index/images/감성사진 3.jpg' %}" alt="속초 여행">
-            <p>속초 여행</p>
-        </div>
-        <div class="photo" style="position: absolute; top: -350px; left: -350px; transform: rotate(-3deg);">
-            <img class="tape" src="{% static 'index/images/red_pin.png' %}" style="position: absolute; top: -30px; left: 90px; transform: translateX(-50%) rotate(90deg); width: 40px; opacity: 0.6;">
-            <img src="{% static 'index/images/감성사진4.jpeg' %}" alt="일본 여행">
-            <p>일본 여행</p>
-        </div>
-        <div class="photo" style="position: absolute; top: -150px; left: -550px; transform: rotate(-15deg);">
-            <img class="tape" src="{% static 'index/images/masking_tape_flower.png' %}" style="position: absolute; top: -55px; left: 70px; transform: translateX(-50%) rotate(-7deg); width: 70px; opacity: 0.6;">
-            <img src="{% static 'index/images/감성사진5.jpg' %}" alt="벚꽃 구경">
-            <p>벚꽃 구경</p>
-        </div>
-        <div class="photo" style="position: absolute; top: 50px; left: -200px; transform: rotate(8deg);">
-            <img class="tape" src="{% static 'index/images/blue_pin.png' %}" style="position: absolute; top: -45px; left: 70px; transform: translateX(-50%) rotate(90deg); width: 40px; opacity: 0.6;">
-            <img src="{% static 'index/images/감성사진 1.jpg' %}" alt="연남동 카페 투어">
-            <p>연남동 카페 투어</p>
-        </div>
-        <div class="photo" style="position: absolute; top: 70px; left: 300px; transform: rotate(1deg);">
-            <img class="tape" src="{% static 'index/images/masking_tape_navy.png' %}" style="position: absolute; top: -55px; left: 90px; transform: translateX(-50%) rotate(2deg); width: 70px; opacity: 0.6;">
-            <img src="{% static 'index/images/감성사진6.png' %}" alt="울릉도 여행">
-            <p>울릉도 여행</p>
-        </div>
-        <div class="photo" style="position: absolute; top: -200px; left: 280px; transform: rotate(-20deg);">
-            <img class="tape" src="{% static 'index/images/masking_tape_gray.png' %}" style="position: absolute; top: -60px; left: 85px; transform: translateX(-50%) rotate(-50deg); width: 70px; opacity: 0.8;">
-            <img src="{% static 'index/images/감성사진7.png' %}" alt="글램핑">
-            <p>글램핑</p>
+        <div class="photo-gallery">
+            <div class="photo" style="position: absolute; top: -300px; left: -20px; transform: rotate(15deg);">
+                <img class="tape" src="{% static 'index/images/masking_tape_universe.png' %}" style="position: absolute; top: -55px; left: 100px; transform: translateX(-50%) rotate(90deg); width: 70px; opacity: 0.6;">
+                <img src="{% static 'index/images/감성사진2.jpg' %}" alt="가평 여행">
+                <p>가평 여행</p>
+            </div>
+            <div class="photo" style="position: absolute; top: 200px; left: 50px; transform: rotate(-10deg);">
+                <img class="tape" src="{% static 'index/images/masking_tape_wave.png' %}" style="position: absolute; top: -55px; left: 90px; transform: translateX(-50%) rotate(90deg); width: 70px; opacity: 0.6;">
+                <img src="{% static 'index/images/감성사진 3.jpg' %}" alt="속초 여행">
+                <p>속초 여행</p>
+            </div>
+            <div class="photo" style="position: absolute; top: -250px; left: -350px; transform: rotate(-3deg);">
+                <img class="tape" src="{% static 'index/images/red_pin.png' %}" style="position: absolute; top: -30px; left: 90px; transform: translateX(-50%) rotate(90deg); width: 40px; opacity: 0.6;">
+                <img src="{% static 'index/images/감성사진4.jpeg' %}" alt="일본 여행">
+                <p>일본 여행</p>
+            </div>
+            <div class="photo" style="position: absolute; top: -50px; left: -550px; transform: rotate(-15deg);">
+                <img class="tape" src="{% static 'index/images/masking_tape_flower.png' %}" style="position: absolute; top: -55px; left: 70px; transform: translateX(-50%) rotate(-7deg); width: 70px; opacity: 0.6;">
+                <img src="{% static 'index/images/감성사진5.jpg' %}" alt="벚꽃 구경">
+                <p>벚꽃 구경</p>
+            </div>
+            <div class="photo" style="position: absolute; top: 150px; left: -200px; transform: rotate(8deg);">
+                <img class="tape" src="{% static 'index/images/blue_pin.png' %}" style="position: absolute; top: -45px; left: 70px; transform: translateX(-50%) rotate(90deg); width: 40px; opacity: 0.6;">
+                <img src="{% static 'index/images/감성사진 1.jpg' %}" alt="연남동 카페 투어">
+                <p>연남동 카페 투어</p>
+            </div>
+            <div class="photo" style="position: absolute; top: 170px; left: 300px; transform: rotate(1deg);">
+                <img class="tape" src="{% static 'index/images/masking_tape_navy.png' %}" style="position: absolute; top: -55px; left: 90px; transform: translateX(-50%) rotate(2deg); width: 70px; opacity: 0.6;">
+                <img src="{% static 'index/images/감성사진6.png' %}" alt="울릉도 여행">
+                <p>울릉도 여행</p>
+            </div>
+            <div class="photo" style="position: absolute; top: -100px; left: 280px; transform: rotate(-20deg);">
+                <img class="tape" src="{% static 'index/images/masking_tape_gray.png' %}" style="position: absolute; top: -60px; left: 85px; transform: translateX(-50%) rotate(-50deg); width: 70px; opacity: 0.8;">
+                <img src="{% static 'index/images/감성사진7.png' %}" alt="글램핑">
+                <p>글램핑</p>
+            </div>
         </div>
     </div>
 </div>
@@ -71,7 +73,7 @@
         /* align-items: flex-start; */
         text-align: center;
         position: relative;
-        top: 115px;
+        top: 200px;
     }
     
     @keyframes fadeInUp {
@@ -184,6 +186,52 @@
         z-index: 2;
         pointer-events: none; /* 마우스 클릭 무시 */
         rotate: -40deg;
+    }
+
+
+    @media (max-width: 768px) {
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;            /* 화면 높이 꽉 채움 */
+            overflow: hidden;         /* 스크롤 제거 */
+        }
+
+        .home-container {
+            width: 100vw;
+            height: 100vh;            /* 모바일 화면 전체 */
+            overflow: hidden;         /* 절대영역 넘침 잘라내기 */
+        }
+
+        .home-wrapper {
+            /* ① 데스크탑 기준 폭 (예: 1200px) 을 유지 */
+            width: 1200px;
+
+            /* ② 모바일 화면 기준으로 가운데 배치 */
+            position: absolute;
+            top: 35%;
+            left: 50%;
+            transform-origin: center center;
+
+            /* ③ 화면에 딱 맞도록 축소—값은 테스트 후 조절 */
+            /*    예: 100vw / 1200px = 0.3125, 폰마다 차이 있으니 약간 올려도 괜찮음 */
+            transform: translate(-50%, -50%) scale(0.35);
+        }
+
+        .home-text {
+            width: 600px;          /* 모바일에서 텍스트 라인 길이 최대 260px 정도 */
+            max-width: 80%;        /* 화면이 더 좁으면 80% 폭까지 줄어들게 */
+            margin: 0 auto;        /* 가운데 정렬 */
+            
+            /* ② 폰트 크기/줄간격 재조정 */
+            font-size: 1.9rem;     /* 원하는 크기로 */
+            line-height: 1.6;      /* 줄 간격을 폰트 크기에 비례하여 */
+            
+            /* ③ 절대 위치/회전이 걸려있는 부모에 영향 받지 않도록 별도 transform 초기화 */
+            transform: none;       
+            position: relative;    
+            top: 0; left: 0;
+        }
     }
 </style>
 {% endblock %}

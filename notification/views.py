@@ -8,16 +8,21 @@ from .serializers import NotificationSerializer
 from .utils import NotificationPagination
 from datetime import timedelta
 from django.utils import timezone
+from .auth import ConditionalSessionAuthentication
+
 
 # Create your views here.
 
 # 알림 목록 조회
 class NotificationListView(ListAPIView):
-    serializer_class = NotificationSerializer
-    permission_classes = [IsAuthenticated]
+    authentication_classes = [ConditionalSessionAuthentication]
+    permission_classes     = [IsAuthenticated]
+    serializer_class       = NotificationSerializer
 
     def get_queryset(self):
-        return Notification.objects.filter(user=self.request.user).order_by('-created_at')[:10]
+        return Notification.objects.filter(
+            user=self.request.user
+        ).order_by('-created_at')[:10]
 
 # 모든 알림 읽음 처리
 class NotificationMarkAllReadView(APIView):

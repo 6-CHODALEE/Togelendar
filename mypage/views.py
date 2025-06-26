@@ -137,7 +137,7 @@ def create_community(request, username):
         if form.is_valid():
             # 폼에서 추출만 (아직 저장은 안 함)
             temp_community_name = form.cleaned_data['community_name']
-            temp_create_user = request.user.username
+            temp_create_user = request.user
 
             community = form.save(commit=False)
             community.create_user = temp_create_user

@@ -1,30 +1,29 @@
 <nav class="custom-navbar">
   <div class="navbar-container">
+    <!-- 1) 햄버거 토글 버튼 추가 -->
+    <button id="nav-toggle" class="nav-toggle" aria-label="메뉴 열기">☰</button>
     <a class="logo" href="{% url 'index:index' %}">Togelendar</a>
     <div class="nav-links">
-        {% if user.is_authenticated %}
-          <div class="notification-wrapper">
-            <a id="notification-icon" href="#" onclick="toggleNotificationPopup()">
-              🔔
-              <span id="notification-badge" class="badge">0</span>
-            </a>
-
-            <div id="notification-popup" class="notification-popup hidden">
-              <div class="notification-bubble">  
-                <div id="notification-list">
-                  <p>알림을 불러오는 중...</p>
-                </div>
+      {% if user.is_authenticated %}
+        <div class="notification-wrapper">
+          <a id="notification-icon" href="#" onclick="toggleNotificationPopup()">
+            🔔
+            <span id="notification-badge" class="badge">0</span>
+          </a>
+          <div id="notification-popup" class="notification-popup hidden">
+            <div class="notification-bubble">
+              <div id="notification-list">
+                <p>알림을 불러오는 중...</p>
               </div>
             </div>
           </div>
-
-
-          <a href="{% url 'mypage:mypage' request.user.username %}" class="auth-link">{{user}}</a>
-          <a href="{% url 'account:logout' %}" class="auth-logout">로그아웃</a>
-          {% else %}
-          <a href="{% url 'account:login' %}" class="auth-login">로그인</a>
-          <a href="{% url 'account:signup' %}" class="auth-link">회원가입</a>
-        {% endif %}
+        </div>
+        <a href="{% url 'mypage:mypage' request.user.username %}" class="auth-link">{{user}}</a>
+        <a href="{% url 'account:logout' %}" class="auth-logout">로그아웃</a>
+      {% else %}
+        <a href="{% url 'account:login' %}" class="auth-login">로그인</a>
+        <a href="{% url 'account:signup' %}" class="auth-link">회원가입</a>
+      {% endif %}
     </div>
   </div>
 </nav>
@@ -176,6 +175,65 @@
   .auth-link.hover {
     opacity: 0.7;
   }
+
+  .nav-toggle {
+  display: none;          /* 기본에선 숨김 */
+  font-size: 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* 모바일 전용 */
+@media (max-width: 768px) {
+  .navbar-container {
+    flex-wrap: wrap;
+    position: relative;
+  }
+
+  /* 햄버거 보이기 */
+  .nav-toggle {
+    display: block;
+    margin-right: auto;
+  }
+
+  /* 로고 크기 조정 */
+  .logo {
+    font-size: 1.3rem;
+    margin-left: 10px;
+  }
+
+  /* 네비 링크 숨기기 */
+  .nav-links {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    background-color: white;
+    padding: 10px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: absolute;
+    top: 100%;
+    left: 0;
+  }
+
+  /* 토글 되면 보이기 */
+  .navbar-container.nav-open .nav-links {
+    display: flex;
+  }
+
+  /* 모바일용 메뉴 아이템 간격 */
+  .nav-links a,
+  .nav-links .notification-wrapper {
+    padding: 8px 20px;
+    width: 100%;
+  }
+
+  /* 배지 위치 보정 */
+  .badge {
+    top: -2px;
+    right: -8px;
+  }
+}
 </style>
 
 <script>
@@ -241,7 +299,12 @@
     if (isLoading || !hasMoreNotifications) return;
     isLoading = true;
 
-    const res = await fetch(`/api/notifications/?page=${page}`);
+    const res = await fetch(`/api/notifications/?page=${page}`, {
+      credentials: 'include',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken')
+      }
+    });
     const data = await res.json();
 
     const list = document.getElementById('notification-list');
@@ -307,4 +370,20 @@
       window.location.href = targetUrl;
     });
   }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // 1) 알림 리스트가 실제 있으면 호출
+    if (document.getElementById('notification-list')) {
+      fetchNotifications();
+    }
+
+    // 2) 햄버거 버튼이 있으면 클릭 핸들러 등록
+    const toggleBtn = document.getElementById('nav-toggle');
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.querySelector('.navbar-container').classList.toggle('nav-open');
+      });
+    }
+  });
 </script>

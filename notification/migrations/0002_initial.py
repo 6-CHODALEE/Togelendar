@@ -9,14 +9,14 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('community', '0001_initial'),
-        ('mypage', '0001_initial'),
+        ('notification', '0001_initial'),
+        ('promise', '0001_initial'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='communityinvite',
-            name='community',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='mypage.createcommunity'),
+            model_name='notification',
+            name='promise',
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='promise.promise'),
         ),
     ]

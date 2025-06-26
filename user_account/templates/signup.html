@@ -248,6 +248,90 @@
         margin-top: 20px;
         font-weight: 600;
     }
+
+    /* ───────── 모바일 전용 ───────── */
+    @media (max-width: 768px) {
+        /* viewfinder 전체 높이 자동 확장 */
+        .signup-content {
+            padding: 60px 15px 15px;  /* 상단 패딩 줄이고 좌우 패딩 좁힘 */
+            height: auto;             /* 세로 스크롤 허용 */
+            align-items: flex-start;  /* 위에서부터 쌓기 */
+        }
+
+        /* 타이틀 크기 조정 */
+        .signup-title h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        /* 레이블을 입력 위에 쌓기 */
+        .form-group,
+        .zipcode-group,
+        .address-group {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+        }
+        .form-group label,
+        .zipcode-group label,
+        .address-group label {
+            width: 100%;
+            margin-bottom: 4px;
+        }
+
+        /* 입력 필드 너비는 100% */
+        .signup-content input[type="text"],
+        .signup-content input[type="email"],
+        .signup-content input[type="password"],
+        .signup-content input[type="file"],
+        .signup-content select,
+        .zipcode-group input,
+        .address-group input {
+            width: 100%;
+            margin: 0;
+        }
+
+        /* 우편번호 버튼도 가로 꽉 채우기 */
+        .zipcode-group button {
+            width: 100%;
+            margin-top: 4px;
+        }
+
+        /* 회원가입 버튼 크기 조정 */
+        .custom-btn {
+            padding: 12px;
+            font-size: 1rem;
+        }
+
+        /* 프레임 이미지 비율 유지하며 축소 */
+        .rec-frame {
+            top: -50px;
+            width: 110%;
+        }
+
+
+         .rec-frame {
+            position: absolute;
+            left: 50%;
+            /* 가로 중앙 고정 */
+            transform-origin: top center;
+            /* translateX 로만 가로 이동, scaleY 로 세로만 확대 */
+            transform: translateX(-50%) scaleY(2.2);
+            /* width 는 기존에 맞춘 값 유지 */
+            width: 110vw;
+            /* 높이는 auto (scaleY 에서 결정) */
+            height: auto;
+            object-fit: contain;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* 프레임이 늘어난 만큼 상·하 패딩 보강 */
+        .signup-content {
+            padding-top: 50px;    /* 필요에 따라 더 올리거나 낮추세요 */
+            padding-bottom: 50px; /* 바닥 쪽도 여유를 줘서 잘리지 않게 */
+        }
+    }
 </style>
 
 <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>

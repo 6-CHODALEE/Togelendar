@@ -8,7 +8,6 @@ class CustomUserCreationForm(UserCreationForm):
         fields = ['username', 'password1', 'password2', 'profile_image', 'postcode', 'address']
         labels = {
             'username': '아이디',
-            'email': '이메일',
             'profile_image': '프로필 이미지',
             'postcode': '우편번호',
             'address': '주소',

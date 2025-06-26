@@ -24,7 +24,7 @@ class Promise(models.Model):
 
 class PromiseVote(models.Model):
     promise = models.ForeignKey(Promise, on_delete=models.CASCADE)
-    promise_name = models.CharField(max_length=100, null=True)
+    # promise_name = models.CharField(max_length=100, null=True)
     selected_date = models.DateField()
     username = models.ForeignKey(User, on_delete=models.CASCADE)
     
@@ -34,8 +34,8 @@ class PromiseVote(models.Model):
 
 class PromiseResult(models.Model):
     promise = models.ForeignKey(Promise, on_delete=models.CASCADE)
-    promise_name = models.CharField(max_length=100, null=True)
-    promise_creator = models.CharField(max_length=100, null=True)
+    # promise_name = models.ForeignKey(Promise, to_field = 'promise_name', on_delete=models.CASCADE)
+    promise_creator = models.ForeignKey(User, to_field = 'username',on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
     center_latitude = models.FloatField(null=True, blank=True)

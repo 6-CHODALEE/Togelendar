@@ -67,7 +67,7 @@ def create_promise(request, community_id):
             else:
                 promise = form.save(commit=False)
                 promise.community = community
-                promise.promise_creator = request.user.username
+                promise.promise_creator = request.user
                 promise.save()
 
                 # 저장 후 이동할 페이지
@@ -109,7 +109,7 @@ def promise_vote(request, community_id, promise_id):
         for date_str in selected_list:
             vote = PromiseVote(
                 promise = promise,
-                promise_name=promise.promise_name,
+                # promise_name=promise.promise_name,
                 selected_date=date_str,
                 username=request.user
             )
@@ -188,12 +188,14 @@ def promise_result(request, community_id, promise_id):
                     ranges.append(group)
                     group = [top_dates[i]]
             ranges.append(group)
-
+            user = User.objects.get(username=promise.promise_creator)
+            print(user)
             for date_group in ranges:
                 PromiseResult.objects.create(
                     promise=promise,
-                    promise_name=promise.promise_name,
-                    promise_creator=promise.promise_creator,
+                    # promise_name=promise.promise_name,
+                    
+                    promise_creator=user,
                     start_date=date_group[0],
                     end_date=date_group[-1],
                     center_latitude=0,
