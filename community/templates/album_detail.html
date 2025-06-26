@@ -148,8 +148,8 @@
             </div>
         </div>
     </div>
-    <div class="text-center mt-4">
-        <a href="{% url 'community:community_detail' community_id %}" class="btn btn-outline-dark" style="position: absolute; right: 130px; background-color: white; border: 1px solid #A39F95; border-radius: 6px; color: black;">
+    <div class="text-end mt-4">
+        <a href="{% url 'community:community_detail' community_id %}" class="btn btn-outline-dark">
             커뮤니티로 이동하기
         </a>
     </div>
@@ -250,6 +250,46 @@
     border-radius: 0;
 }
 
+.btn-outline-dark {
+    background-color: white;
+    border: 1px solid #A39F95;
+    border-radius: 6px;
+    color: black;
+}
+
+/* 모바일 */
+@media (max-width: 768px) {
+    /* 좌웅 영역을 컬럼으로 쌓기 */
+    .d-flex.mt-4 {
+        flex-direction: column !important;
+    }
+
+    .d-flex.mt-4 > div {
+        flex: none !important;
+        width: 100% !important;
+        margin-left: 0 !important;
+    }
+
+    /* 썸네일만 담은 gallery에 여백 조정 -> 업로드한 사진 여백 조정 */
+    #gallery {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 0.5rem !important;
+        justify-content: space-between !important;
+    }
+
+    /* 썸네일 너비를 50% 간격만큼 설정 */
+    .thumbnail-wrapper {
+        width: calc(50% - 0.25rem) !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* 갤러리 아래로 내려온 박스 간격만 살짝 띄우기 */
+    .mood-box,
+    .comment-box {
+        margin-top: 1rem !important;
+    }
+}
 
 </style>
 {% endblock %}
