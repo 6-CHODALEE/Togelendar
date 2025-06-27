@@ -102,7 +102,7 @@
             <!--커뮤니티 멤버 리스트-->
             <div class="member-box p-3 mb-3">
                 <h6 class="fw-bold d-flex justify-content-between">
-                    커뮤니티 멤버
+                    하뮤니티 멤버
                     <a href="#" id="showMemberPopover" class="member-invite-btn btn btn-outline-secondary btn-sm">
                         멤버 추가
                     </a>
@@ -185,7 +185,7 @@
                     {% endif %}
                 </div>
             </div>
-            <div class="memo-section-box p-3 mb-4" style="background-color: white; border-radius: 10px;">
+            <div class="memo-section-box p-3 mb-4" style="background-color: white;">
                 <h5 class="fw-bold mb-3">메모</h5>
                 <ul id="memo-list" style="list-style: none; padding-left: 0; margin-bottom: 0;">
                     <li class="d-flex align-items-center gap-2 mb-2">
@@ -194,8 +194,8 @@
                             contenteditable="true"
                             class="memo-text placeholder-active"
                             style="min-width: 100px; outline: none;"
-                            data-placeholder="할 일을 입력하세요...">
-                            할 일을 입력하세요...
+                            data-placeholder="메모, 공지사항을 입력해보세요!">
+                            메모, 공지사항을 입력해보세요!
                         </div>
                     </li>
 
@@ -571,7 +571,7 @@
             memoInput.addEventListener("blur", function () {
                 const content = this.textContent.trim();
                 if (!content) {
-                    this.textContent = this.getAttribute("data-placeholder") || "할 일을 입력하세요...";
+                    this.textContent = this.getAttribute("data-placeholder") || "메모, 공지사항을 입력해보세요!";
                     this.classList.add("placeholder-active");
                 }
             });
@@ -634,7 +634,7 @@
                             memoList.appendChild(newMemo);
                             
                             // 입력창 초기화 (플레이스홀더 복원)
-                            this.textContent = this.getAttribute("data-placeholder") || "할 일을 입력하세요...";
+                            this.textContent = this.getAttribute("data-placeholder") || "메모, 공지사항을 입력해보세요!";
                             this.classList.add("placeholder-active");
                             this.blur(); // 포커스 해제
 
