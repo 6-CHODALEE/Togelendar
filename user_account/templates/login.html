@@ -142,21 +142,18 @@
   }
 
   .viewfinder {
-    background-image: none !important;  /* 👈 모바일에서는 배경 제거 */
+    background-image: none !important;  /* 모바일에서는 배경 제거 */
     background-color: transparent !important;  /* 필요 시 배경색 초기화 */
   }
 
-  /* 나머지 모바일용 스타일… */
+  /* 나머지 모바일용 스타일 */
   .login-wrapper {
     margin-top: 0;
-    height: auto;
+    height: 300px !important;
     padding: 20px 10px;
     align-items: flex-start;
   }
-  .login-content {
-    padding-top: 40px;
-    padding-bottom: 40px;
-  }
+
   .login-content h2 {
     font-size: 1.5rem;
     margin-bottom: 20px;
@@ -169,11 +166,12 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
   }
   .form-row input {
+    width: 100%;
     padding: 4px 8px;
-    height: 28px;
+    height: 40px;
     font-size: 13px;
   }
   .submit-btn {

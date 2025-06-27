@@ -8,7 +8,7 @@
         <div class="signup-content">
             <form action="" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
-                <div class="signup-title"><h2>회원가입</h2></div>
+                <div class="signup-title"><h2 class="fw-bold">회원가입</h2></div>
 
                 {% for field in form %}
                     {% if field.name == 'postcode' or field.name == 'address' %}
@@ -16,13 +16,28 @@
 
                     {% elif field.name == 'password1' %}
                         <div class="form-group position-relative">
-                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            <!-- 모바일 전용 툴팁 -->
+                            <label for="{{ field.id_for_label }}">
+                            {{ field.label }}
+                            <span
+                                class="d-inline-block d-md-none text-danger ms-1"
+                                data-bs-toggle="tooltip"
+                                data-bs-placement="right"
+                                data-bs-html="true"
+                                title="• 다른 개인 정보와 유사한 비밀번호는 사용할 수 없습니다.<br>
+                                    • 최소 8자 이상이어야 합니다.<br>
+                                    • 자주 사용되는 비밀번호는 사용할 수 없습니다.<br>
+                                    • 숫자만으로 이루어진 비밀번호는 사용할 수 없습니다.">
+                                ❗
+                            </span>
+                            </label>
+
                             <div style="flex: 1; position: relative;">
                                 {{ field.as_widget }}
 
-                                <!-- ❗ 툴팁 아이콘 -->
+                                <!-- 데스크탑 -->
                                 <span
-                                    class="position-absolute custom-tooltip"
+                                    class="position-absolute custom-tooltip d-none d-md-block"
                                     style="top: 50%; right: -25px; transform: translateY(-50%); cursor: pointer; color: red;"
                                     data-bs-toggle="tooltip"
                                     data-bs-placement="right"
@@ -59,7 +74,7 @@
                                 {% endif %}
 
                                 {% if not field.errors and field.help_text %}
-                                    <small class="form-text text-muted">{{ field.help_text|safe }}</small>
+                                    <small class="form-text text-muted ms-1">{{ field.help_text|safe }}</small>
                                 {% endif %}
                             </div>
                         </div>
@@ -284,6 +299,7 @@
         .address-group label {
             width: 100%;
             margin-bottom: 4px;
+            margin-left: 8px;
         }
 
         /* 입력 필드 너비는 100% */

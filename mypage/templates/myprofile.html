@@ -251,7 +251,7 @@ function execDaumPostcode() {
 
 @media (max-width: 768px) {
   .profile-box {
-    position: static; /* ✅ 고정된 위치 제거 */
+    position: static; /* 고정된 위치 제거 */
     transform: none;
     top: auto;
     left: auto;
@@ -303,6 +303,8 @@ function execDaumPostcode() {
   .form-group label {
     width: auto;
     text-align: left;
+    align-self: flex-start !important;
+    margin-left: 8px;
   }
 
   .zipcode-input-wrapper {
