@@ -5,7 +5,7 @@
 {% block body %}
 <div class="container mt-4" style="max-width: 800px; margin: 0 auto; background-color: white; padding: 30px;">
     <img src="{% static 'index/images/masking_tape.png' %}" alt="마스킹 테이프" class="masking_tape">
-    <div class="text-center mb-5" style="padding: 10px;">
+    <div class="text-center my-4" style="padding: 10px;">
         {% if all_voted %}
             <h2><strong>{{promise.promise_name}}</strong>의 약속 날짜가 정해졌어요!</h2>
         {% else %}
@@ -131,9 +131,9 @@
     .fc .fc-today-button {
         background-color: white !important;      
         color: black !important;                
-        border: 2px solid #A39F95 !important;   
+        border: 1px solid #A39F95 !important;   
         border-radius: 6px !important;
-        padding: 6px 20px !important;
+        /* padding: 6px 20px !important; */
         font-weight: bold !important;
         font-size: 15px !important;
     }
@@ -240,16 +240,17 @@
         border: 1px solid #000000;       /* 검정 테두리 */
         overflow: hidden;                /* 내부 넘침 방지 */
         box-sizing: border-box;          /* 테두리 포함 레이아웃 */
-        padding: 16px;               /* 테두리와 내용 사이 여백 */
+        padding: 30px;               /* 테두리와 내용 사이 여백 */
         background-color: white;
     }
 
     /* 가장 안쪽 테이블의 테두리 없애기 (테두리 잘림 방지) */
     .fc .fc-scrollgrid {
         border: none;
-        border-collapse: separate !important;
-        border-spacing: 16px;  /* 테두리와 셀 간격 */
+        border-collapse: collapse !important;
+        border-spacing: 0;  /* 테두리와 셀 간격 */
         background-color: white;
+        margin-bottom: 3px !important;
     }
     
     /* 요일 헤더 스타일 */
@@ -262,10 +263,17 @@
     .fc-day-today { background-color: transparent !important; }
     .fc-daygrid-day-frame { position: relative; }
     .fc-vote-count {
-        font-size: 0.75rem; font-weight: bold; text-align: center;
-        position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
+        font-size: 0.75rem;
+        font-weight: bold;
+        text-align: center;
+        position: absolute;
+        bottom: 2px;
+        left: 50%;
+        transform: translateX(-50%);
         width: 100%;
     }
+    .fc-vote-count br {display: none;}
+
     /* 평일 색 지정 */
     .fc-col-header-cell:nth-child(2) .fc-col-header-cell-cushion,
     .fc-col-header-cell:nth-child(3) .fc-col-header-cell-cushion,
@@ -314,11 +322,11 @@
     .fc-event.vote-dot {
         background-color: rgba(163, 159, 149, 0.5);
         border-radius: 50%;
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         position: absolute;
-        top: 3px;
-        left: -13px;
+        top: 5px;
+        left: -12px;
         transform: translateX(-50%);
         z-index: 1;
         border: none;
@@ -346,14 +354,14 @@
         /* 컨테이너 풀폭 + 패딩 축소 */
         .container {
             max-width: 100% !important;
-            padding: 16px !important;
+            padding: 10px !important;
         }
 
         /* 마스킹 테이프 크기/위치 */
         .masking_tape {
             width: 40px !important;
             top:  -35px !important;
-            left: 50px !important;
+            left: 50% !important;
             transform: translateX(-50%) rotate(10deg) !important;
         }
 
@@ -369,6 +377,19 @@
             text-align: center !important;
             margin: 1rem 0 !important;
             font-size: 0.95rem !important;
+        }
+
+        .fc-toolbar-title {
+            font-size: 25px !important;
+        }
+
+        .fc-vote-count {
+            bottom: -13px !important;
+        }
+
+        .fc-vote-count  br {
+            display: block;
+            line-height: 1.2;
         }
 
         /* 하단 버튼 */
@@ -455,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (frame && count > 0) {
                 const text = document.createElement("div");
                 text.className = "fc-vote-count";
-                text.innerText = count === totalMembers ? "모두 가능" : `${count}명 가능`;
+                text.innerHTML = count === totalMembers ? `모두 <br>가능` : `${count}명 <br>가능`;
                 text.style.color = count === totalMembers ? "red" : "blue";
                 frame.appendChild(text);
             }

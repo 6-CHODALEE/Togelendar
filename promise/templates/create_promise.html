@@ -372,7 +372,7 @@
         border: none;
         pointer-events: none;
         border-radius: 0 !important;
-        height: 28px;
+        height: 36px;
         display: block;
         position: absolute;
         top: 36px; /* 중앙 아래 위치 조정 */
@@ -383,45 +383,45 @@
 
     .fc-event.selected-day-start {
         background-color: rgba(163, 159, 149, 0.5) !important;
-        border-radius: 50px 0 0 50px !important;
-        height: 28px;
-        width: calc(100% + 25px); /* 셀보다 살짝 길게 */
+        border-radius: 18px 0 0 18px !important;
+        height: 36px;
+        width: calc(100% + 40px); /* 셀보다 살짝 길게 */
         position: absolute;
-        top: 10px;
-        left: -27px;                /* 반 셀 크기만큼 왼쪽으로 이동 */
+        top: 6px;
+        left: -30px;                /* 반 셀 크기만큼 왼쪽으로 이동 */
         z-index: 1;
     }
 
     .fc-event.selected-day-middle {
         background-color: rgba(163, 159, 149, 0.5) !important;
         border-radius: 0 !important;
-        height: 28px;
-        width: calc(100% + 25px);
+        height: 36px;
+        width: calc(100% + 40px);
         position: absolute;
-        top: 10px;
-        left: -27px;
+        top: 6px;
+        left: -30px;
         z-index: 1;
     }
 
     .fc-event.selected-day-end {
         background-color: rgba(163, 159, 149, 0.5) !important;
-        border-radius: 0 50px 50px 0 !important;
-        height: 28px;
-        width: calc(100% + 25px);
+        border-radius: 0 18px 18px 0 !important;
+        height: 36px;
+        width: calc(100% + 40px);
         position: absolute;
-        top: 10px;
-        left: -27px;
+        top: 6px;
+        left: -30px;
         z-index: 1;
     }
     
     .fc-event.selected-day-single {
         background-color: rgba(163, 159, 149, 0.5) !important;
         border-radius: 50% !important;
-        width: 28px;
-        height: 28px;
+        width: 36px;
+        height: 36px;
         position: absolute;
-        top: 10px;              /* 날짜 숫자 위치 기준 수직 조정 */
-        left: -14px;
+        top: 6px;              /* 날짜 숫자 위치 기준 수직 조정 */
+        left: -12px;
         transform: translateX(-50%);
         z-index: 1;
     }
@@ -512,6 +512,10 @@
         /* fullcalendar도 가로 꽉 채우기 */
         #calendar {
             width: 100% !important;
+        }
+
+        .fc-toolbar-title {
+            font-size: 25px !important;
         }
     }
 
