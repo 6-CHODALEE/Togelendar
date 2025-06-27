@@ -142,17 +142,8 @@
   }
 
   .viewfinder {
-    /* 프레임 위쪽은 고정, 이미지 자체 크기만 늘리기 */
-    background-position: center -45px !important;
-
-    background-repeat: no-repeat !important;
-
-    /* 이미지 크기를 컨테이너보다 120% 크게 */
-    background-size: 110% 120% !important;
-
-    /* 높이도 충분히 크게 유지 */
-    height: 500px;          /* 필요에 따라 더 조절 */
-    overflow: visible !important;
+    background-image: none !important;  /* 👈 모바일에서는 배경 제거 */
+    background-color: transparent !important;  /* 필요 시 배경색 초기화 */
   }
 
   /* 나머지 모바일용 스타일… */

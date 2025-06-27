@@ -143,17 +143,15 @@
                     {{ date|date:"j일" }}
                     </div>
                     <div class="calendar-promises-wrapper">
-                    {% for result in weekly_promises|get_item:date %}
-                        <a href="{% url 'community:promise:promise_result'
-                                    community_id=result.promise.community.id
-                                    promise_id=result.promise.id %}"
-                        class="calendar-promise"
-                        style="background-color:{{ result.bg_color }};">
-                        {{ result.promise.promise_name }}
-                        </a>
-                    {% empty %}
-                        <div class="small text-muted">약속 없음</div>
-                    {% endfor %}
+                        {% for result in weekly_promises|get_item:date %}
+                            <a href="/community/{{ result.promise.community.id }}/promise/{{ result.promise.id }}/result/"
+                                class="calendar-promise"
+                                style="background-color:{{ result.bg_color }};">
+                                    {{ result.promise.promise_name }}
+                            </a>
+                        {% empty %}
+                            <div class="small text-muted">약속 없음</div>
+                        {% endfor %}
                     </div>
                 </div>
                 {% endfor %}
@@ -814,6 +812,112 @@ body {
 .mobile-weekday {
   margin-top: 0.1rem;    /* 위쪽 여백도 줄이고 */
   margin-bottom: 0.25rem;
+}
+
+
+@media (max-width: 768px) {
+  .modal {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 90vw !important;
+    max-width: 90vw !important;
+    max-height: 80vh !important;
+    overflow-y: auto !important;
+    background-color: white;
+    border-radius: 12px;
+    padding: 16px !important;
+    box-sizing: border-box;
+    z-index: 1050;
+  }
+
+  .modal-dialog {
+    width: 100% !important;
+    margin: 0 auto !important;
+  }
+
+  .modal-content {
+    width: 100% !important;
+    border-radius: 12px !important;
+    padding: 16px !important;
+    box-sizing: border-box;
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .modal-body {
+    padding: 10px 0 !important;
+  }
+
+  .modal-body ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+  }
+
+  .modal-body li {
+    font-size: 1rem;
+    padding: 10px 16px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    background-color: #f5f5f5;
+    word-break: break-word;
+  }
+
+  .modal-enter-btn,
+  .modal-close-btn {
+    width: 100% !important;
+    margin-top: 10px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  #friendListPopover,
+  #popoverForm {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+
+    width: 90vw !important;
+    max-width: 90vw !important;
+    padding: 20px !important;
+
+
+    background-color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 9999;
+  }
+
+  #friendListPopover .popover-arrow,
+  #popoverForm .popover-arrow {
+    display: none !important;
+  }
+
+  #friendListPopover .list-group-item {
+    font-size: 1rem;
+    padding: 10px 16px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+  }
+
+  #friendListPopover .text-end {
+    text-align: center !important;
+    margin-top: 16px;
+  }
+
+  #friendListPopover button {
+    width: 100%;
+    font-size: 1rem;
+  }
 }
 </style>
 
