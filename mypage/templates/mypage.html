@@ -3,7 +3,7 @@
 {% load custom_filters %}
 
 {% block body %}
-    <div class="row align-items-center mb-4">
+    <div class="row align-items-center mb-4 mx-3">
         <!-- ① 프로필 영역: col-auto -->
         <div class="col-auto d-flex">
             <div class="text-center mb-2">
@@ -45,7 +45,7 @@
         </div>
 
         <!-- ② 달력 영역: col ms-4 -->
-        <div class="col ms-4">
+        <div class="col">
             <div class="mx-auto" style="width:100%; max-width:1400px;">
                 <!-- 데스크탑 전용: 992px 이상에서만 보이는 헤더 -->
                 <div class="desktop-nav d-none d-lg-flex justify-content-between align-items-center mb-1">
@@ -119,8 +119,10 @@
                 </a>
                 </div>
 
-
-                <div class="mobile-weekday text-center mb-1 d-lg-none">
+                
+                <!-- ▼ 모바일 전용 캘린더 시작 -->
+                <div class="calendar-mobile">
+                <div class="mobile-weekday text-center d-lg-none">
                     {% for date in week_dates %}
                         {% if date == base_date %}
                         <span class="fw-bold" style="font-size:1.2rem;">
@@ -129,8 +131,6 @@
                         {% endif %}
                     {% endfor %}
                 </div>
-            <!-- ▼ 모바일 전용 캘린더 시작 -->
-            <div class="calendar-mobile">
 
             <!-- ② 모바일 그리드 -->
             <div class="calendar-grid">
@@ -635,7 +635,6 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 0 -4px;  /* 간격 보정용 (optional) */
 }
 .day-cell {
   flex: 1 1 calc(100%/7);
@@ -645,7 +644,7 @@ body {
   padding: 8px;
   position: relative;
   background: #fff;
-  height: 140px;
+  height: 130px;
 }
 
 .calendar-table td,
@@ -675,21 +674,30 @@ body {
 /* ─── 반응형 스위칭 ─── */
 /* 반응형 스위치 */
 @media (max-width: 992px) {
+  .profile-col {
+    flex: 0 0 200px;
+    max-width: 200px;
+  }
+
+
   /* 데스크탑 테이블 숨기기 */
   .calendar-desktop { display: none !important; }
   /* 모바일 그리드 보이기 */
-  .calendar-mobile { display: block !important; }
+  .calendar-mobile {
+    display: block !important;
+    border: 1px solid black;
+  }
 
   /* 일단 모든 day-cell을 숨깁니다 */
   .calendar-mobile .day-cell {
     display: none;
   }
 
-    .calendar-mobile .day-cell.active {
-        display: block !important;
-        width: 100%;
-        box-sizing: border-box;
-    }
+  .calendar-mobile .day-cell.active {
+      display: block !important;
+      width: 100%;
+      box-sizing: border-box;
+  }
 
   /* 오늘(today)인 셀만 블록으로 */
   .calendar-mobile .day-cell.today:not(.active) {
@@ -802,7 +810,7 @@ body {
 
 /* 모바일용 오늘 요일 */
 .mobile-weekday span {
-  font-size: 0.8rem !important;
+  font-size: 0.9rem !important;
   line-height: 0.5 !important;
 }
 
@@ -810,8 +818,12 @@ body {
   margin-bottom: 0.1rem; /* 아래 여백을 4px 정도로 줄임 */
 }
 .mobile-weekday {
-  margin-top: 0.1rem;    /* 위쪽 여백도 줄이고 */
-  margin-bottom: 0.25rem;
+  display: flex;
+  background-color: #fcf4f4;
+  border-bottom: 1px solid black;
+  height: 40px;
+  justify-content: center;
+  align-items: center;
 }
 
 
@@ -1429,36 +1441,5 @@ function saveColorFromPopup(communityId) {
     }
   });
 }
-
-    // const isMobile = window.innerWidth < 768;
-
-    // const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
-    //   locale: 'ko',
-    //   height: 'auto',
-
-    //   // 화면 크기에 따라 뷰 전환
-    //   initialView: isMobile ? 'dayGridDay' : 'timeGridWeek',
-
-    //   // 항상 좌/중/우에 prev/title/next가 나오도록
-    //   headerToolbar: {
-    //     left: 'prev',
-    //     center: 'title',
-    //     right: 'next',
-    //   },
-
-    //   //뷰별 타이틀 출력 포맷 지정
-    //   views: {
-    //     // 모바일(하루 단위) 뷰
-    //     dayGridDay: {
-    //       titleFormat: { year: 'numeric', month: 'long' }
-    //     },
-    //     // 데스크탑(주 단위) 뷰
-    //     timeGridWeek: {
-    //       titleFormat: { year: 'numeric', month: 'long' }
-    //     }
-    //   },
-    // });
-
-    // calendar.render();
 </script>
 {% endblock %}
