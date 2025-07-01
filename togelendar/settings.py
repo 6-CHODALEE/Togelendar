@@ -64,7 +64,13 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'notification',
     'rest_framework',
+    'django_extensions',
 ]
+
+GRAPH_MODELS = {
+    'all_applications': True,
+    'group_models': True,
+}
 
 SITE_ID = 1
 

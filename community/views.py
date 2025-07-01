@@ -345,7 +345,7 @@ def delete_community(request, community_id):
     community = get_object_or_404(CreateCommunity, id=community_id)
 
     if request.method == 'POST':
-        if request.user.username == community.create_user:  # 보안 check
+        if request.user == community.create_user:  # 보안 check
             community.delete()  # 관련된 모든 데이터 CASCADE 삭제
             return redirect('mypage:mypage', username=request.user.username)  # 삭제 후 이동할 페이지
         else:
