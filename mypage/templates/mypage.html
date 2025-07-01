@@ -89,9 +89,7 @@
                         </div>
                         <div class="calendar-promises-wrapper">
                             {% for result in weekly_promises|get_item:date %}
-                            <a href="{% url 'community:promise:promise_result'
-                                        community_id=result.promise.community.id
-                                        promise_id=result.promise.id %}"
+                            <a href="{% url 'community:promise:promise_result' community_id=result.promise.community.id promise_id=result.promise.id %}"
                                 class="calendar-promise"
                                 style="background-color:{{ result.bg_color }};">
                                 {{ result.promise.promise_name }}
@@ -208,8 +206,10 @@
                     {% for req in received_requests %}
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span>{{ req.from_user.username }}님이 요청을 보냈습니다.</span>
-                            <button class="btn btn-sm btn-success accept-btn" data-username="{{ req.from_user.username }}">수락하기</button>
-                            <button class="btn btn-sm btn-danger reject-btn" data-username="{{ req.from_user.username }}">거절하기</button>
+                            <div>
+                              <button class="btn btn-sm btn-success accept-btn" data-username="{{ req.from_user.username }}">수락</button>
+                              <button class="btn btn-sm btn-danger reject-btn" data-username="{{ req.from_user.username }}">거절</button>
+                            </div>
                         </div>
                     {% endfor %}
                 {% else %}
@@ -243,7 +243,7 @@
     <!--커뮤니티 가입 요청 팝업-->
     <div id="invitePopover" class="popover-form" style="display: none;">
         <div class="popover-arrow"></div>
-        <h6 class="fw-bold">커뮤니티 가입 요청</h6>
+        <h6 class="fw-bold">하뮤니티 가입 요청</h6>
         {% for invite in invite_requests %}
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <span>{{invite.community.community_name}} (by {{invite.from_user.username}})</span>

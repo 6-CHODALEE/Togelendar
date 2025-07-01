@@ -62,61 +62,70 @@ def get_nearby_places_all_types(lat, lng, api_key, radius=500):
     return all_places
 
 
-def find_optimal_midpoint(points, api_key, standard_time_gap=20, sleep_seconds=10):
-    url = 'https://api.odsay.com/v1/api/searchPubTransPathT'
-    mid_point = np.sum(list(points.values()), axis=0) / len(points)
-    unit_vecs = {}
-    vecs_weight = {}
-    defult_time = {key: 0 for key in points.keys()}
-    trial = 1
+def find_optimal_midpoint(points, api_key, standard_time_gap=15, sleep_seconds=10):
+    # url = 'https://api.odsay.com/v1/api/searchPubTransPathT'
+    # mid_point = np.sum(list(points.values()), axis=0) / len(points)
+    # unit_vecs = {}
+    # vecs_weight = {}
+    # defult_time = {key: 0 for key in points.keys()}
+    # trial = 1
 
-    while True:
-        end_lat, end_lon = mid_point
+    # while True:
+    #     end_lat, end_lon = mid_point
 
-        for name, value in points.items():
-            start_lat, start_lon = points[name]
-            params = {
-                'SX': float(start_lon),
-                'SY': float(start_lat),
-                'EX': float(end_lon),
-                'EY': float(end_lat),
-                'apiKey': api_key
-            }
+    #     for name, value in points.items():
+    #         start_lat, start_lon = points[name]
+    #         params = {
+    #             'SX': float(start_lon),
+    #             'SY': float(start_lat),
+    #             'EX': float(end_lon),
+    #             'EY': float(end_lat),
+    #             'apiKey': api_key
+    #         }
 
-            response = requests.get(url, params=params)
-            data = response.json()
+    #         response = requests.get(url, params=params)
+    #         data = response.json()
+    #         try:
+    #             mid_point, default_time = find_optimal_midpoint(points, api_key)
+    #         except Exception as e:
+    #             # 여기 status=500 대신 status=200 또는 400으로!
+    #             return JsonResponse({
+    #                 'success': False,
+    #                 'message': f'중간 지점 계산 실패: {str(e)}'
+    #             }, status=200)  # 또는 400
 
-            # 최단 시간 찾기
-            short_time = data['result']['path'][0]['info']['totalTime']
-            for i in range(len(data['result']['path'])):
-                time_cost = data['result']['path'][i]['info']['totalTime']
-                if time_cost < short_time:
-                    short_time = time_cost
+    #         # 최단 시간 찾기20
+    #         short_time = data['result']['path'][0]['info']['totalTime']
+    #         for i in range(len(data['result']['path'])):
+    #             time_cost = data['result']['path'][i]['info']['totalTime']
+    #             if time_cost < short_time:
+    #                 short_time = time_cost
 
-            defult_time[name] = short_time
+    #         defult_time[name] = short_time
 
-        time_gap = max(defult_time.values()) - min(defult_time.values())
-        print(f'[{trial}회차] 소요 시간 차이: {time_gap}분')
+    #     time_gap = max(defult_time.values()) - min(defult_time.values())
+    #     print(f'[{trial}회차] 소요 시간 차이: {time_gap}분')
 
-        if time_gap <= standard_time_gap:
-            print(f"최종 중간지점: {mid_point}")
-            return mid_point, defult_time
+    #     if time_gap <= standard_time_gap:
+    #         print(f"최종 중간지점: {mid_point}")
+    #         return mid_point, defult_time
 
-        # 소요 시간 차이가 크면 중간지점 보정
-        for name, point in points.items():
-            vec = point - mid_point
-            norm = np.linalg.norm(vec)
-            unit_vec = vec / norm if norm != 0 else np.array([0, 0])
-            unit_vecs[name] = unit_vec
+    #     # 소요 시간 차이가 크면 중간지점 보정
+    #     for name, point in points.items():
+    #         vec = point - mid_point
+    #         norm = np.linalg.norm(vec)
+    #         unit_vec = vec / norm if norm != 0 else np.array([0, 0])
+    #         unit_vecs[name] = unit_vec
 
-        for name, vec in unit_vecs.items():
-            vecs_weight[name] = vec * defult_time[name]
+    #     for name, vec in unit_vecs.items():
+    #         vecs_weight[name] = vec * defult_time[name]
 
-        avg_vec = sum(vecs_weight.values()) / len(points)
-        mid_point += (avg_vec * 0.01)
+    #     avg_vec = sum(vecs_weight.values()) / len(points)
+    #     mid_point += (avg_vec * 0.01)
 
-        trial += 1
-        time.sleep(sleep_seconds)
+    #     trial += 1
+    #     time.sleep(sleep_seconds)
+    pass
 
 
 from django.http import JsonResponse

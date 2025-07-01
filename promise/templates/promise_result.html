@@ -460,6 +460,10 @@ document.addEventListener('DOMContentLoaded', function () {
         locale: 'ko',
         height: 'auto',
         initialDate: allVotes.length > 0 ? allVotes[0].date : undefined,
+        buttonText: {
+                    today: '오늘로 가기'  
+                },
+        
         events: allVotes.map(item => ({
             start: item.date,
             end: item.date,

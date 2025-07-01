@@ -25,7 +25,7 @@ class ProfileUpdateForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'profile_image', 'postcode', 'address']
+        fields = ['username', 'profile_image', 'postcode', 'address']
         widgets = {
             'username': forms.TextInput(attrs={'readonly': 'readonly'}),  # 🔒 이름은 읽기 전용
         }
