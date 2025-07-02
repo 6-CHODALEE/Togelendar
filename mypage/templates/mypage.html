@@ -965,9 +965,18 @@ function renderSearchResults(users) {
         const addButton = document.createElement("button");
         addButton.className = "btn btn-sm";
 
+        // 상태에 따라 버튼 처리
         if (user.request_status === 'pending') {
             addButton.textContent = "요청 보냄";
             addButton.classList.add('btn-secondary');
+            addButton.disabled = true;
+        } else if (user.request_status === 'accepted') {
+            addButton.textContent = "이미 친구입니다";
+            addButton.classList.add('btn-success');
+            addButton.disabled = true;
+        } else if (user.request_status === 'incoming') {
+            addButton.textContent = "상대 요청 수락 대기 중";
+            addButton.classList.add('btn-warning');
             addButton.disabled = true;
         } else {
             addButton.textContent = "요청보내기";

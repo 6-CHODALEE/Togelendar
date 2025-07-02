@@ -193,9 +193,22 @@ def search_friends(request, username):
             if is_friend:
                 continue
 
+            # 정확한 상태 확인 (pending, rejected, None)
+            request_obj = FriendRequest.objects.filter(
+                Q(from_user=request.user, to_user=to_user) |
+                Q(from_user=to_user, to_user=request.user)
+            ).first()
+
+            # 기본 None
             request_status = None
-            if FriendRequest.objects.filter(from_user=request.user, to_user=to_user).exists():
-                request_status = 'pending'
+
+            if request_obj:
+                if request_obj.from_user == request.user:
+                    # 내가 요청 보낸 경우
+                    request_status = request_obj.status
+                elif request_obj.to_user == request.user and request_obj.status == 'pending':
+                    # 상대방이 나에게 보낸 요청 → 나는 아직 수락 안함
+                    request_status = 'incoming'
 
             results.append({
                 'username': to_user.username,
@@ -472,7 +485,7 @@ def set_user_community_color(request, username, community_id):
             color = data.get("color")
             community = CreateCommunity.objects.get(id=community_id)
 
-            # ✅ 여기만 'mypage'로 수정!
+
             CommunityColor = apps.get_model('mypage', 'CommunityColor')
 
             color_obj, created = CommunityColor.objects.get_or_create(

@@ -27,7 +27,7 @@ def community_detail(request, community_id):
     if str(request.user) not in community_members:
         return render(request, '403.html', status=403)
 
-    promises = Promise.objects.filter(community=community)
+    promises = Promise.objects.filter(community=community).order_by('start_date')
 
     # 앨범 대표사진
     main_photos = {}
