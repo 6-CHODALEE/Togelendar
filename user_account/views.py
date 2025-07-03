@@ -88,3 +88,4 @@ def login(request):
 def logout(request):
     auth_logout(request)
     return redirect('index:index')
+
