@@ -10,8 +10,8 @@ import os
 # Create your models here.
 class CommunityMember(models.Model):
     community_name = models.ForeignKey(CreateCommunity, on_delete=models.CASCADE)
-    create_user = models.ForeignKey(User, to_field = 'username',on_delete=models.CASCADE)
-    member = models.CharField(max_length=100)
+    create_user = models.ForeignKey(User, to_field = 'username', on_delete=models.CASCADE)
+    member = models.CharField(max_length=100, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.member} in {self.community_name} (created by {self.create_user})"
