@@ -65,7 +65,7 @@
     overflow: hidden;
     border-radius: 12px;
 
-    /* (1) REC 프레임 배경 */
+    /* REC 프레임 배경 */
     background-image: url("{% static 'index/images/rec_frame.png' %}");
     background-size: cover;
     background-position: center;
@@ -131,9 +131,8 @@
 
 
 
-/* ───── 기존 스타일 아래에 추가 ───── */
+/* 모바일 버전 */
 @media (max-width: 768px) {
-  /* (2) body 배경이 사라졌다면 다시 선언 */
   body {
     background-image: url("{% static 'index/images/white_background.jpg' %}") !important;
     background-size: cover;
@@ -142,11 +141,11 @@
   }
 
   .viewfinder {
-    background-image: none !important;  /* 모바일에서는 배경 제거 */
-    background-color: transparent !important;  /* 필요 시 배경색 초기화 */
+    background-image: none !important;  
+    background-color: transparent !important; 
   }
 
-  /* 나머지 모바일용 스타일 */
+
   .login-wrapper {
     margin-top: 0;
     height: 300px !important;

@@ -212,7 +212,7 @@ def promise_result(request, community_id, promise_id):
     ]
 
     selected_type = request.GET.get('type', 'all')
-    # 중복 제거 - 딱 한 번만 호출
+    # 중복 제거
     promise_result = PromiseResult.objects.filter(promise=promise).first()
 
     if not promise_result:
@@ -238,7 +238,7 @@ def promise_result(request, community_id, promise_id):
 
         places_json = json.dumps(places)
 
-    # is_location_decided 계산 (중복 제거 후)
+    # is_location_decided 계산
     is_location_decided = (
         promise_result is not None and
         (promise_result.center_latitude != 0 or promise_result.center_longitude != 0)
@@ -281,7 +281,7 @@ def no_place_promise(request, community_id):
         grouped_promises[result.promise].append(result)
 
     context = {
-        'grouped_promises': grouped_promises.items(),  # (Promise 객체, [PromiseResult...])
+        'grouped_promises': grouped_promises.items(),  
         'community_id': community_id,
     }
     return render(request, 'no_place_promise.html', context)
@@ -297,7 +297,7 @@ from .models import Promise
 def delete_promise(request, community_id, promise_id):
     promise = get_object_or_404(Promise, id=promise_id, community_id=community_id)
 
-    # 선택적으로 작성자만 삭제하도록 제한하려면 아래 코드도 사용 가능
+    
     if promise.promise_creator != request.user.username:
         return HttpResponseForbidden("삭제 권한이 없습니다.")
 

@@ -19,114 +19,109 @@ load_dotenv()
 
 
 def get_nearby_places_all_types(lat, lng, api_key, radius=500):
-    # import requests
+    import requests
 
-    # place_types = ['cafe', 'convenience_store', 'subway_station', 'restaurant']
-    # all_places = []
+    place_types = ['cafe', 'convenience_store', 'subway_station', 'restaurant']
+    all_places = []
 
-    # for place_type in place_types:
-    #     try:
-    #         url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
-    #         params = {
-    #             "location": f"{lat},{lng}",
-    #             "radius": radius,
-    #             "type": place_type,
-    #             "key": api_key,
-    #             "language": "ko",  
-    #         }
+    for place_type in place_types:
+        try:
+            url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+            params = {
+                "location": f"{lat},{lng}",
+                "radius": radius,
+                "type": place_type,
+                "key": api_key,
+                "language": "ko",  
+            }
 
-    #         response = requests.get(url, params=params)
-    #         data = response.json()
+            response = requests.get(url, params=params)
+            data = response.json()
 
-    #         if data.get("status") == "OK":
-    #             for place in data["results"]:
-    #                 all_places.append({
-    #                     'name': place['name'],
-    #                     'address': place.get('vicinity'),
-    #                     'rating': place.get('rating', 0),  # None 방지용 기본값
-    #                     'type': place_type,
-    #                     'location': place['geometry']['location']
-    #                 })
-    #         elif data.get("status") == "ZERO_RESULTS":
-    #             print(f"[{place_type}] 반경 내 결과 없음.")
-    #         else:
-    #             print(f"Places API Error ({place_type}):", data.get("error_message", data.get("status", "알 수 없는 오류")))
+            if data.get("status") == "OK":
+                for place in data["results"]:
+                    all_places.append({
+                        'name': place['name'],
+                        'address': place.get('vicinity'),
+                        'rating': place.get('rating', 0),  # None 방지용 기본값
+                        'type': place_type,
+                        'location': place['geometry']['location']
+                    })
+            elif data.get("status") == "ZERO_RESULTS":
+                print(f"[{place_type}] 반경 내 결과 없음.")
+            else:
+                print(f"Places API Error ({place_type}):", data.get("error_message", data.get("status", "알 수 없는 오류")))
 
-    #     except Exception as e:
-    #         print(f"[{place_type}] 요청 중 오류 발생:", e)
+        except Exception as e:
+            print(f"[{place_type}] 요청 중 오류 발생:", e)
 
-    # # ⭐ rating 기준 내림차순 정렬
-    # all_places.sort(key=lambda x: x.get('rating', 0), reverse=True)
+    # rating 기준 내림차순 정렬
+    all_places.sort(key=lambda x: x.get('rating', 0), reverse=True)
 
-    # print("총 검색된 장소 수:", len(all_places))
-    # return all_places
-    pass
+    print("총 검색된 장소 수:", len(all_places))
+    return all_places
 
 
-def find_optimal_midpoint(points, api_key, standard_time_gap=15, sleep_seconds=10):
-    # url = 'https://api.odsay.com/v1/api/searchPubTransPathT'
-    # mid_point = np.sum(list(points.values()), axis=0) / len(points)
-    # unit_vecs = {}
-    # vecs_weight = {}
-    # defult_time = {key: 0 for key in points.keys()}
-    # trial = 1
 
-    # while True:
-    #     end_lat, end_lon = mid_point
+def find_optimal_midpoint(points, api_key, standard_time_gap=20, sleep_seconds=10):
+    url = 'https://api.odsay.com/v1/api/searchPubTransPathT'
+    mid_point = np.sum(list(points.values()), axis=0) / len(points)
+    unit_vecs = {}
+    vecs_weight = {}
+    defult_time = {key: 0 for key in points.keys()}
+    trial = 1
 
-    #     for name, value in points.items():
-    #         start_lat, start_lon = points[name]
-    #         params = {
-    #             'SX': float(start_lon),
-    #             'SY': float(start_lat),
-    #             'EX': float(end_lon),
-    #             'EY': float(end_lat),
-    #             'apiKey': api_key
-    #         }
+    max_trials = 3
+    while trial <= max_trials:
+        end_lat, end_lon = mid_point
 
-    #         response = requests.get(url, params=params)
-    #         data = response.json()
-    #         try:
-    #             mid_point, default_time = find_optimal_midpoint(points, api_key)
-    #         except Exception as e:
-    #             # 여기 status=500 대신 status=200 또는 400으로!
-    #             return JsonResponse({
-    #                 'success': False,
-    #                 'message': f'중간 지점 계산 실패: {str(e)}'
-    #             }, status=200)  # 또는 400
+        for name, value in points.items():
+            start_lat, start_lon = points[name]
+            params = {
+                'SX': float(start_lon),
+                'SY': float(start_lat),
+                'EX': float(end_lon),
+                'EY': float(end_lat),
+                'apiKey': api_key
+            }
 
-    #         # 최단 시간 찾기20
-    #         short_time = data['result']['path'][0]['info']['totalTime']
-    #         for i in range(len(data['result']['path'])):
-    #             time_cost = data['result']['path'][i]['info']['totalTime']
-    #             if time_cost < short_time:
-    #                 short_time = time_cost
+            response = requests.get(url, params=params)
+            data = response.json()
 
-    #         defult_time[name] = short_time
+            # 최단 시간 찾기
+            short_time = data['result']['path'][0]['info']['totalTime']
+            for i in range(len(data['result']['path'])):
+                time_cost = data['result']['path'][i]['info']['totalTime']
+                if time_cost < short_time:
+                    short_time = time_cost
 
-    #     time_gap = max(defult_time.values()) - min(defult_time.values())
-    #     print(f'[{trial}회차] 소요 시간 차이: {time_gap}분')
+            defult_time[name] = short_time
 
-    #     if time_gap <= standard_time_gap:
-    #         print(f"최종 중간지점: {mid_point}")
-    #         return mid_point, defult_time
+        time_gap = max(defult_time.values()) - min(defult_time.values())
+        print(f'[{trial}회차] 소요 시간 차이: {time_gap}분')
 
-    #     # 소요 시간 차이가 크면 중간지점 보정
-    #     for name, point in points.items():
-    #         vec = point - mid_point
-    #         norm = np.linalg.norm(vec)
-    #         unit_vec = vec / norm if norm != 0 else np.array([0, 0])
-    #         unit_vecs[name] = unit_vec
+        if time_gap <= standard_time_gap:
+            print(f"최종 중간지점: {mid_point}")
+            return mid_point, defult_time
 
-    #     for name, vec in unit_vecs.items():
-    #         vecs_weight[name] = vec * defult_time[name]
+        # 소요 시간 차이가 크면 중간지점 보정
+        for name, point in points.items():
+            vec = point - mid_point
+            norm = np.linalg.norm(vec)
+            unit_vec = vec / norm if norm != 0 else np.array([0, 0])
+            unit_vecs[name] = unit_vec
 
-    #     avg_vec = sum(vecs_weight.values()) / len(points)
-    #     mid_point += (avg_vec * 0.01)
+        for name, vec in unit_vecs.items():
+            vecs_weight[name] = vec * defult_time[name]
 
-    #     trial += 1
-    #     time.sleep(sleep_seconds)
-    pass
+        avg_vec = sum(vecs_weight.values()) / len(points)
+        mid_point += (avg_vec * 0.01)
+
+        trial += 1
+        time.sleep(sleep_seconds)
+
+
+
 
 
 from django.http import JsonResponse
@@ -134,70 +129,69 @@ from django.urls import reverse
 
 @login_required
 def location(request, community_id, promise_id):
-    # # 1. POST 요청만 허용
-    # if request.method != 'POST':
-    #     return JsonResponse({'success': False, 'message': '잘못된 요청입니다. (POST만 허용)'}, status=400)
+    # 1. POST 요청만 허용
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': '잘못된 요청입니다. (POST만 허용)'}, status=400)
 
-    # # 2. 기본 데이터 준비
-    # community = get_object_or_404(CreateCommunity, id=community_id)
-    # promise = get_object_or_404(Promise, id=promise_id, community=community)
-    # # 6. 투표 완료 여부 확인
-    # promise_result = PromiseResult.objects.filter(promise=promise).first()
-    # print(promise_result)
-    # if not promise_result:
-    #     return JsonResponse({'success': False, 'message': '모든 인원이 투표를 완료한 뒤 장소를 정해주세요.'}, status=400)
+    # 2. 기본 데이터 준비
+    community = get_object_or_404(CreateCommunity, id=community_id)
+    promise = get_object_or_404(Promise, id=promise_id, community=community)
+    # 6. 투표 완료 여부 확인
+    promise_result = PromiseResult.objects.filter(promise=promise).first()
+    print(promise_result)
+    if not promise_result:
+        return JsonResponse({'success': False, 'message': '모든 인원이 투표를 완료한 뒤 장소를 정해주세요.'}, status=400)
 
-    # # 3. 커뮤니티 멤버들 좌표 수집
-    # community_members = CommunityMember.objects.filter(community_name=community)
-    # member_usernames = community_members.values_list('member', flat=True)
-    # members = User.objects.filter(username__in=member_usernames)
+    # 3. 커뮤니티 멤버들 좌표 수집
+    community_members = CommunityMember.objects.filter(community_name=community)
+    member_usernames = community_members.values_list('member', flat=True)
+    members = User.objects.filter(username__in=member_usernames)
 
-    # members_with_coords = []
-    # for member in members:
-    #     if member.latitude is not None and member.longitude is not None:
-    #         members_with_coords.append({
-    #             'username': member.username,
-    #             'latitude': member.latitude,
-    #             'longitude': member.longitude,
-    #             'address': member.address
-    #         })
+    members_with_coords = []
+    for member in members:
+        if member.latitude is not None and member.longitude is not None:
+            members_with_coords.append({
+                'username': member.username,
+                'latitude': member.latitude,
+                'longitude': member.longitude,
+                'address': member.address
+            })
 
-    # # 4. 위치 데이터 없으면 중단
-    # if not members_with_coords:
-    #     return JsonResponse({'success': False, 'message': '위치 정보가 등록된 멤버가 없습니다.'}, status=400)
+    # 4. 위치 데이터 없으면 중단
+    if not members_with_coords:
+        return JsonResponse({'success': False, 'message': '위치 정보가 등록된 멤버가 없습니다.'}, status=400)
 
-    # points = {
-    #     m['username']: np.array([m['latitude'], m['longitude']])
-    #     for m in members_with_coords
-    # }
+    points = {
+        m['username']: np.array([m['latitude'], m['longitude']])
+        for m in members_with_coords
+    }
 
-    # # 5. API 키 준비
-    # api_key = os.getenv('ODsay_APIKEY')
-    # Google_api_key = os.getenv('Google_API')
+    # 5. API 키 준비
+    api_key = os.getenv('ODsay_APIKEY')
+    Google_api_key = os.getenv('Google_API')
 
 
-    # find_optimal_midpoint(points, api_key)
-    # # 7. 중간지점 계산
-    # try:
-    #     mid_point, default_time = find_optimal_midpoint(points, api_key)
-    # except Exception as e:
-    #     return JsonResponse({'success': False, 'message': f'중간 지점 계산 실패: {str(e)}'}, status=500)
 
-    # # 8. 장소 정보 조회
-    # try:
-    #     places = get_nearby_places_all_types(lat=mid_point[0], lng=mid_point[1], api_key=Google_api_key)
-    # except Exception as e:
-    #     return JsonResponse({'success': False, 'message': f'장소 데이터 불러오기 실패: {str(e)}'}, status=500)
+    # 7. 중간지점 계산
+    try:
+        mid_point, default_time = find_optimal_midpoint(points, api_key)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'중간 지점 계산 실패: {str(e)}'}, status=500)
 
-    # # 9. DB 저장
-    # promise_result.center_latitude = float(mid_point[0])
-    # promise_result.center_longitude = float(mid_point[1])
-    # promise_result.places_json = json.dumps(places, ensure_ascii=False)
-    # promise_result.save()
+    # 8. 장소 정보 조회
+    try:
+        places = get_nearby_places_all_types(lat=mid_point[0], lng=mid_point[1], api_key=Google_api_key)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'장소 데이터 불러오기 실패: {str(e)}'}, status=500)
 
-    # # 10. 성공 응답 → JS 리디렉션 처리
-    # return JsonResponse({
-    #     "success": True,
-    #     "redirect_url": reverse("community:promise:promise_result", args=[community_id, promise_id])
-    # })
-    pass
+    # 9. DB 저장
+    promise_result.center_latitude = float(mid_point[0])
+    promise_result.center_longitude = float(mid_point[1])
+    promise_result.places_json = json.dumps(places, ensure_ascii=False)
+    promise_result.save()
+
+    # 10. 성공 응답 → JS 리디렉션 처리
+    return JsonResponse({
+        "success": True,
+        "redirect_url": reverse("community:promise:promise_result", args=[community_id, promise_id])
+    })

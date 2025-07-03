@@ -257,7 +257,7 @@
     color: black;
 }
 
-/* 모바일 */
+/* 모바일 버전 */
 @media (max-width: 768px) {
     /* 좌웅 영역을 컬럼으로 쌓기 */
     .d-flex.mt-4 {
@@ -270,7 +270,7 @@
         margin-left: 0 !important;
     }
 
-    /* 썸네일만 담은 gallery에 여백 조정 -> 업로드한 사진 여백 조정 */
+
     #gallery {
         display: flex !important;
         flex-wrap: wrap !important;
@@ -334,7 +334,7 @@
                     document.getElementById('albumMainPhotoBtn').style.display = 'none';
                     document.getElementById('commentBox').style.display = 'none';
 
-                    // 썸네일도 삭제 (선택사항)
+
                     const thumbnail = document.querySelector(`.album-image[data-photo-id="${selectedPhotoId}"]`);
                     if (thumbnail) thumbnail.remove();
 
@@ -567,7 +567,7 @@
         });
 
 
-        // 댓글 등록(POST)
+        // 댓글 등록
         commentForm.addEventListener("submit", function (e) {
             e.preventDefault();
             const content = commentInput.value.trim();

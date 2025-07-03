@@ -1,4 +1,4 @@
-# # ✅ 수정된 elasticsearch_utils.py
+# # 수정된 elasticsearch_utils.py
 # from django.conf import settings
 
 # ES_CLIENT = settings.ES_CLIENT  # settings.py에서 정의한 ES_CLIENT 가져오기

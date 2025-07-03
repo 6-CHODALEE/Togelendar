@@ -204,30 +204,29 @@
         }
 
         .home-wrapper {
-            /* ① 데스크탑 기준 폭 (예: 1200px) 을 유지 */
+            /* 데스크탑 기준 폭 유지 */
             width: 1200px;
 
-            /* ② 모바일 화면 기준으로 가운데 배치 */
+            /* 모바일 화면 기준으로 가운데 배치 */
             position: absolute;
             top: 35%;
             left: 50%;
             transform-origin: center center;
 
-            /* ③ 화면에 딱 맞도록 축소—값은 테스트 후 조절 */
-            /*    예: 100vw / 1200px = 0.3125, 폰마다 차이 있으니 약간 올려도 괜찮음 */
+            /* 화면에 딱 맞도록 축소—값은 테스트 후 조절 */
             transform: translate(-50%, -50%) scale(0.35);
         }
 
         .home-text {
-            width: 600px;          /* 모바일에서 텍스트 라인 길이 최대 260px 정도 */
-            max-width: 80%;        /* 화면이 더 좁으면 80% 폭까지 줄어들게 */
+            width: 600px;          
+            max-width: 80%;        
             margin: 0 auto;        /* 가운데 정렬 */
             
-            /* ② 폰트 크기/줄간격 재조정 */
+            /* 폰트 크기/줄간격 재조정 */
             font-size: 1.9rem;     /* 원하는 크기로 */
             line-height: 1.6;      /* 줄 간격을 폰트 크기에 비례하여 */
             
-            /* ③ 절대 위치/회전이 걸려있는 부모에 영향 받지 않도록 별도 transform 초기화 */
+            /* 절대 위치/회전이 걸려있는 부모에 영향 받지 않도록 별도 transform 초기화 */
             transform: none;       
             position: relative;    
             top: 0; left: 0;

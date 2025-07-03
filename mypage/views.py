@@ -87,7 +87,7 @@ def mypage(request, username):
                 weekly_promises[current_date].append(result)
             current_date += timedelta(days=1)
 
-    # ✅ 커뮤니티별 사용자 색상 불러오기
+    # 커뮤니티별 사용자 색상 불러오기
     CommunityColor = apps.get_model('mypage', 'CommunityColor')
     user_colors = {
         cc.community_id: cc.custom_color
@@ -216,7 +216,7 @@ def search_friends(request, username):
                 'request_status': request_status,
             })
 
-    # ✅ Ajax 요청이면 JSON 응답
+    # Ajax 요청이면 JSON 응답
     if is_ajax:
         return JsonResponse(results, safe=False)
 

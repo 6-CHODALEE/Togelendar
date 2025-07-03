@@ -555,7 +555,7 @@
                     return { html: String(arg.date.getDate()) };  // 숫자만 출력
                 },
                 dayCellDidMount: function(info) {
-                    const dateStr = info.date.toISOString().split('T')[0]; // yyyy-mm-dd 형태로
+                    const dateStr = info.date.toISOString().split('T')[0]; // yyyy-mm-dd 형태
                     const events = calendar.getEvents().filter(e =>
                         e.classNames.includes('selected-day') &&
                         e.startStr === dateStr
@@ -577,7 +577,7 @@
                     if (!end || startStr === endStr) {
                         info.el.classList.add('selected-day-single');
                     } else {
-                        // FullCalendar는 각 셀마다 event div를 넣어줌 → className으로 구분
+
                         if (info.el.classList.contains('fc-event-start')) {
                             info.el.classList.add('selected-day-start');
                         } else if (info.el.classList.contains('fc-event-end')) {

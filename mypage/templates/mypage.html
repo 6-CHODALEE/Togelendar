@@ -4,7 +4,7 @@
 
 {% block body %}
     <div class="row align-items-center mb-4 mx-3">
-        <!-- ① 프로필 영역: col-auto -->
+        <!-- 프로필 영역: col-auto -->
         <div class="col-auto d-flex">
             <div class="text-center mb-2">
             <div class="profile-image-wrapper position-relative">
@@ -44,7 +44,7 @@
             </div>
         </div>
 
-        <!-- ② 달력 영역: col ms-4 -->
+        <!-- 달력 영역: col ms-4 -->
         <div class="col">
             <div class="mx-auto" style="width:100%; max-width:1400px;">
                 <!-- 데스크탑 전용: 992px 이상에서만 보이는 헤더 -->
@@ -118,7 +118,7 @@
                 </div>
 
                 
-                <!-- ▼ 모바일 전용 캘린더 시작 -->
+                <!-- 모바일 전용 캘린더 시작 -->
                 <div class="calendar-mobile">
                 <div class="mobile-weekday text-center d-lg-none">
                     {% for date in week_dates %}
@@ -130,7 +130,7 @@
                     {% endfor %}
                 </div>
 
-            <!-- ② 모바일 그리드 -->
+            <!-- 모바일 그리드 -->
             <div class="calendar-grid">
                 {% for date in week_dates %}
                 <div class="day-cell 
@@ -688,7 +688,7 @@ body {
     border: 1px solid black;
   }
 
-  /* 일단 모든 day-cell을 숨깁니다 */
+  /* 일단 모든 day-cell을 숨김 */
   .calendar-mobile .day-cell {
     display: none;
   }
@@ -741,7 +741,7 @@ body {
     width: 100px !important;
     height: 100px !important;
   }
-  /* 편집(✎) 버튼 */
+  /* 편집 버튼 */
   .edit-profile-button {
     width: 24px !important;
     height: 24px !important;
@@ -767,7 +767,7 @@ body {
     font-size: 0.75rem !important;
   }
 
-  /* 프로필 영역 간격도 살짝 줄이면 더 깔끔합니다 */
+  /* 프로필 영역 간격도 살짝 줄이면 더 깔끔 */
   .profile-image-wrapper {
     margin-bottom: 0.5rem;
   }
@@ -1106,7 +1106,7 @@ if (jsonDataElement) {
     }
 }
 
-// 요청보내기 Ajax 함수 (이 부분 새로 추가됨!)
+// 요청보내기 Ajax 함수 
 function sendFriendRequest(nickname, button) {
     fetch(`/mypage/${currentUsername}/friend/request/`, {
         method: 'POST',

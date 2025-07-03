@@ -38,7 +38,7 @@ urlpatterns = [
 
 def custom_404_view(request, exception):
     if not request.user.is_authenticated:
-        return redirect('account:login')  # 너가 정의한 login 뷰 name 사용
+        return redirect('account:login') 
     return render(request, '403.html', status=403)
 
 handler404 = custom_404_view

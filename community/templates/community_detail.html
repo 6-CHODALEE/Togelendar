@@ -465,11 +465,11 @@
         border-bottom: 1px solid #888;
     }
 
-    /* 모바일 */
+    /* 모바일 버전 */
     @media (max-width: 768px) {
         /* 커뮤니티 대표사진/정보 수정 팝업 공통 설정 */
         .modal-overlay {
-            /* 전체 화면을 덮되, 스크롤 가능하게 */
+            /* 전체 화면을 덮고 스크롤 가능하게 */
             position: absolute;
             top: 0; left: 0;
             width: 100vw;  
@@ -500,7 +500,7 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.2) !important;
         }
 
-        /* 앨범 박스 자체 패딩 -> 약간 줄여서 이미지 공간 더 확보 */
+        /* 앨범 박스 자체 패딩 */
         .album-box {
             padding: 10px;
         }
@@ -889,7 +889,7 @@
             editInfoOverlay.style.display = "flex";
             editInfoModal.style.display = "block";
 
-             // 핵심 부분: 전체 페이지 높이를 modal-overlay에 설정
+
             editInfoOverlay.style.height = document.documentElement.scrollHeight + "px";
     
 

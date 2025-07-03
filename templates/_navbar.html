@@ -2,7 +2,7 @@
 
 <nav class="custom-navbar">
   <div class="navbar-container">
-    <!-- 1) 햄버거 토글 버튼 추가 -->
+    <!-- 햄버거 토글 버튼 추가 -->
     <button id="nav-toggle" class="nav-toggle" aria-label="메뉴 열기">☰</button>
     <a class="logo" href="{% url 'index:index' %}">Togelendar</a>
     <div class="nav-links">
@@ -179,14 +179,14 @@
   }
 
   .nav-toggle {
-  display: none;          /* 기본에선 숨김 */
+  display: none;         
   font-size: 1.5rem;
   background: none;
   border: none;
   cursor: pointer;
 }
 
-/* 모바일 전용 */
+/* 모바일 버전 */
 @media (max-width: 768px) {
   .navbar-container {
     flex-wrap: wrap;
@@ -243,7 +243,7 @@
   let notificationPage = 1;
   let isLoading = false;
   let hasMoreNotifications = true;
-  let firstRenderDone = false; // 처음 로딩인지 판단
+  let firstRenderDone = false; 
 
   function getCookie(name) {
     let cookieValue = null;
@@ -368,18 +368,18 @@
       window.location.href = targetUrl;
     }).catch(err => {
       console.error('알림 읽음 처리 실패:', err);
-      //실퍃도 이동은 진행
+      //실패해도 이동은 진행
       window.location.href = targetUrl;
     });
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    // 1) 알림 리스트가 실제 있으면 호출
+    // 알림 리스트가 실제 있으면 호출
     if (document.getElementById('notification-list')) {
       fetchNotifications();
     }
 
-    // 2) 햄버거 버튼이 있으면 클릭 핸들러 등록
+    // 햄버거 버튼이 있으면 클릭 핸들러 등록
     const toggleBtn = document.getElementById('nav-toggle');
     if (toggleBtn) {
       toggleBtn.addEventListener('click', function(e) {

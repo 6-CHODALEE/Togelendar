@@ -27,7 +27,7 @@ def community_detail(request, community_id):
     if str(request.user) not in community_members:
         return render(request, '403.html', status=403)
 
-    promises = Promise.objects.filter(community=community).order_by('start_date')
+    promises = Promise.objects.filter(community=community)
 
     # 앨범 대표사진
     main_photos = {}
@@ -345,7 +345,7 @@ def delete_community(request, community_id):
     community = get_object_or_404(CreateCommunity, id=community_id)
 
     if request.method == 'POST':
-        if request.user == community.create_user:  # 보안 check
+        if request.user == community.create_user:  # 보안 확인
             community.delete()  # 관련된 모든 데이터 CASCADE 삭제
             return redirect('mypage:mypage', username=request.user.username)  # 삭제 후 이동할 페이지
         else:
@@ -359,7 +359,7 @@ def delete_community(request, community_id):
 def delete_photo(request, community_id, album_name, photo_id):
     photo = get_object_or_404(Photo, id=photo_id)
 
-    # 추가 검증 (옵션): 해당 photo가 요청한 community/album에 속하는지
+    # 해당 photo가 요청한 community/album에 속하는지
     if photo.promise.community.id != community_id or photo.promise.promise_name != album_name:
         raise Http404("해당 앨범의 사진이 아닙니다.")
 
@@ -428,7 +428,7 @@ from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 import json
-from .models import CommunityMemo, CreateCommunity  # ← 본인 모델명에 맞게 수정
+from .models import CommunityMemo, CreateCommunity  
 
 @require_POST
 @login_required
@@ -446,7 +446,7 @@ def add_memo(request, community_id):
             is_done=False
         )
 
-        return JsonResponse({'id': memo.id, 'content': memo.content})  # 이게 꼭 필요
+        return JsonResponse({'id': memo.id, 'content': memo.content}) 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
@@ -483,6 +483,6 @@ def delete_memo(request, community_id, memo_id):
     try:
         memo = CommunityMemo.objects.get(id=memo_id, community_id=community_id)
         memo.delete()
-        return JsonResponse({'status': 'ok'})  # ✅ 프론트 조건과 일치하게 수정
+        return JsonResponse({'status': 'ok'})  # 프론트 조건과 일치하게 수정
     except CommunityMemo.DoesNotExist:
         return JsonResponse({'status': 'error', 'error': '존재하지 않음'}, status=404)
